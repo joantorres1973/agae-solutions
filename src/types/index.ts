@@ -1,3 +1,5 @@
+export * from './sst';
+
 export type ModuleType = 
   | 'SST'
   | 'ENVIRONMENTAL'

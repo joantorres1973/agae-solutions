@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useApp } from '@/lib/store';
 import {
   HardHat,
@@ -12,25 +12,69 @@ import {
   Plus,
   CheckCircle2,
   FileText,
-  Flame,
-  ArrowRight
+  Search,
+  BookOpen,
+  DollarSign,
+  UserCheck,
+  Car,
+  SlidersHorizontal,
+  ChevronRight,
+  Printer,
+  Sparkles,
+  ArrowRight,
+  TrendingUp,
+  FileCheck2
 } from 'lucide-react';
+import { SstStandardDefinition, SstStandardCycle, SstStandardStatus } from '@/types/sst';
 import { SstHazardItem } from '@/types';
+import { isStandardApplicable, calculateScore } from '@/lib/sst-standards-data';
+import { SstResponsibleModal } from './SstResponsibleModal';
+import { SstBudgetModal } from './SstBudgetModal';
+import { SstStandardDetailModal } from './SstStandardDetailModal';
 
 export const SstModule: React.FC = () => {
-  const { organization, sstHazards, addSstHazard, addFinding, assets, showNotification } = useApp();
+  const {
+    organization,
+    sstStandards,
+    updateStandardStatus,
+    sstResponsible,
+    sstBudgetItems,
+    sstBudgetState,
+    currentSimulatedRole,
+    setCurrentSimulatedRole,
+    sstHazards,
+    addSstHazard,
+    addFinding,
+    assets,
+    showNotification,
+    setActiveTab
+  } = useApp();
 
-  const [activeSubTab, setActiveSubTab] = useState<'STANDARDS' | 'MATRIX' | 'INSPECTIONS' | 'COMMITTEES'>('STANDARDS');
+  // Navigation subtabs
+  const [activeSubTab, setActiveSubTab] = useState<
+    'STANDARDS' | 'RESPONSIBLE' | 'BUDGET' | 'MATRIX' | 'INSPECTIONS' | 'COMMITTEES'
+  >('STANDARDS');
+
+  // Filter state for the 60 Standards
+  const [showOnlyApplicable, setShowOnlyApplicable] = useState(true);
+  const [cycleFilter, setCycleFilter] = useState<'ALL' | SstStandardCycle>('ALL');
+  const [statusFilter, setStatusFilter] = useState<'ALL' | SstStandardStatus>('ALL');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Modals state
+  const [isResponsibleModalOpen, setIsResponsibleModalOpen] = useState(false);
+  const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
+  const [selectedStandardForModal, setSelectedStandardForModal] = useState<SstStandardDefinition | null>(null);
 
   // Inspection form state
   const [inspectAssetId, setInspectAssetId] = useState(assets[0]?.id || '');
   const [inspectCondition, setInspectCondition] = useState('');
   const [inspectSeverity, setInspectSeverity] = useState<'CRITICA' | 'MAYOR' | 'MENOR'>('MAYOR');
-  const [inspectLegal, setInspectLegal] = useState('Resolución 2400/79 & Dec 1072/15');
+  const [inspectLegal, setInspectLegal] = useState('Resolución 2400/79 & Dec 1072/15 Art. 2.2.4.6.24');
 
-  // New Hazard Form state
+  // Hazard Modal form state
   const [showHazardModal, setShowHazardModal] = useState(false);
-  const [hProcess, setHProcess] = useState('Operaciones Logísticas');
+  const [hProcess, setHProcess] = useState('Operaciones Logísticas y Transporte');
   const [hActivity, setHActivity] = useState('');
   const [hClass, setHClass] = useState<SstHazardItem['hazardClass']>('CONDICIONES_SEGURIDAD');
   const [hDesc, setHDesc] = useState('');
@@ -42,37 +86,95 @@ export const SstModule: React.FC = () => {
   const [hAdm, setHAdm] = useState('');
   const [hEpp, setHEpp] = useState('');
 
+  // Dynamic Score Calculation
+  const scoreResult = useMemo(() => {
+    return calculateScore(sstStandards, organization.sstStandardCount);
+  }, [sstStandards, organization.sstStandardCount]);
+
+  // Filtered standards list
+  const filteredStandards = useMemo(() => {
+    return sstStandards.filter(std => {
+      // Applicability filter
+      if (showOnlyApplicable && !isStandardApplicable(std, organization.sstStandardCount)) {
+        return false;
+      }
+      // Cycle filter
+      if (cycleFilter !== 'ALL' && std.cycle !== cycleFilter) {
+        return false;
+      }
+      // Status filter
+      if (statusFilter !== 'ALL' && std.status !== statusFilter) {
+        return false;
+      }
+      // Search query
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        const matchesCode = std.code.toLowerCase().includes(q);
+        const matchesTitle = std.title.toLowerCase().includes(q);
+        const matchesArticle = std.decreto1072Article.toLowerCase().includes(q);
+        const matchesGroup = std.numeralGroup.toLowerCase().includes(q);
+        if (!matchesCode && !matchesTitle && !matchesArticle && !matchesGroup) {
+          return false;
+        }
+      }
+      return true;
+    });
+  }, [sstStandards, showOnlyApplicable, cycleFilter, statusFilter, searchQuery, organization.sstStandardCount]);
+
+  // Cycle breakdown stats
+  const cycleStats = useMemo(() => {
+    const cycles: SstStandardCycle[] = ['PLANEAR', 'HACER', 'VERIFICAR', 'ACTUAR'];
+    return cycles.map(c => {
+      const standardsInCycle = sstStandards.filter(
+        s => s.cycle === c && (!showOnlyApplicable || isStandardApplicable(s, organization.sstStandardCount))
+      );
+      const total = standardsInCycle.length;
+      const complies = standardsInCycle.filter(s => s.status === 'CUMPLE' || s.status === 'NO_APLICA_JUSTIFICADO').length;
+      const inProgress = standardsInCycle.filter(s => s.status === 'EN_PROCESO').length;
+      const percentage = total > 0 ? ((complies + inProgress * 0.5) / total) * 100 : 0;
+      return {
+        cycle: c,
+        total,
+        complies,
+        percentage: Number(percentage.toFixed(0))
+      };
+    });
+  }, [sstStandards, showOnlyApplicable, organization.sstStandardCount]);
+
+  // Handlers
   const handleCreateInspectionFinding = (e: React.FormEvent) => {
     e.preventDefault();
     if (!inspectCondition) return;
 
     const targetAsset = assets.find(a => a.id === inspectAssetId);
 
-    addFinding({
-      title: `Desviación en Inspección: ${targetAsset?.name || 'Área Operativa'}`,
-      originModule: 'SST',
-      originType: 'INSPECTION',
-      originDetail: `Ronda de Inspección SST de Seguridad - Sede ${organization.sites[0]?.name}`,
-      sharedAssetId: targetAsset?.id,
-      sharedAssetName: targetAsset?.name,
-      siteName: targetAsset?.siteName || organization.sites[0]?.name || 'Sede Principal',
-      processName: targetAsset?.processName || 'Operaciones',
-      description: inspectCondition,
-      legalCriterion: inspectLegal,
-      severity: inspectSeverity,
-      status: 'EN_ACPM',
-      reportedBy: 'Inspector SST en Campo'
-    }, true);
+    addFinding(
+      {
+        title: `Desviación en Inspección: ${targetAsset?.name || 'Área Operativa'}`,
+        originModule: 'SST',
+        originType: 'INSPECTION',
+        originDetail: `Inspección de Seguridad Estándar 4.2.4 (Dec 1072) - Sede ${organization.sites[0]?.name}`,
+        sharedAssetId: targetAsset?.id,
+        sharedAssetName: targetAsset?.name,
+        siteName: targetAsset?.siteName || organization.sites[0]?.name || 'Sede Principal',
+        processName: targetAsset?.processName || 'Operaciones',
+        description: inspectCondition,
+        legalCriterion: inspectLegal,
+        severity: inspectSeverity,
+        status: 'EN_ACPM',
+        reportedBy: 'Inspector SST en Campo'
+      },
+      true
+    );
 
     setInspectCondition('');
-    showNotification('¡Inspección registrada! El hallazgo fue transferido automáticamente a la Matriz ACPM');
+    showNotification('¡Inspección registrada! Hallazgo transferido automáticamente a la Matriz ACPM');
   };
 
   const handleAddHazard = (e: React.FormEvent) => {
     e.preventDefault();
     if (!hActivity || !hDesc) return;
 
-    // Interpretación de riesgo GTC 45: NR = NP * NC = (ND * NE) * NC
     const np = hDef * hExp;
     const nr = np * hSev;
     let interp: 'I' | 'II' | 'III' | 'IV' = 'IV';
@@ -117,145 +219,751 @@ export const SstModule: React.FC = () => {
     setHEffects('');
   };
 
+  // Helper for budget totals
+  const isPesvActive = organization.activeModules.includes('PESV');
+  const activeBudgetItems = sstBudgetItems.filter(i => isPesvActive || i.system !== 'PESV');
+  const totalPlannedBudget = activeBudgetItems.reduce((acc, curr) => acc + curr.plannedAmount, 0);
+  const totalExecutedBudget = activeBudgetItems.reduce((acc, curr) => acc + curr.executedAmount, 0);
+
   return (
     <div className="space-y-5 animate-in fade-in duration-300">
-      {/* Module Title Banner */}
-      <div className="glass-card p-4 rounded-xl border border-slate-700/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      
+      {/* Top Banner & Module Header */}
+      <div className="glass-card p-5 rounded-2xl border border-slate-700/80 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="p-1.5 rounded-lg bg-orange-500/20 text-orange-400 border border-orange-500/30">
-              <HardHat className="w-5 h-5" />
+          <div className="flex flex-wrap items-center gap-2.5">
+            <span className="p-2 rounded-xl bg-orange-500/20 text-orange-400 border border-orange-500/30">
+              <HardHat className="w-6 h-6" />
             </span>
-            <h1 className="text-xl font-bold text-white">
-              Sistema de Gestión SST — Colombia
-            </h1>
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl font-black text-white tracking-tight">
+                  Sistema de Gestión de Seguridad y Salud en el Trabajo (SG-SST)
+                </h1>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-950 text-orange-400 border border-orange-700/60 uppercase">
+                  Colombia
+                </span>
+              </div>
+              <p className="text-xs text-slate-300 mt-0.5">
+                Implementación integral de los <strong>60 Estándares Mínimos (Resolución 0312 de 2019)</strong> cotejados con el articulado del <strong>Decreto 1072 de 2015</strong>.
+              </p>
+            </div>
           </div>
-          <p className="text-xs text-slate-400 mt-1">
-            Gestión integral de Seguridad y Salud en el Trabajo bajo <strong>Decreto 1072 de 2015</strong> y <strong>Resolución 0312 de 2019</strong> ({organization.sstStandardCount} Estándares Mínimos).
-          </p>
         </div>
 
-        <div className="flex rounded-lg bg-slate-900/90 p-0.5 border border-slate-700 shrink-0">
+        {/* Global Navigation Subtabs */}
+        <div className="flex flex-wrap gap-1 bg-slate-950/90 p-1 rounded-xl border border-slate-800 text-xs font-semibold shrink-0">
           <button
             onClick={() => setActiveSubTab('STANDARDS')}
-            className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
-              activeSubTab === 'STANDARDS' ? 'bg-orange-600 text-white' : 'text-slate-400 hover:text-white'
+            className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
+              activeSubTab === 'STANDARDS' ? 'bg-orange-600 text-white shadow' : 'text-slate-400 hover:text-white'
             }`}
           >
-            Estándares Mínimos
+            <ShieldCheck className="w-3.5 h-3.5" />
+            <span>60 Estándares ({scoreResult.applicableCount})</span>
           </button>
+
+          <button
+            onClick={() => setActiveSubTab('RESPONSIBLE')}
+            className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
+              activeSubTab === 'RESPONSIBLE' ? 'bg-orange-600 text-white shadow' : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <UserCheck className="w-3.5 h-3.5" />
+            <span>1.1.1 Responsable & Carta</span>
+          </button>
+
+          <button
+            onClick={() => setActiveSubTab('BUDGET')}
+            className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
+              activeSubTab === 'BUDGET' ? 'bg-orange-600 text-white shadow' : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <DollarSign className="w-3.5 h-3.5" />
+            <span>1.1.3 Presupuesto {isPesvActive ? 'Integrado' : 'SST'}</span>
+          </button>
+
           <button
             onClick={() => setActiveSubTab('MATRIX')}
-            className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
-              activeSubTab === 'MATRIX' ? 'bg-orange-600 text-white' : 'text-slate-400 hover:text-white'
+            className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
+              activeSubTab === 'MATRIX' ? 'bg-orange-600 text-white shadow' : 'text-slate-400 hover:text-white'
             }`}
           >
-            Matriz Peligros GTC 45 ({sstHazards.length})
+            <SlidersHorizontal className="w-3.5 h-3.5" />
+            <span>Matriz GTC 45 ({sstHazards.length})</span>
           </button>
+
           <button
             onClick={() => setActiveSubTab('INSPECTIONS')}
-            className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
-              activeSubTab === 'INSPECTIONS' ? 'bg-orange-600 text-white' : 'text-slate-400 hover:text-white'
+            className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
+              activeSubTab === 'INSPECTIONS' ? 'bg-orange-600 text-white shadow' : 'text-slate-400 hover:text-white'
             }`}
           >
-            Inspecciones Operacionales
+            <ClipboardList className="w-3.5 h-3.5" />
+            <span>Inspecciones & ACPM</span>
           </button>
+
           <button
             onClick={() => setActiveSubTab('COMMITTEES')}
-            className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
-              activeSubTab === 'COMMITTEES' ? 'bg-orange-600 text-white' : 'text-slate-400 hover:text-white'
+            className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
+              activeSubTab === 'COMMITTEES' ? 'bg-orange-600 text-white shadow' : 'text-slate-400 hover:text-white'
             }`}
           >
-            COPASST & Convivencia
+            <Users className="w-3.5 h-3.5" />
+            <span>COPASST</span>
           </button>
         </div>
       </div>
 
-      {/* Subtab 1: Estándares Mínimos Res. 0312 */}
+      {/* TOP KPI CARDS: Legal Scoring, Applicability & Role Bar */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Card 1: Official Res. 0312 Compliance Score */}
+        <div className="glass-card p-4 rounded-xl border border-slate-700/80 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                Autoevaluación Res. 0312
+              </span>
+              <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${
+                scoreResult.level === 'ACEPTABLE' ? 'bg-emerald-950 text-emerald-400 border-emerald-800' :
+                scoreResult.level === 'MODERADAMENTE_ACEPTABLE' ? 'bg-amber-950 text-amber-400 border-amber-800' :
+                'bg-rose-950 text-rose-400 border-rose-800'
+              }`}>
+                {scoreResult.level === 'ACEPTABLE' ? 'ACEPTABLE' : scoreResult.level === 'MODERADAMENTE_ACEPTABLE' ? 'MODERADO' : 'CRÍTICO'}
+              </span>
+            </div>
+            <div className="flex items-baseline gap-2 mt-1">
+              <span className="text-3xl font-black text-white font-mono">{scoreResult.percentage}%</span>
+              <span className="text-xs text-slate-400 font-mono">/ 100%</span>
+            </div>
+          </div>
+          <div className="space-y-1.5 mt-2">
+            <div className="w-full bg-slate-800 rounded-full h-2">
+              <div
+                className={`h-2 rounded-full transition-all ${
+                  scoreResult.level === 'ACEPTABLE' ? 'bg-emerald-500' :
+                  scoreResult.level === 'MODERADAMENTE_ACEPTABLE' ? 'bg-amber-500' : 'bg-rose-500'
+                }`}
+                style={{ width: `${Math.min(scoreResult.percentage, 100)}%` }}
+              />
+            </div>
+            <p className="text-[10px] text-slate-400 leading-tight">
+              {scoreResult.legalConsequence}
+            </p>
+          </div>
+        </div>
+
+        {/* Card 2: Company Applicability Standard Count */}
+        <div className="glass-card p-4 rounded-xl border border-slate-700/80 flex flex-col justify-between">
+          <div>
+            <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider block">
+              Clasificación Empresarial
+            </span>
+            <div className="text-lg font-bold text-white mt-1">
+              {organization.sstStandardCount} Estándares Aplicables
+            </div>
+            <p className="text-xs text-slate-300 mt-0.5">
+              Definido por: <strong>{organization.employeeCount} trabajadores</strong> y <strong>Riesgo ARL {organization.riskLevelArl}</strong> (Art. 16 Res. 0312).
+            </p>
+          </div>
+          <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
+            <span>Catálogo Completo: 60</span>
+            <button
+              onClick={() => setShowOnlyApplicable(!showOnlyApplicable)}
+              className="text-cyan-400 hover:underline font-semibold"
+            >
+              {showOnlyApplicable ? 'Ver todos los 60' : 'Ver solo mis estándares'}
+            </button>
+          </div>
+        </div>
+
+        {/* Card 3: Standard 1.1.1 Responsible Status */}
+        <div className="glass-card p-4 rounded-xl border border-slate-700/80 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold text-orange-400 uppercase tracking-wider">
+                Responsable SG-SST (1.1.1)
+              </span>
+              <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-800">
+                Designado
+              </span>
+            </div>
+            <div className="text-sm font-bold text-white mt-1 truncate">
+              {sstResponsible.fullName}
+            </div>
+            <p className="text-[11px] text-slate-400 mt-0.5 truncate">
+              Licencia: {sstResponsible.licenseNumber}
+            </p>
+          </div>
+
+          <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px]">
+            <span className="text-emerald-400 font-medium">Carta Oficial Firmada</span>
+            <button
+              onClick={() => setIsResponsibleModalOpen(true)}
+              className="text-orange-400 hover:text-orange-300 font-semibold"
+            >
+              Ver Carta →
+            </button>
+          </div>
+        </div>
+
+        {/* Card 4: Standard 1.1.3 Integrated Budget Status */}
+        <div className="glass-card p-4 rounded-xl border border-slate-700/80 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">
+                Presupuesto {isPesvActive ? 'Integrado' : 'SST'} (1.1.3)
+              </span>
+              <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-800">
+                {sstBudgetState.status}
+              </span>
+            </div>
+            <div className="text-sm font-bold text-white mt-1 font-mono">
+              ${(totalPlannedBudget / 1000000).toFixed(1)}M COP
+            </div>
+            <p className="text-[11px] text-slate-400 mt-0.5">
+              Ejecutado: ${(totalExecutedBudget / 1000000).toFixed(1)}M ({((totalExecutedBudget / (totalPlannedBudget || 1)) * 100).toFixed(0)}%)
+            </p>
+          </div>
+
+          <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px]">
+            <span className="text-slate-400 truncate">
+              {isPesvActive ? 'SST + PESV Vial' : 'Solo SG-SST'}
+            </span>
+            <button
+              onClick={() => setIsBudgetModalOpen(true)}
+              className="text-emerald-400 hover:text-emerald-300 font-semibold shrink-0"
+            >
+              Gestionar →
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* ============================================================== */}
+      {/* SUBTAB 1: 60 ESTÁNDARES MÍNIMOS (RES 0312 + DECRETO 1072) */}
+      {/* ============================================================== */}
       {activeSubTab === 'STANDARDS' && (
         <div className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="glass-card p-4 rounded-xl border border-slate-700/80">
-              <span className="text-[10px] font-bold text-orange-400 uppercase tracking-wider block">
-                Clasificación de Empresa
-              </span>
-              <div className="text-sm font-bold text-white mt-1">
-                {organization.sstStandardCount} Estándares Mínimos Aplicables
-              </div>
-              <p className="text-xs text-slate-400 mt-1">
-                Autocalculado por: <strong>{organization.employeeCount} trabajadores</strong> y <strong>Riesgo ARL Nivel {organization.riskLevelArl}</strong>.
-              </p>
+          
+          {/* PHVA Cycle Progress Bar Badges */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {cycleStats.map(stat => (
+              <button
+                key={stat.cycle}
+                onClick={() => setCycleFilter(cycleFilter === stat.cycle ? 'ALL' : stat.cycle)}
+                className={`p-3 rounded-xl border text-left transition-all ${
+                  cycleFilter === stat.cycle
+                    ? 'bg-slate-800 border-cyan-500 shadow-md ring-1 ring-cyan-500/50'
+                    : 'bg-slate-900/80 border-slate-800 hover:border-slate-700'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className={`text-[10px] font-bold uppercase tracking-wider ${
+                    stat.cycle === 'PLANEAR' ? 'text-cyan-400' :
+                    stat.cycle === 'HACER' ? 'text-orange-400' :
+                    stat.cycle === 'VERIFICAR' ? 'text-purple-400' : 'text-rose-400'
+                  }`}>
+                    {stat.cycle}
+                  </span>
+                  <span className="font-mono text-xs font-bold text-white">{stat.percentage}%</span>
+                </div>
+                <div className="text-[11px] text-slate-400 mt-1">
+                  {stat.complies} de {stat.total} conformes
+                </div>
+                <div className="w-full bg-slate-950 rounded-full h-1 mt-1.5">
+                  <div
+                    className={`h-1 rounded-full ${
+                      stat.cycle === 'PLANEAR' ? 'bg-cyan-500' :
+                      stat.cycle === 'HACER' ? 'bg-orange-500' :
+                      stat.cycle === 'VERIFICAR' ? 'bg-purple-500' : 'bg-rose-500'
+                    }`}
+                    style={{ width: `${stat.percentage}%` }}
+                  />
+                </div>
+              </button>
+            ))}
+          </div>
+
+          {/* Filter Bar */}
+          <div className="glass-card p-4 rounded-xl border border-slate-700/80 flex flex-col md:flex-row md:items-center justify-between gap-3">
+            {/* Search Input */}
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Buscar por código (ej: 1.1.1), artículo (Dec 1072) o palabra clave..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-slate-950 border border-slate-700 rounded-lg pl-9 pr-3 py-2 text-xs text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-orange-500"
+              />
             </div>
 
-            <div className="glass-card p-4 rounded-xl border border-slate-700/80">
-              <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider block">
-                Cumplimiento de Estándares
-              </span>
-              <div className="text-2xl font-black text-white mt-1">88.5%</div>
-              <div className="w-full bg-slate-800 rounded-full h-1.5 mt-2">
-                <div className="bg-emerald-500 h-1.5 rounded-full w-[88.5%]" />
-              </div>
-            </div>
+            {/* Filters */}
+            <div className="flex flex-wrap items-center gap-2 text-xs">
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value as any)}
+                className="bg-slate-950 border border-slate-700 rounded-lg p-2 text-slate-200"
+              >
+                <option value="ALL">Todos los Estados</option>
+                <option value="CUMPLE">Cumple</option>
+                <option value="EN_PROCESO">En Proceso</option>
+                <option value="NO_CUMPLE">No Cumple</option>
+                <option value="NO_APLICA_JUSTIFICADO">No Aplica Justificado</option>
+              </select>
 
-            <div className="glass-card p-4 rounded-xl border border-slate-700/80">
-              <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider block">
-                Plan Anual de Trabajo 2026
-              </span>
-              <div className="text-sm font-bold text-white mt-1">42 / 48 Actividades en Cronograma</div>
-              <span className="text-[11px] text-cyan-300 font-medium block mt-1">
-                Próxima revisión por la alta dirección: Mayo 2026
-              </span>
+              <button
+                type="button"
+                onClick={() => setShowOnlyApplicable(!showOnlyApplicable)}
+                className={`px-3 py-2 rounded-lg font-semibold transition-all border ${
+                  showOnlyApplicable
+                    ? 'bg-orange-600/20 text-orange-300 border-orange-500/50'
+                    : 'bg-slate-950 text-slate-400 border-slate-700 hover:text-white'
+                }`}
+              >
+                {showOnlyApplicable ? `Solo Aplicables (${scoreResult.applicableCount})` : 'Catálogo 60 Estándares'}
+              </button>
             </div>
           </div>
 
-          <div className="glass-card rounded-xl border border-slate-700/80 p-5 space-y-3">
-            <h2 className="text-xs font-bold text-slate-200 uppercase tracking-wider">
-              Ciclo PHVA de Estándares Mínimos (Resolución 0312 de 2019)
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
-              <div className="p-3 rounded-lg bg-slate-900/80 border border-slate-800">
-                <span className="font-bold text-cyan-400 block mb-1">I. PLANEAR (Recursos y Gestión)</span>
-                <p className="text-slate-300 text-[11px]">Responsable SST asignado, afiliación a seguridad social, COPASST capacitado y Plan Anual aprobado con presupuesto asignado.</p>
-                <span className="text-[10px] text-emerald-400 font-bold block mt-2">100% Conforme</span>
+          {/* Standards Cards Grid / List */}
+          <div className="space-y-3">
+            {filteredStandards.map(std => {
+              const isApplicableForCompany = isStandardApplicable(std, organization.sstStandardCount);
+
+              return (
+                <div
+                  key={std.id}
+                  className={`glass-card rounded-xl p-4 border transition-all hover:border-slate-600 ${
+                    !isApplicableForCompany ? 'opacity-60 bg-slate-950/40 border-slate-800' : 'border-slate-700/80'
+                  }`}
+                >
+                  <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+                    
+                    {/* Left: Standard Identification and Decree 1072 Citation */}
+                    <div className="flex items-start gap-3 flex-1">
+                      <button
+                        onClick={() => setSelectedStandardForModal(std)}
+                        className={`w-12 h-12 rounded-xl shrink-0 font-bold font-mono text-xs flex flex-col items-center justify-center border transition-transform hover:scale-105 ${
+                          std.cycle === 'PLANEAR' ? 'bg-cyan-950 text-cyan-300 border-cyan-800' :
+                          std.cycle === 'HACER' ? 'bg-orange-950 text-orange-300 border-orange-800' :
+                          std.cycle === 'VERIFICAR' ? 'bg-purple-950 text-purple-300 border-purple-800' :
+                          'bg-rose-950 text-rose-300 border-rose-800'
+                        }`}
+                        title="Ver detalle legal y Decreto 1072"
+                      >
+                        <span>{std.code}</span>
+                        <span className="text-[9px] font-sans font-normal opacity-75">{std.weight}%</span>
+                      </button>
+
+                      <div className="space-y-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                            {std.cycle} • {std.numeralGroup}
+                          </span>
+
+                          {/* Applicability badges */}
+                          <div className="flex items-center gap-1">
+                            {std.applicableIn7 && (
+                              <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-blue-950 text-blue-400 border border-blue-800" title="Aplica a empresas de hasta 10 trabajadores">
+                                7
+                              </span>
+                            )}
+                            {std.applicableIn21 && (
+                              <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-800" title="Aplica a empresas de 11 a 50 trabajadores">
+                                21
+                              </span>
+                            )}
+                            <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-purple-950 text-purple-400 border border-purple-800" title="Aplica a empresas de más de 50 trabajadores o riesgo IV y V">
+                              60
+                            </span>
+                          </div>
+
+                          {!isApplicableForCompany && (
+                            <span className="px-1.5 py-0.2 rounded text-[9px] font-medium bg-slate-800 text-slate-400">
+                              (No exigido a su tamaño de empresa)
+                            </span>
+                          )}
+                        </div>
+
+                        <h3
+                          onClick={() => setSelectedStandardForModal(std)}
+                          className="text-xs sm:text-sm font-bold text-white hover:text-orange-400 transition-colors cursor-pointer"
+                        >
+                          {std.title}
+                        </h3>
+
+                        {/* Cotejo con Decreto 1072 de 2015 */}
+                        <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-300">
+                          <span className="text-cyan-400 font-mono font-semibold flex items-center gap-1">
+                            <BookOpen className="w-3 h-3" />
+                            {std.decreto1072Article}
+                          </span>
+                          <span className="text-slate-500">•</span>
+                          <span className="text-slate-400 truncate max-w-md">{std.criterion}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Right: Status selector and Quick Actions */}
+                    <div className="flex flex-wrap items-center gap-2 shrink-0 justify-end pt-2 lg:pt-0 border-t lg:border-t-0 border-slate-800">
+                      {/* Status Selector */}
+                      <select
+                        value={std.status}
+                        onChange={(e) => updateStandardStatus(std.id, e.target.value as SstStandardStatus)}
+                        className={`text-xs font-bold rounded-lg px-2.5 py-1.5 border focus:outline-none cursor-pointer ${
+                          std.status === 'CUMPLE' ? 'bg-emerald-950 text-emerald-300 border-emerald-800' :
+                          std.status === 'EN_PROCESO' ? 'bg-amber-950 text-amber-300 border-amber-800' :
+                          std.status === 'NO_APLICA_JUSTIFICADO' ? 'bg-slate-800 text-slate-300 border-slate-700' :
+                          'bg-rose-950 text-rose-300 border-rose-800'
+                        }`}
+                      >
+                        <option value="CUMPLE">✓ CUMPLE</option>
+                        <option value="EN_PROCESO">⏳ EN PROCESO</option>
+                        <option value="NO_CUMPLE">✕ NO CUMPLE</option>
+                        <option value="NO_APLICA_JUSTIFICADO">⊘ NO APLICA</option>
+                      </select>
+
+                      {/* Specialized Action Shortcuts */}
+                      {std.actionType === 'RESPONSIBLE' ? (
+                        <button
+                          type="button"
+                          onClick={() => setIsResponsibleModalOpen(true)}
+                          className="px-3 py-1.5 rounded-lg bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold transition-all shadow flex items-center gap-1"
+                        >
+                          <UserCheck className="w-3.5 h-3.5" />
+                          <span>Carta & HV</span>
+                        </button>
+                      ) : std.actionType === 'BUDGET' ? (
+                        <button
+                          type="button"
+                          onClick={() => setIsBudgetModalOpen(true)}
+                          className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow flex items-center gap-1"
+                        >
+                          <DollarSign className="w-3.5 h-3.5" />
+                          <span>Presupuesto</span>
+                        </button>
+                      ) : std.actionType === 'HAZARDS' ? (
+                        <button
+                          type="button"
+                          onClick={() => setActiveSubTab('MATRIX')}
+                          className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 text-xs font-semibold border border-slate-700 transition-colors flex items-center gap-1"
+                        >
+                          <span>Matriz GTC 45</span>
+                        </button>
+                      ) : std.actionType === 'INSPECTION' ? (
+                        <button
+                          type="button"
+                          onClick={() => setActiveSubTab('INSPECTIONS')}
+                          className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 text-xs font-semibold border border-slate-700 transition-colors flex items-center gap-1"
+                        >
+                          <span>Inspección</span>
+                        </button>
+                      ) : std.actionType === 'ACPM' ? (
+                        <button
+                          type="button"
+                          onClick={() => setActiveTab('acpm')}
+                          className="px-3 py-1.5 rounded-lg bg-rose-600/30 hover:bg-rose-600 text-rose-200 text-xs font-semibold border border-rose-600/50 transition-colors flex items-center gap-1"
+                        >
+                          <span>ACPM</span>
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setSelectedStandardForModal(std)}
+                          className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium border border-slate-700 transition-colors"
+                        >
+                          Detalles & Dec 1072
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================== */}
+      {/* SUBTAB 2: ESTÁNDAR 1.1.1 RESPONSABLE SG-SST & CARTA OFICIAL */}
+      {/* ============================================================== */}
+      {activeSubTab === 'RESPONSIBLE' && (
+        <div className="space-y-4">
+          <div className="glass-card p-5 rounded-2xl border border-slate-700/80 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="p-1.5 rounded-lg bg-orange-500/20 text-orange-400 border border-orange-500/30">
+                  <UserCheck className="w-5 h-5" />
+                </span>
+                <h2 className="text-base font-bold text-white">
+                  Estándar 1.1.1: Responsable Asignado del SG-SST
+                </h2>
               </div>
-              <div className="p-3 rounded-lg bg-slate-900/80 border border-slate-800">
-                <span className="font-bold text-orange-400 block mb-1">II. HACER (Gestión de la Salud y Peligros)</span>
-                <p className="text-slate-300 text-[11px]">Evaluaciones médicas ocupacionales, custodia de historias clínicas, matriz de peligros GTC 45 y entrega de EPP con ficha técnica.</p>
-                <span className="text-[10px] text-emerald-400 font-bold block mt-2">85.0% Conforme</span>
+              <p className="text-xs text-slate-400 mt-1">
+                Decreto 1072 de 2015 Art. 2.2.4.6.8 Parágrafo 1 y Art. 2.2.4.6.35 • Resolución 0312 de 2019.
+              </p>
+            </div>
+
+            <button
+              onClick={() => setIsResponsibleModalOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold transition-all shadow-md shadow-orange-600/20"
+            >
+              <FileText className="w-4 h-4" />
+              <span>Abrir Editor Completo y Carta Formal</span>
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Responsible Profile Details */}
+            <div className="md:col-span-2 glass-card p-5 rounded-xl border border-slate-700/80 space-y-4">
+              <h3 className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                Identificación y Acreditación del Profesional
+              </h3>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
+                  <span className="text-[10px] text-slate-400 block">Nombre del Responsable</span>
+                  <span className="text-sm font-bold text-white block mt-0.5">{sstResponsible.fullName}</span>
+                  <span className="text-[11px] text-slate-400 block mt-0.5">{sstResponsible.profession}</span>
+                </div>
+
+                <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
+                  <span className="text-[10px] text-slate-400 block">Identificación Oficial</span>
+                  <span className="text-sm font-mono font-bold text-cyan-400 block mt-0.5">
+                    {sstResponsible.docType} {sstResponsible.docNumber}
+                  </span>
+                  <span className="text-[11px] text-slate-400 block mt-0.5">
+                    Nivel: {sstResponsible.professionalRole}
+                  </span>
+                </div>
+
+                <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
+                  <span className="text-[10px] text-slate-400 block">Licencia de SST</span>
+                  <span className="text-xs font-mono font-bold text-emerald-400 block mt-0.5">
+                    {sstResponsible.licenseNumber}
+                  </span>
+                  <span className="text-[10px] text-slate-400 block mt-0.5">
+                    Vigente hasta: {sstResponsible.licenseExpDate}
+                  </span>
+                </div>
+
+                <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
+                  <span className="text-[10px] text-slate-400 block">Capacitación 50h / 20h SST</span>
+                  <span className="text-xs font-semibold text-purple-400 block mt-0.5">
+                    Certificado Válido (MinTrabajo/SENA)
+                  </span>
+                  <span className="text-[10px] text-slate-400 block mt-0.5">
+                    {sstResponsible.courseEntity}
+                  </span>
+                </div>
               </div>
-              <div className="p-3 rounded-lg bg-slate-900/80 border border-slate-800">
-                <span className="font-bold text-purple-400 block mb-1">III. VERIFICAR (Seguimiento e Indicadores)</span>
-                <p className="text-slate-300 text-[11px]">Auditoría anual integral, indicadores de estructura, proceso y resultado (Dec 1072) y revisión gerencial anual.</p>
-                <span className="text-[10px] text-emerald-400 font-bold block mt-2">90.0% Conforme</span>
+
+              {/* Status and Delegation */}
+              <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-2 text-xs">
+                <div className="flex items-center justify-between">
+                  <span className="font-semibold text-slate-300">Delegación de Autoridad Expresa:</span>
+                  <span className="px-2 py-0.5 bg-emerald-950 text-emerald-400 text-[10px] rounded font-bold border border-emerald-800">
+                    Facultad de Parar Labores Activa
+                  </span>
+                </div>
+                <p className="text-slate-400 text-[11px]">
+                  El responsable cuenta con autoridad legal para ordenar la suspensión preventiva de cualquier actividad o tarea de alto riesgo que represente un peligro inminente para la salud de los trabajadores.
+                </p>
               </div>
-              <div className="p-3 rounded-lg bg-slate-900/80 border border-slate-800">
-                <span className="font-bold text-rose-400 block mb-1">IV. ACTUAR (Mejora Continua & ACPM)</span>
-                <p className="text-slate-300 text-[11px]">Acciones preventivas y correctivas basadas en resultados de auditorías, inspecciones e investigaciones de accidentes.</p>
-                <span className="text-[10px] text-emerald-400 font-bold block mt-2">100% Conectado a ACPM</span>
+            </div>
+
+            {/* Quick Soportes & Carta status */}
+            <div className="glass-card p-5 rounded-xl border border-slate-700/80 space-y-3">
+              <h3 className="text-xs font-bold text-slate-200 uppercase tracking-wider">
+                Soportes Exigidos Res. 0312
+              </h3>
+
+              <div className="space-y-2 text-xs">
+                <div className="p-2.5 rounded-lg bg-slate-950 border border-slate-800 flex items-center justify-between">
+                  <div>
+                    <span className="font-semibold text-white block">Hoja de Vida</span>
+                    <span className="text-[10px] text-slate-400">Soportes de idoneidad</span>
+                  </div>
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                </div>
+
+                <div className="p-2.5 rounded-lg bg-slate-950 border border-slate-800 flex items-center justify-between">
+                  <div>
+                    <span className="font-semibold text-white block">Licencia SST</span>
+                    <span className="text-[10px] text-slate-400">Resolución seccional</span>
+                  </div>
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                </div>
+
+                <div className="p-2.5 rounded-lg bg-slate-950 border border-slate-800 flex items-center justify-between">
+                  <div>
+                    <span className="font-semibold text-white block">Certificado Curso 50h</span>
+                    <span className="text-[10px] text-slate-400">Actualización 20h</span>
+                  </div>
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                </div>
+
+                <div className="p-2.5 rounded-lg bg-slate-950 border border-slate-800 flex items-center justify-between">
+                  <div>
+                    <span className="font-semibold text-white block">Carta de Asignación</span>
+                    <span className="text-[10px] text-slate-400">Firmada por empleador</span>
+                  </div>
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                </div>
               </div>
+
+              <button
+                type="button"
+                onClick={() => setIsResponsibleModalOpen(true)}
+                className="w-full py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold transition-colors mt-2"
+              >
+                Ver Documento y Firmas →
+              </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Subtab 2: Matriz GTC 45 */}
-      {activeSubTab === 'MATRIX' && (
+      {/* ============================================================== */}
+      {/* SUBTAB 3: ESTÁNDAR 1.1.3 PRESUPUESTO INTEGRADO (SST + PESV) */}
+      {/* ============================================================== */}
+      {activeSubTab === 'BUDGET' && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="glass-card p-5 rounded-2xl border border-slate-700/80 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <h2 className="text-sm font-bold text-white">
-                Identificación de Peligros, Evaluación y Valoración de Riesgos (GTC 45)
-              </h2>
-              <p className="text-xs text-slate-400">
-                Jerarquía de controles: Eliminación, Sustitución, Ingeniería, Administrativos y EPP.
+              <div className="flex items-center gap-2">
+                <span className="p-1.5 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                  <DollarSign className="w-5 h-5" />
+                </span>
+                <h2 className="text-base font-bold text-white">
+                  Estándar 1.1.3: Asignación de Recursos y Presupuesto Integrado
+                </h2>
+              </div>
+              <p className="text-xs text-slate-300 mt-1">
+                Decreto 1072 de 2015 Art. 2.2.4.6.8 Numeral 4 {isPesvActive ? '• Integrado con PESV Vial (Res. 40595 de 2022 Paso 3)' : ''}.
               </p>
             </div>
+
+            <button
+              onClick={() => setIsBudgetModalOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow-md shadow-emerald-600/20"
+            >
+              <DollarSign className="w-4 h-4" />
+              <span>Abrir Gestor Presupuestal Completo</span>
+            </button>
+          </div>
+
+          {/* Quick Summary of Budget */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="glass-card p-4 rounded-xl border border-slate-700/80">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                Total Presupuestado 2026
+              </span>
+              <div className="text-2xl font-black text-white font-mono mt-1">
+                ${totalPlannedBudget.toLocaleString('es-CO')} COP
+              </div>
+              <span className="text-[11px] text-emerald-400 font-semibold block mt-1">
+                {isPesvActive ? 'Presupuesto Integrado SST + Flota PESV' : 'Presupuesto SG-SST'}
+              </span>
+            </div>
+
+            <div className="glass-card p-4 rounded-xl border border-slate-700/80">
+              <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider block">
+                Total Ejecutado en Recursos
+              </span>
+              <div className="text-2xl font-black text-white font-mono mt-1">
+                ${totalExecutedBudget.toLocaleString('es-CO')} COP
+              </div>
+              <span className="text-[11px] text-cyan-300 font-semibold block mt-1">
+                {((totalExecutedBudget / (totalPlannedBudget || 1)) * 100).toFixed(1)}% ejecutado
+              </span>
+            </div>
+
+            <div className="glass-card p-4 rounded-xl border border-slate-700/80">
+              <span className="text-[10px] font-bold text-purple-400 uppercase tracking-wider block">
+                Aprobación Gerencial
+              </span>
+              <div className="text-base font-bold text-white mt-1">
+                {sstBudgetState.status === 'APROBADO_GERENCIA' ? '✓ Aprobado por Gerencia' : sstBudgetState.status}
+              </div>
+              <span className="text-[10px] text-slate-400 block mt-1">
+                {sstBudgetState.approvalDate || 'Vigencia Fiscal 2026'}
+              </span>
+            </div>
+          </div>
+
+          {/* Budget Items Preview */}
+          <div className="glass-card rounded-xl border border-slate-700/80 p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xs font-bold text-slate-200 uppercase tracking-wider">
+                Líneas Presupuestales Activas ({activeBudgetItems.length})
+              </h3>
+              <button
+                onClick={() => setIsBudgetModalOpen(true)}
+                className="text-emerald-400 text-xs hover:underline font-semibold"
+              >
+                Ver todos y editar →
+              </button>
+            </div>
+
+            <div className="space-y-2 text-xs">
+              {activeBudgetItems.slice(0, 4).map(item => (
+                <div key={item.id} className="p-3 rounded-lg bg-slate-950 border border-slate-800 flex items-center justify-between">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className={`px-1.5 py-0.2 rounded text-[9px] font-bold border ${
+                        item.system === 'SST' ? 'bg-orange-950 text-orange-400 border-orange-800' : 'bg-cyan-950 text-cyan-400 border-cyan-800'
+                      }`}>
+                        {item.system}
+                      </span>
+                      <span className="font-semibold text-white">{item.concept}</span>
+                    </div>
+                    <span className="text-[11px] text-slate-400 mt-0.5 block">{item.responsible}</span>
+                  </div>
+                  <div className="text-right">
+                    <span className="font-mono font-bold text-white block">
+                      ${item.plannedAmount.toLocaleString('es-CO')}
+                    </span>
+                    <span className="text-[10px] text-emerald-400 font-mono">
+                      Ejec: ${item.executedAmount.toLocaleString('es-CO')}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================== */}
+      {/* SUBTAB 4: MATRIZ GTC 45 (IDENTIFICACIÓN DE PELIGROS) */}
+      {/* ============================================================== */}
+      {activeSubTab === 'MATRIX' && (
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-orange-400 bg-orange-950/80 px-2 py-0.5 rounded border border-orange-800">
+                  Estándar 4.1.1 & 4.1.2 (Res. 0312)
+                </span>
+                <span className="text-[10px] font-semibold text-slate-400">
+                  Decreto 1072 de 2015 Art. 2.2.4.6.15
+                </span>
+              </div>
+              <h2 className="text-sm sm:text-base font-bold text-white mt-1">
+                Identificación de Peligros, Evaluación y Valoración de Riesgos (GTC 45)
+              </h2>
+            </div>
+
             <button
               onClick={() => setShowHazardModal(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold transition-all shadow"
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold transition-all shadow-md shadow-orange-600/20"
             >
               <Plus className="w-3.5 h-3.5" />
-              + Identificar Nuevo Peligro
+              <span>+ Identificar Nuevo Peligro</span>
             </button>
           </div>
 
@@ -270,15 +978,13 @@ export const SstModule: React.FC = () => {
                     <span className="text-xs font-bold text-white">{haz.process} — {haz.activity}</span>
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    <span className={`px-2 py-0.5 text-xs font-bold rounded ${
-                      haz.riskLevelInterpretation === 'I' ? 'bg-rose-950 text-rose-300 border border-rose-800' :
-                      haz.riskLevelInterpretation === 'II' ? 'bg-amber-950 text-amber-300 border border-amber-800' :
-                      'bg-emerald-950 text-emerald-300 border border-emerald-800'
-                    }`}>
-                      Nivel de Riesgo {haz.riskLevelInterpretation} ({haz.acceptability})
-                    </span>
-                  </div>
+                  <span className={`px-2 py-0.5 text-xs font-bold rounded ${
+                    haz.riskLevelInterpretation === 'I' ? 'bg-rose-950 text-rose-300 border border-rose-800' :
+                    haz.riskLevelInterpretation === 'II' ? 'bg-amber-950 text-amber-300 border border-amber-800' :
+                    'bg-emerald-950 text-emerald-300 border border-emerald-800'
+                  }`}>
+                    Nivel de Riesgo {haz.riskLevelInterpretation} ({haz.acceptability})
+                  </span>
                 </div>
 
                 <div className="text-xs text-slate-300 grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -289,7 +995,7 @@ export const SstModule: React.FC = () => {
                   </div>
 
                   <div className="bg-slate-900/60 p-2.5 rounded border border-slate-800">
-                    <span className="text-slate-400 block text-[10px] font-semibold">Controles Existentes e Implementados:</span>
+                    <span className="text-slate-400 block text-[10px] font-semibold">Controles Jerarquizados (Dec 1072 Art. 2.2.4.6.24):</span>
                     <div className="space-y-0.5 mt-0.5 text-[11px]">
                       {haz.controls.elimination && <div>• <strong className="text-rose-400">Eliminación:</strong> {haz.controls.elimination}</div>}
                       {haz.controls.engineering && <div>• <strong className="text-cyan-400">Ingeniería:</strong> {haz.controls.engineering}</div>}
@@ -304,16 +1010,26 @@ export const SstModule: React.FC = () => {
         </div>
       )}
 
-      {/* Subtab 3: Inspecciones de Seguridad con flujo directo a Hallazgos/ACPM */}
+      {/* ============================================================== */}
+      {/* SUBTAB 5: INSPECCIONES & CONEXIÓN CON MOTOR ACPM */}
+      {/* ============================================================== */}
       {activeSubTab === 'INSPECTIONS' && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
           <div className="lg:col-span-5 glass-card rounded-xl p-5 border border-slate-700/80">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-orange-400 bg-orange-950/80 px-2 py-0.5 rounded border border-orange-800">
+                Estándar 4.2.4 (Res. 0312)
+              </span>
+              <span className="text-[10px] text-slate-400">
+                Dec 1072 Art. 2.2.4.6.24 Num. 5
+              </span>
+            </div>
             <h2 className="text-sm font-bold text-white flex items-center gap-2 mb-2">
               <ClipboardList className="w-4 h-4 text-orange-400" />
               Ejecutar Inspección Operacional en Campo
             </h2>
             <p className="text-xs text-slate-400 mb-4">
-              Principio: Cualquier desviación identificada en una inspección <strong>NO requiere volver a digitarse</strong>. Se envía directamente al Motor Central de Hallazgos y a la Matriz ACPM.
+              Cualquier desviación o condición subestándar identificada en la inspección se transfiere <strong>automáticamente a la Matriz ACPM</strong> sin doble digitación.
             </p>
 
             <form onSubmit={handleCreateInspectionFinding} className="space-y-3 text-xs">
@@ -339,7 +1055,7 @@ export const SstModule: React.FC = () => {
                   required
                   value={inspectCondition}
                   onChange={(e) => setInspectCondition(e.target.value)}
-                  placeholder="Ej: Extintor con manómetro en zona de recarga, pasador forzado o sin tarjeta de inspección..."
+                  placeholder="Ej: Extintor con manómetro en zona de recarga o pasador forzado..."
                   className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-slate-200 focus:outline-none focus:border-orange-500"
                 />
               </div>
@@ -413,21 +1129,23 @@ export const SstModule: React.FC = () => {
         </div>
       )}
 
-      {/* Subtab 4: Comités */}
+      {/* ============================================================== */}
+      {/* SUBTAB 6: COMITÉS (COPASST Y CONVIVENCIA) */}
+      {/* ============================================================== */}
       {activeSubTab === 'COMMITTEES' && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="glass-card rounded-xl p-5 border border-slate-700/80 space-y-3">
             <div className="flex items-center justify-between">
               <h2 className="text-sm font-bold text-white flex items-center gap-2">
                 <Users className="w-4 h-4 text-cyan-400" />
-                COPASST (Comité Paritario de SST)
+                COPASST (Estándar 1.1.6 & 1.1.7)
               </h2>
               <span className="text-[10px] px-2 py-0.5 bg-emerald-950 text-emerald-400 rounded font-semibold border border-emerald-800">
                 Periodo 2025 - 2027
               </span>
             </div>
             <p className="text-xs text-slate-300">
-              Conformado por 4 representantes de la administración y 4 de los trabajadores con sus respectivos suplentes según la Resolución 2013 de 1986.
+              Conformado según Resolución 2013 de 1986 y Decreto 1072 Art. 2.2.4.6.8 Numeral 9.
             </p>
             <div className="p-3 rounded bg-slate-900 border border-slate-800 text-xs space-y-1">
               <div className="text-slate-300"><strong>Presidente:</strong> Carlos Mendoza (Principal Empresa)</div>
@@ -440,14 +1158,14 @@ export const SstModule: React.FC = () => {
             <div className="flex items-center justify-between">
               <h2 className="text-sm font-bold text-white flex items-center gap-2">
                 <HeartPulse className="w-4 h-4 text-rose-400" />
-                Comité de Convivencia Laboral
+                Comité de Convivencia Laboral (Estándar 1.1.8)
               </h2>
               <span className="text-[10px] px-2 py-0.5 bg-emerald-950 text-emerald-400 rounded font-semibold border border-emerald-800">
                 Vigente (Res. 652/2012)
               </span>
             </div>
             <p className="text-xs text-slate-300">
-              Órgano de prevención del acoso laboral y promoción de un clima laboral armónico.
+              Órgano de prevención del acoso laboral (Ley 1010/2006) y promoción de un clima laboral armónico.
             </p>
             <div className="p-3 rounded bg-slate-900 border border-slate-800 text-xs space-y-1">
               <div className="text-slate-300"><strong>Casos recibidos 2026:</strong> 0 quejas activas</div>
@@ -458,7 +1176,33 @@ export const SstModule: React.FC = () => {
         </div>
       )}
 
-      {/* Modal Add Hazard */}
+      {/* ============================================================== */}
+      {/* MODALS */}
+      {/* ============================================================== */}
+
+      {/* 1. Modal Responsable SG-SST & Carta Oficial */}
+      <SstResponsibleModal
+        isOpen={isResponsibleModalOpen}
+        onClose={() => setIsResponsibleModalOpen(false)}
+      />
+
+      {/* 2. Modal Presupuesto Integrado SST + PESV */}
+      <SstBudgetModal
+        isOpen={isBudgetModalOpen}
+        onClose={() => setIsBudgetModalOpen(false)}
+      />
+
+      {/* 3. Modal Detalle Legal y Calificación de Estándar */}
+      <SstStandardDetailModal
+        standard={selectedStandardForModal}
+        isOpen={Boolean(selectedStandardForModal)}
+        onClose={() => setSelectedStandardForModal(null)}
+        onOpenResponsibleModal={() => setIsResponsibleModalOpen(true)}
+        onOpenBudgetModal={() => setIsBudgetModalOpen(true)}
+        onNavigateToTab={(tab) => setActiveTab(tab)}
+      />
+
+      {/* 4. Modal Add Hazard GTC 45 */}
       {showHazardModal && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
           <form onSubmit={handleAddHazard} className="bg-slate-900 border border-slate-700 rounded-2xl max-w-xl w-full p-5 space-y-4 shadow-2xl">
@@ -503,7 +1247,7 @@ export const SstModule: React.FC = () => {
                   required
                   value={hActivity}
                   onChange={(e) => setHActivity(e.target.value)}
-                  placeholder="Ej: Mantenimiento correctivo de motores diesel..."
+                  placeholder="Ej: Mantenimiento preventivo de motores..."
                   className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-slate-200"
                 />
               </div>
@@ -515,7 +1259,7 @@ export const SstModule: React.FC = () => {
                   required
                   value={hDesc}
                   onChange={(e) => setHDesc(e.target.value)}
-                  placeholder="Ej: Inhalación de vapores orgánicos y riesgo de quemadura por superficies calientes..."
+                  placeholder="Ej: Inhalación de vapores orgánicos..."
                   className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-slate-200"
                 />
               </div>

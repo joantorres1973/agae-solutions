@@ -16,7 +16,15 @@ import {
   SstHazardItem,
   ModuleType,
   AuditChecklistStatus,
-  AcpmStatus
+  AcpmStatus,
+  SstStandardDefinition,
+  SstStandardStatus,
+  SstResponsibleProfile,
+  SstBudgetItem,
+  SstBudgetState,
+  SimulatedRole,
+  DigitalSignatureInfo,
+  CopasstBudgetReview
 } from '@/types';
 import {
   initialOrganization,
@@ -32,6 +40,12 @@ import {
   initialPgirsRecords,
   initialSstHazards
 } from './mock-data';
+import {
+  master60Standards,
+  initialSstResponsible,
+  initialSstBudgetItems,
+  initialSstBudgetState
+} from './sst-standards-data';
 
 interface AppContextType {
   // Organization
@@ -85,9 +99,27 @@ interface AppContextType {
   addPesvVehicle: (vehicle: Omit<PesvVehicle, 'id'>) => void;
   addPesvDriver: (driver: Omit<PesvDriver, 'id'>) => void;
 
-  // SST
+  // SST (Resolución 0312 / Decreto 1072 - 60 Estándares)
   sstHazards: SstHazardItem[];
   addSstHazard: (hazard: Omit<SstHazardItem, 'id'>) => void;
+  sstStandards: SstStandardDefinition[];
+  updateStandardStatus: (standardId: string, status: SstStandardStatus, notes?: string) => void;
+  attachEvidenceToStandard: (standardId: string, evidenceId: string) => void;
+  sstResponsible: SstResponsibleProfile;
+  updateSstResponsible: (profile: Partial<SstResponsibleProfile>) => void;
+  sstBudgetItems: SstBudgetItem[];
+  addSstBudgetItem: (item: Omit<SstBudgetItem, 'id'>) => void;
+  updateSstBudgetItem: (id: string, item: Partial<SstBudgetItem>) => void;
+  deleteSstBudgetItem: (id: string) => void;
+  sstBudgetState: SstBudgetState;
+  updateSstBudgetApproval: (status: SstBudgetState['status'], comment?: string, role?: SimulatedRole, userName?: string) => void;
+  flagBudgetItemObservation: (itemId: string, comment: string) => void;
+  resolveBudgetItemObservation: (itemId: string) => void;
+  signBudgetParty: (party: 'manager' | 'financial' | 'sstLeader', signerData: DigitalSignatureInfo) => void;
+  addCopasstBudgetReview: (review: Omit<CopasstBudgetReview, 'id' | 'timestamp'>) => void;
+  updateFinancialOfficerConfig: (title: string, name: string, doc: string) => void;
+  currentSimulatedRole: SimulatedRole;
+  setCurrentSimulatedRole: (role: SimulatedRole) => void;
 
   // Global search & filters
   searchQuery: string;
@@ -114,6 +146,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [pesvDrivers, setPesvDrivers] = useState<PesvDriver[]>(initialPesvDrivers);
   const [pgirsRecords, setPgirsRecords] = useState<PgirsRecord[]>(initialPgirsRecords);
   const [sstHazards, setSstHazards] = useState<SstHazardItem[]>(initialSstHazards);
+  const [sstStandards, setSstStandards] = useState<SstStandardDefinition[]>(master60Standards);
+  const [sstResponsible, setSstResponsible] = useState<SstResponsibleProfile>(initialSstResponsible);
+  const [sstBudgetItems, setSstBudgetItems] = useState<SstBudgetItem[]>(initialSstBudgetItems);
+  const [sstBudgetState, setSstBudgetState] = useState<SstBudgetState>(initialSstBudgetState);
+  const [currentSimulatedRole, setCurrentSimulatedRole] = useState<SimulatedRole>('LIDER_SST');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'info' | 'warning' } | null>(null);
 
@@ -483,6 +520,211 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     showNotification(`Peligro GTC 45 registrado para el proceso ${newHazard.process}`);
   };
 
+  const updateStandardStatus = (standardId: string, status: SstStandardStatus, notes?: string) => {
+    setSstStandards(prev => prev.map(s => {
+      if (s.id !== standardId) return s;
+      return { ...s, status, notes: notes !== undefined ? notes : s.notes };
+    }));
+    showNotification(`Estado de Estándar actualizado a: ${status}`);
+  };
+
+  const attachEvidenceToStandard = (standardId: string, evidenceId: string) => {
+    setSstStandards(prev => prev.map(s => {
+      if (s.id !== standardId) return s;
+      if (s.evidenceIds.includes(evidenceId)) return s;
+      return { ...s, evidenceIds: [...s.evidenceIds, evidenceId] };
+    }));
+    showNotification('Evidencia vinculada exitosamente al Estándar');
+  };
+
+  const updateSstResponsible = (profileUpdate: Partial<SstResponsibleProfile>) => {
+    setSstResponsible(prev => ({ ...prev, ...profileUpdate }));
+    showNotification('Perfil del Responsable SG-SST actualizado satisfactoriamente');
+  };
+
+  const addSstBudgetItem = (itemData: Omit<SstBudgetItem, 'id'>) => {
+    const newItem: SstBudgetItem = {
+      ...itemData,
+      id: `b-${itemData.system.toLowerCase()}-${Date.now()}`
+    };
+    setSstBudgetItems(prev => [newItem, ...prev]);
+    showNotification(`Rubro presupuestal "${newItem.concept}" agregado exitosamente`);
+  };
+
+  const updateSstBudgetItem = (id: string, itemData: Partial<SstBudgetItem>) => {
+    setSstBudgetItems(prev => prev.map(i => i.id === id ? { ...i, ...itemData } : i));
+    showNotification('Rubro presupuestal modificado');
+  };
+
+  const deleteSstBudgetItem = (id: string) => {
+    setSstBudgetItems(prev => prev.filter(i => i.id !== id));
+    showNotification('Rubro presupuestal eliminado');
+  };
+
+  const updateSstBudgetApproval = (
+    newStatus: SstBudgetState['status'],
+    comment?: string,
+    role: SimulatedRole = currentSimulatedRole,
+    userName = 'Usuario Autorizado'
+  ) => {
+    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    setSstBudgetState(prev => {
+      const historyEntry = {
+        id: `bh-${Date.now()}`,
+        timestamp,
+        role: (role === 'GERENCIA' ? 'GERENCIA' : role === 'DIRECTOR_FINANCIERO' ? 'DIRECTOR_FINANCIERO' : 'LIDER_SST') as any,
+        userName,
+        action: newStatus === 'APROBADO_GERENCIA' 
+          ? 'Aprobación oficial del Presupuesto Integrado por Gerencia' 
+          : newStatus === 'EN_REVISION'
+          ? 'Presupuesto remitido a revisión gerencial y financiera'
+          : newStatus === 'RECHAZADO'
+          ? 'Presupuesto devuelto con observaciones para ajuste'
+          : 'Presupuesto retornado a estado borrador',
+        comment
+      };
+      return {
+        ...prev,
+        status: newStatus,
+        approvedBy: newStatus === 'APROBADO_GERENCIA' ? userName : prev.approvedBy,
+        approvalDate: newStatus === 'APROBADO_GERENCIA' ? timestamp : prev.approvalDate,
+        approvalNotes: comment || prev.approvalNotes,
+        history: [historyEntry, ...prev.history]
+      };
+    });
+    showNotification(`Estado de aprobación del Presupuesto: ${newStatus}`);
+  };
+
+  const flagBudgetItemObservation = (itemId: string, comment: string) => {
+    setSstBudgetItems(prev => prev.map(item => {
+      if (item.id !== itemId) return item;
+      return {
+        ...item,
+        hasObservation: true,
+        observationComment: comment,
+        observationResolved: false
+      };
+    }));
+
+    const item = sstBudgetItems.find(i => i.id === itemId);
+    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    setSstBudgetState(prev => ({
+      ...prev,
+      status: 'RECHAZADO',
+      history: [
+        {
+          id: `bh-${Date.now()}`,
+          timestamp,
+          role: 'GERENCIA',
+          userName: prev.signatures.manager?.name || 'Gerencia General',
+          action: `Observación registrada en rubro: "${item?.concept || itemId}"`,
+          comment
+        },
+        ...prev.history
+      ]
+    }));
+    showNotification(`Rubro objetado con observación gerencial. Queda resaltado para ajuste.`);
+  };
+
+  const resolveBudgetItemObservation = (itemId: string) => {
+    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    setSstBudgetItems(prev => prev.map(item => {
+      if (item.id !== itemId) return item;
+      return {
+        ...item,
+        hasObservation: false,
+        observationResolved: true,
+        resolvedAt: timestamp
+      };
+    }));
+
+    const item = sstBudgetItems.find(i => i.id === itemId);
+    setSstBudgetState(prev => ({
+      ...prev,
+      status: 'EN_REVISION',
+      history: [
+        {
+          id: `bh-${Date.now()}`,
+          timestamp,
+          role: 'DIRECTOR_FINANCIERO',
+          userName: prev.financialOfficerName,
+          action: `Rubro subsanado y corregido: "${item?.concept || itemId}"`,
+          comment: 'Ajuste completado por el encargado financiero. Remitido a Gerencia y Líder SST para aprobación y firma.'
+        },
+        ...prev.history
+      ]
+    }));
+    showNotification(`✓ Rubro "${item?.concept || ''}" corregido y marcado como subsanado. Notificación enviada a Gerencia General y Líder SST.`);
+  };
+
+  const signBudgetParty = (party: 'manager' | 'financial' | 'sstLeader', signerData: DigitalSignatureInfo) => {
+    setSstBudgetState(prev => {
+      const updatedSignatures = {
+        ...prev.signatures,
+        [party]: signerData
+      };
+
+      const allSigned = Boolean(updatedSignatures.manager && updatedSignatures.financial && updatedSignatures.sstLeader);
+      const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+      const partyLabel = party === 'manager' ? 'Gerencia General' : party === 'financial' ? prev.financialRoleTitle : 'Líder SG-SST';
+
+      const historyEntry = {
+        id: `bh-sig-${Date.now()}`,
+        timestamp,
+        role: (party === 'manager' ? 'GERENCIA' : party === 'financial' ? 'DIRECTOR_FINANCIERO' : 'LIDER_SST') as any,
+        userName: signerData.name,
+        action: `Firma Digital estampada por ${partyLabel} (${signerData.token})`,
+        comment: allSigned ? 'Presupuesto completamente firmado y validado por todas las partes legalmente requeridas.' : undefined
+      };
+
+      return {
+        ...prev,
+        signatures: updatedSignatures,
+        status: allSigned ? 'APROBADO_GERENCIA' : prev.status,
+        history: [historyEntry, ...prev.history]
+      };
+    });
+
+    showNotification(`Firma digital de ${signerData.name} estampada con éxito`);
+  };
+
+  const addCopasstBudgetReview = (reviewData: Omit<CopasstBudgetReview, 'id' | 'timestamp'>) => {
+    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    const newReview: CopasstBudgetReview = {
+      ...reviewData,
+      id: `cop-rev-${Date.now()}`,
+      timestamp
+    };
+
+    setSstBudgetState(prev => ({
+      ...prev,
+      copasstReviews: [newReview, ...prev.copasstReviews],
+      history: [
+        {
+          id: `bh-cop-${Date.now()}`,
+          timestamp,
+          role: 'COPASST',
+          userName: reviewData.reviewedBy,
+          action: `Revisión mensual de presupuesto en ${reviewData.actaNumber} (Concepto: ${reviewData.status})`,
+          comment: reviewData.observations
+        },
+        ...prev.history
+      ]
+    }));
+
+    showNotification(`Constancia de revisión del COPASST registrada para ${reviewData.actaNumber}`);
+  };
+
+  const updateFinancialOfficerConfig = (title: string, name: string, doc: string) => {
+    setSstBudgetState(prev => ({
+      ...prev,
+      financialRoleTitle: title,
+      financialOfficerName: name,
+      financialOfficerDoc: doc
+    }));
+    showNotification(`Configuración del encargado de presupuesto actualizada a: ${title}`);
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -519,6 +761,24 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         addPesvDriver,
         sstHazards,
         addSstHazard,
+        sstStandards,
+        updateStandardStatus,
+        attachEvidenceToStandard,
+        sstResponsible,
+        updateSstResponsible,
+        sstBudgetItems,
+        addSstBudgetItem,
+        updateSstBudgetItem,
+        deleteSstBudgetItem,
+        sstBudgetState,
+        updateSstBudgetApproval,
+        flagBudgetItemObservation,
+        resolveBudgetItemObservation,
+        signBudgetParty,
+        addCopasstBudgetReview,
+        updateFinancialOfficerConfig,
+        currentSimulatedRole,
+        setCurrentSimulatedRole,
         searchQuery,
         setSearchQuery,
         notification,
