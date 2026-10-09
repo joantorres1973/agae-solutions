@@ -552,8 +552,8 @@ export const master60Standards: SstStandardDefinition[] = [
     code: '2.2.1',
     cycle: 'PLANEAR',
     numeralGroup: '2.2 Archivo y Retención Documental',
-    title: 'Archivo y Retención Documental del SG-SST Garantizada por 20 Años',
-    criterion: 'Contar con un sistema de archivo y retención documental que conserve los registros de SST por mínimo 20 años desde el cese del trabajador.',
+    title: 'Procedimiento de Control Documental, Repositorio Central y Retención por 20 Años',
+    criterion: 'Establecer y mantener el procedimiento de control documental, sistema de codificación estandarizado, repositorio documental centralizado y listado maestro, garantizando la conservación de los registros obligatorios por mínimo 20 años conforme al Art. 2.2.4.6.13 del Decreto 1072 de 2015.',
     decreto1072Article: 'Art. 2.2.4.6.12 y Art. 2.2.4.6.13',
     decreto1072Title: 'Documentación y Conservación de los documentos',
     decreto1072Excerpt: 'El empleador debe conservar los registros y documentos que soportan el SG-SST de manera controlada, garantizando que sean legibles, identificables y protegidos contra daño por mínimo veinte (20) años...',
@@ -561,10 +561,10 @@ export const master60Standards: SstStandardDefinition[] = [
     applicableIn7: false,
     applicableIn21: true,
     applicableIn60: true,
-    modeOfVerification: 'Constatar el procedimiento de archivo físico o digital con copias de seguridad y tiempos de retención definidos.',
+    modeOfVerification: 'Verificar el Procedimiento de Control Documental editable formalizado (PR-SGSST-GEN-001), la estructura de codificación automática por serie documental, el repositorio central transversal con trazabilidad a módulos de origen, el listado maestro exportable y la matriz de retención legal (Art. 2.2.4.6.12 y 2.2.4.6.13).',
     status: 'CUMPLE',
     evidenceIds: [],
-    actionType: 'GENERAL'
+    actionType: 'DOCUMENTATION'
   },
   {
     id: 'std-2.3.1',

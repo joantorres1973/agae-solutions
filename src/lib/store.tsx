@@ -82,7 +82,12 @@ import {
   InitialEvaluationState,
   InitialEvaluationItem,
   InitialEvaluationAction,
-  InitialEvaluationOverallStatus
+  InitialEvaluationOverallStatus,
+  DocumentManagementState,
+  DocumentControlProcedure,
+  ControlledDocument,
+  DocumentTypeCatalogItem,
+  DocumentProcessCatalogItem
 } from '@/types';
 import { initialPilaRecords } from './mock-pila-data';
 import { initialCopasstGlobalState } from './copasst-mock-data';
@@ -90,6 +95,12 @@ import { initialCclGlobalState } from './ccl-mock-data';
 import { INITIAL_TRAINING_STATE } from './training-mock-data';
 import { INITIAL_SST_POLICY, INITIAL_SST_OBJECTIVES } from './policy-objectives-mock';
 import { INITIAL_EVALUATION_STATE, calculateInitialEvaluationMetrics } from './initial-evaluation-mock';
+import {
+  INITIAL_DOCUMENT_MANAGEMENT_STATE,
+  generateNextDocumentCode,
+  calculateDocumentMetrics,
+  DEFAULT_CONTROL_PROCEDURE
+} from './document-management-mock';
 import { initialMasterWorkers } from './worker-mock-data';
 import {
   initialOrganization,
@@ -390,6 +401,42 @@ interface AppContextType {
   finalizeEvaluationSnapshot: () => void;
   exportEvaluationActionToAcpm: (actionId: string) => void;
 
+  // Archivo y Retención Documental (Decreto 1072/2015 Art. 2.2.4.6.12 & 2.2.4.6.13, Estándar 2.2.1)
+  documentManagementState: DocumentManagementState;
+  updateControlProcedureSection: (sectionId: string, content: string, notes?: string) => void;
+  resetControlProcedureSectionToDefault: (sectionId: string) => void;
+  updateControlProcedureApproval: (approvalData: {
+    preparedBy?: { name: string; role: string; date: string; signatureText?: string };
+    reviewedBy?: { name: string; role: string; date: string; signatureText?: string };
+    approvedBy?: { name: string; role: string; date: string; signatureText?: string };
+    status?: DocumentControlProcedure['status'];
+    version?: string;
+  }) => void;
+  approveDocumentControlProcedure: (approvedByName: string, approvedByRole: string) => void;
+  addControlledDocument: (doc: Omit<ControlledDocument, 'id' | 'code' | 'currentVersion' | 'versionHistory' | 'createdAt' | 'updatedAt'> & { customConsecutive?: number }) => ControlledDocument;
+  updateControlledDocument: (id: string, updates: Partial<ControlledDocument>) => void;
+  createNewDocumentVersion: (id: string, changeSummary: string, approvedBy: string, fileUrl?: string) => void;
+  addExternalDocument: (data: {
+    title: string;
+    description: string;
+    system: ControlledDocument['system'];
+    processId: string;
+    documentTypeId: string;
+    responsible: string;
+    externalSource: string;
+    externalIssueDate: string;
+    externalCode?: string;
+    fileUrl?: string;
+    retentionYears?: number;
+    retentionBasis?: string;
+    confidentiality?: ControlledDocument['confidentiality'];
+    physicalLocation?: string;
+  }) => ControlledDocument;
+  addDocumentTypeCatalog: (typeItem: Omit<DocumentTypeCatalogItem, 'isSystemDefault'>) => void;
+  addDocumentProcessCatalog: (processItem: Omit<DocumentProcessCatalogItem, 'isSystemDefault'>) => void;
+  updateDocumentTypeCatalog: (id: string, updates: Partial<DocumentTypeCatalogItem>) => void;
+  updateDocumentProcessCatalog: (id: string, updates: Partial<DocumentProcessCatalogItem>) => void;
+
   // Global search & filters
   searchQuery: string;
   setSearchQuery: (q: string) => void;
@@ -457,6 +504,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   // Evaluación Inicial del SG-SST (Decreto 1072/2015 Art. 2.2.4.6.16)
   const [initialEvaluationState, setInitialEvaluationState] = useState<InitialEvaluationState>(INITIAL_EVALUATION_STATE);
+
+  // Archivo y Retención Documental (Decreto 1072/2015 Art. 2.2.4.6.12 y 2.2.4.6.13, Estándar 2.2.1)
+  const [documentManagementState, setDocumentManagementState] = useState<DocumentManagementState>(INITIAL_DOCUMENT_MANAGEMENT_STATE);
   // Caracterización Inteligente & Motor de Aplicabilidad
   // Saved draft (browser only). The public landing does not render characterization data, so there is no hydration mismatch.
   const [initialDraft] = useState(() => (typeof window === 'undefined' ? null : loadDraft()));
@@ -3971,6 +4021,368 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     showNotification('Evaluación Inicial cerrada y archivada en el historial inmutable', 'success');
   };
 
+  // ==============================================================
+  // ARCHIVO Y RETENCIÓN DOCUMENTAL (Dec. 1072 Art. 2.2.4.6.12 & 13)
+  // ==============================================================
+  const updateControlProcedureSection = (sectionId: string, content: string, notes?: string) => {
+    if (blockedByDemo()) return;
+    const now = new Date().toISOString().split('T')[0];
+    setDocumentManagementState(prev => ({
+      ...prev,
+      procedure: {
+        ...prev.procedure,
+        lastUpdatedAt: now,
+        sections: prev.procedure.sections.map(sec => 
+          sec.id === sectionId 
+            ? { ...sec, content, isCustomized: true, notes: notes ?? sec.notes } 
+            : sec
+        )
+      }
+    }));
+    showNotification('Sección del procedimiento actualizada y guardada', 'success');
+  };
+
+  const resetControlProcedureSectionToDefault = (sectionId: string) => {
+    if (blockedByDemo()) return;
+    const defaultSec = DEFAULT_CONTROL_PROCEDURE.sections.find(s => s.id === sectionId);
+    if (!defaultSec) return;
+    const now = new Date().toISOString().split('T')[0];
+    setDocumentManagementState(prev => ({
+      ...prev,
+      procedure: {
+        ...prev.procedure,
+        lastUpdatedAt: now,
+        sections: prev.procedure.sections.map(sec => 
+          sec.id === sectionId 
+            ? { ...sec, content: defaultSec.content, isCustomized: false } 
+            : sec
+        )
+      }
+    }));
+    showNotification('Sección restablecida al texto normativo sugerido', 'info');
+  };
+
+  const updateControlProcedureApproval = (approvalData: {
+    preparedBy?: { name: string; role: string; date: string; signatureText?: string };
+    reviewedBy?: { name: string; role: string; date: string; signatureText?: string };
+    approvedBy?: { name: string; role: string; date: string; signatureText?: string };
+    status?: DocumentControlProcedure['status'];
+    version?: string;
+  }) => {
+    if (blockedByDemo()) return;
+    const now = new Date().toISOString().split('T')[0];
+    setDocumentManagementState(prev => {
+      const updatedProc: DocumentControlProcedure = {
+        ...prev.procedure,
+        preparedBy: approvalData.preparedBy ? { ...prev.procedure.preparedBy, ...approvalData.preparedBy } : prev.procedure.preparedBy,
+        reviewedBy: approvalData.reviewedBy ? { ...prev.procedure.reviewedBy, ...approvalData.reviewedBy } : prev.procedure.reviewedBy,
+        approvedBy: approvalData.approvedBy ? { ...prev.procedure.approvedBy, ...approvalData.approvedBy } : prev.procedure.approvedBy,
+        status: approvalData.status ?? prev.procedure.status,
+        version: approvalData.version ?? prev.procedure.version,
+        lastUpdatedAt: now
+      };
+      return {
+        ...prev,
+        procedure: updatedProc
+      };
+    });
+    showNotification('Flujo de revisión y aprobación del procedimiento actualizado', 'success');
+  };
+
+  const approveDocumentControlProcedure = (approvedByName: string, approvedByRole: string) => {
+    if (blockedByDemo()) return;
+    const now = new Date().toISOString().split('T')[0];
+    setDocumentManagementState(prev => {
+      const updatedProc: DocumentControlProcedure = {
+        ...prev.procedure,
+        status: 'VIGENTE',
+        approvedBy: {
+          name: approvedByName,
+          role: approvedByRole,
+          date: now,
+          signatureText: `FIRMADO DIGITALMENTE POR ${approvedByName.toUpperCase()}`
+        },
+        issueDate: now,
+        lastUpdatedAt: now
+      };
+
+      // Also ensure the controlled document PR-SGSST-GEN-001 is set to VIGENTE
+      const updatedDocs = prev.documents.map(doc => {
+        if (doc.code === updatedProc.code) {
+          return {
+            ...doc,
+            status: 'VIGENTE' as const,
+            approvedBy: approvedByName,
+            approvedAt: now,
+            updatedAt: now
+          };
+        }
+        return doc;
+      });
+
+      return {
+        ...prev,
+        procedure: updatedProc,
+        documents: updatedDocs,
+        metrics: calculateDocumentMetrics(updatedDocs)
+      };
+    });
+
+    // Certify Standard 2.2.1
+    updateStandardStatus(
+      'std-2.2.1',
+      'CUMPLE',
+      `Procedimiento de Control Documental formalizado y vigente bajo Decreto 1072/2015 Art. 2.2.4.6.12 y 2.2.4.6.13 por ${approvedByName} el ${now}.`
+    );
+
+    showNotification('¡Procedimiento de Control Documental formalizado y vigente! Estándar 2.2.1 en CUMPLE.', 'success');
+  };
+
+  const addControlledDocument = (
+    docData: Omit<ControlledDocument, 'id' | 'code' | 'currentVersion' | 'versionHistory' | 'createdDate' | 'lastUpdatedDate'> & { customConsecutive?: number }
+  ): ControlledDocument => {
+    const now = new Date().toISOString().split('T')[0];
+    const typeCode = docData.typeCode || docData.documentTypeId || 'RG';
+    const processCode = docData.processCode || docData.processId || 'GEN';
+    const generatedCode = generateNextDocumentCode(
+      typeCode,
+      docData.system,
+      processCode,
+      documentManagementState.documents,
+      docData.customConsecutive
+    );
+
+    const newDoc: ControlledDocument = {
+      ...docData,
+      id: `doc-${Date.now()}`,
+      code: generatedCode,
+      typeCode,
+      documentTypeId: typeCode,
+      processCode,
+      processId: processCode,
+      typeName: docData.typeName || typeCode,
+      processName: docData.processName || processCode,
+      responsibleRole: docData.responsibleRole || docData.responsible || 'Líder SG-SST',
+      responsible: docData.responsible || docData.responsibleRole || 'Líder SG-SST',
+      authorName: docData.authorName || 'AGAE SOLUTIONS',
+      storageSupport: docData.storageSupport || 'DIGITAL_CLOUD',
+      retentionLegalBasis: docData.retentionLegalBasis || docData.retentionBasis || 'Control Operativo SG-SST',
+      retentionBasis: docData.retentionBasis || docData.retentionLegalBasis || 'Control Operativo SG-SST',
+      retentionStartEvent: docData.retentionStartEvent || 'FECHA_EMISION',
+      isControlledDocument: docData.isControlledDocument ?? true,
+      currentVersion: '001',
+      versionHistory: [],
+      createdDate: now,
+      createdAt: now,
+      lastUpdatedDate: now,
+      updatedAt: now
+    };
+
+    setDocumentManagementState(prev => {
+      const updatedDocs = [newDoc, ...prev.documents];
+      return {
+        ...prev,
+        documents: updatedDocs,
+        metrics: calculateDocumentMetrics(updatedDocs)
+      };
+    });
+
+    showNotification(`Documento controlado creado con código único ${newDoc.code}`, 'success');
+    return newDoc;
+  };
+
+  const updateControlledDocument = (id: string, updates: Partial<ControlledDocument>) => {
+    if (blockedByDemo()) return;
+    const now = new Date().toISOString().split('T')[0];
+    setDocumentManagementState(prev => {
+      const updatedDocs = prev.documents.map(d => d.id === id ? { ...d, ...updates, lastUpdatedDate: now, updatedAt: now } : d);
+      return {
+        ...prev,
+        documents: updatedDocs,
+        metrics: calculateDocumentMetrics(updatedDocs)
+      };
+    });
+    showNotification('Documento actualizado en el Repositorio Central', 'info');
+  };
+
+  const createNewDocumentVersion = (id: string, changeSummary: string, approvedBy: string, fileUrl?: string) => {
+    if (blockedByDemo()) return;
+    const doc = documentManagementState.documents.find(d => d.id === id);
+    if (!doc) return;
+
+    const now = new Date().toISOString().split('T')[0];
+    const currentVerNum = parseInt(doc.currentVersion, 10) || 1;
+    const nextVerNum = currentVerNum + 1;
+    const nextVersionStr = String(nextVerNum).padStart(3, '0');
+
+    const historicalEntry = {
+      version: doc.currentVersion,
+      approvedDate: doc.approvedDate || doc.approvedAt || doc.createdDate || doc.createdAt || now,
+      approvedBy: doc.approvedBy || doc.approverName || approvedBy,
+      changeSummary: changeSummary,
+      status: 'OBSOLETO' as const,
+      fileUrl: doc.fileUrl
+    };
+
+    setDocumentManagementState(prev => {
+      const updatedDocs = prev.documents.map(d => {
+        if (d.id !== id) return d;
+        return {
+          ...d,
+          currentVersion: nextVersionStr,
+          status: 'VIGENTE' as const,
+          approvedDate: now,
+          approvedAt: now,
+          approvedBy,
+          fileUrl: fileUrl || d.fileUrl,
+          lastUpdatedDate: now,
+          updatedAt: now,
+          versionHistory: [historicalEntry, ...d.versionHistory]
+        };
+      });
+
+      return {
+        ...prev,
+        documents: updatedDocs,
+        metrics: calculateDocumentMetrics(updatedDocs)
+      };
+    });
+
+    showNotification(`Nueva versión ${nextVersionStr} del documento ${doc.code} aprobada y vigente`, 'success');
+  };
+
+  const addExternalDocument = (data: {
+    title: string;
+    description: string;
+    system: ControlledDocument['system'];
+    processId: string;
+    documentTypeId: string;
+    responsible: string;
+    externalSource: string;
+    externalIssueDate: string;
+    externalCode?: string;
+    fileUrl?: string;
+    retentionYears?: number;
+    retentionBasis?: string;
+    confidentiality?: ControlledDocument['confidentiality'];
+    physicalLocation?: string;
+  }): ControlledDocument => {
+    const now = new Date().toISOString().split('T')[0];
+    const generatedCode = generateNextDocumentCode(
+      data.documentTypeId || 'RG',
+      data.system,
+      data.processId,
+      documentManagementState.documents
+    );
+
+    const extDoc: ControlledDocument = {
+      id: `doc-ext-${Date.now()}`,
+      code: generatedCode,
+      title: data.title,
+      description: data.description,
+      system: data.system,
+      processCode: data.processId,
+      processId: data.processId,
+      processName: data.processId,
+      typeCode: data.documentTypeId || 'RG',
+      documentTypeId: data.documentTypeId || 'RG',
+      typeName: data.documentTypeId || 'RG',
+      originModule: 'DOCUMENTOS',
+      isControlledDocument: true,
+      isExternalDocument: true,
+      isExternal: true,
+      externalEntity: data.externalSource,
+      externalSource: data.externalSource,
+      externalIssueDate: data.externalIssueDate,
+      externalCode: data.externalCode,
+      responsibleRole: data.responsible,
+      responsible: data.responsible,
+      authorName: data.externalSource,
+      status: 'VIGENTE',
+      storageSupport: 'DIGITAL_CLOUD',
+      currentVersion: '001',
+      versionHistory: [],
+      retentionYears: data.retentionYears ?? 5,
+      retentionLegalBasis: data.retentionBasis ?? 'Documento de origen externo para consulta y control operativo',
+      retentionBasis: data.retentionBasis ?? 'Documento de origen externo para consulta y control operativo',
+      retentionStartEvent: 'FECHA_EMISION',
+      isMandatory20Years: (data.retentionYears ?? 5) >= 20,
+      confidentiality: data.confidentiality || 'CONFIDENCIAL',
+      physicalLocation: data.physicalLocation || 'Archivo Digital Central AGAE / Nube Segura',
+      fileUrl: data.fileUrl,
+      approvedDate: now,
+      approvedAt: now,
+      approvedBy: data.responsible,
+      createdDate: now,
+      createdAt: now,
+      lastUpdatedDate: now,
+      updatedAt: now
+    };
+
+    setDocumentManagementState(prev => {
+      const updatedDocs = [extDoc, ...prev.documents];
+      return {
+        ...prev,
+        documents: updatedDocs,
+        metrics: calculateDocumentMetrics(updatedDocs)
+      };
+    });
+
+    showNotification(`Documento externo incorporado y codificado como ${extDoc.code}`, 'success');
+    return extDoc;
+  };
+
+  const addDocumentTypeCatalog = (typeItem: Omit<DocumentTypeCatalogItem, 'isSystemDefault'>) => {
+    setDocumentManagementState(prev => {
+      const itemWithDefaults: DocumentTypeCatalogItem = {
+        ...typeItem,
+        code: typeItem.code || typeItem.prefix || 'DOC',
+        prefix: typeItem.prefix || typeItem.code || 'DOC',
+        isSystemDefault: false
+      };
+      return {
+        ...prev,
+        typeCatalog: [...prev.typeCatalog, itemWithDefaults],
+        typesCatalog: [...(prev.typesCatalog || prev.typeCatalog), itemWithDefaults]
+      };
+    });
+    showNotification(`Tipo documental '${typeItem.prefix || typeItem.code}' agregado al catálogo`, 'success');
+  };
+
+  const addDocumentProcessCatalog = (processItem: Omit<DocumentProcessCatalogItem, 'isSystemDefault'>) => {
+    setDocumentManagementState(prev => {
+      const itemWithDefaults: DocumentProcessCatalogItem = {
+        ...processItem,
+        code: processItem.code || 'GEN',
+        isSystemDefault: false
+      };
+      return {
+        ...prev,
+        processCatalog: [...prev.processCatalog, itemWithDefaults],
+        processesCatalog: [...(prev.processesCatalog || prev.processCatalog), itemWithDefaults]
+      };
+    });
+    showNotification(`Proceso '${processItem.code}' agregado al catálogo`, 'success');
+  };
+
+  const updateDocumentTypeCatalog = (id: string, updates: Partial<DocumentTypeCatalogItem>) => {
+    setDocumentManagementState(prev => ({
+      ...prev,
+      typeCatalog: prev.typeCatalog.map(t => (t.id === id || t.code === id) ? { ...t, ...updates } : t),
+      typesCatalog: (prev.typesCatalog || prev.typeCatalog).map(t => (t.id === id || t.code === id) ? { ...t, ...updates } : t)
+    }));
+    showNotification('Catálogo de tipos documentales actualizado', 'info');
+  };
+
+  const updateDocumentProcessCatalog = (id: string, updates: Partial<DocumentProcessCatalogItem>) => {
+    setDocumentManagementState(prev => ({
+      ...prev,
+      processCatalog: prev.processCatalog.map(p => (p.id === id || p.code === id) ? { ...p, ...updates } : p),
+      processesCatalog: (prev.processesCatalog || prev.processCatalog).map(p => (p.id === id || p.code === id) ? { ...p, ...updates } : p)
+    }));
+    showNotification('Catálogo de procesos actualizado', 'info');
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -4157,6 +4569,21 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         updateInitialEvaluationConclusions,
         finalizeEvaluationSnapshot,
         exportEvaluationActionToAcpm,
+
+        // Archivo y Retención Documental (Decreto 1072/2015 Art. 2.2.4.6.12 & 2.2.4.6.13, Estándar 2.2.1)
+        documentManagementState,
+        updateControlProcedureSection,
+        resetControlProcedureSectionToDefault,
+        updateControlProcedureApproval,
+        approveDocumentControlProcedure,
+        addControlledDocument,
+        updateControlledDocument,
+        createNewDocumentVersion,
+        addExternalDocument,
+        addDocumentTypeCatalog,
+        addDocumentProcessCatalog,
+        updateDocumentTypeCatalog,
+        updateDocumentProcessCatalog,
 
         searchQuery,
         setSearchQuery,

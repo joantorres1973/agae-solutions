@@ -7,6 +7,7 @@ export * from './ccl';
 export * from './training';
 export * from './policy-objectives';
 export * from './initial-evaluation';
+export * from './document-management';
 
 export type ModuleType = 
   | 'SST'

@@ -19,7 +19,7 @@ export interface SstStandardDefinition {
   modeOfVerification: string; // Modo de verificación según Res. 0312
   status: SstStandardStatus;
   evidenceIds: string[];
-  actionType?: 'RESPONSIBLE' | 'BUDGET' | 'COPASST' | 'CCL' | 'TRAINING' | 'POLICY' | 'HAZARDS' | 'INSPECTION' | 'EMERGENCY' | 'EVIDENCE' | 'ACPM' | 'INITIAL_EVALUATION' | 'GENERAL';
+  actionType?: 'RESPONSIBLE' | 'BUDGET' | 'COPASST' | 'CCL' | 'TRAINING' | 'POLICY' | 'HAZARDS' | 'INSPECTION' | 'EMERGENCY' | 'EVIDENCE' | 'ACPM' | 'INITIAL_EVALUATION' | 'DOCUMENTATION' | 'GENERAL';
   notes?: string;
 }
 

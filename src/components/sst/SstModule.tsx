@@ -29,7 +29,8 @@ import {
   HeartHandshake,
   GraduationCap,
   Target,
-  ClipboardCheck
+  ClipboardCheck,
+  FolderArchive
 } from 'lucide-react';
 import { SstStandardDefinition, SstStandardCycle, SstStandardStatus } from '@/types/sst';
 import { SstHazardItem } from '@/types';
@@ -43,6 +44,7 @@ import { CclModule } from './ccl/CclModule';
 import { TrainingModule } from './training/TrainingModule';
 import { SstPolicyObjectivesModule } from './policy/SstPolicyObjectivesModule';
 import { SstInitialEvaluationModule } from './evaluation/SstInitialEvaluationModule';
+import { DocumentManagementModule } from './documents/DocumentManagementModule';
 
 export const SstModule: React.FC = () => {
   const {
@@ -64,7 +66,7 @@ export const SstModule: React.FC = () => {
 
   // Navigation subtabs
   const [activeSubTab, setActiveSubTab] = useState<
-    'STANDARDS' | 'RESPONSIBLE' | 'BUDGET' | 'MATRIX' | 'INSPECTIONS' | 'COMMITTEES' | 'CCL' | 'TRAINING' | 'POLICY' | 'EVALUATION'
+    'STANDARDS' | 'RESPONSIBLE' | 'BUDGET' | 'MATRIX' | 'INSPECTIONS' | 'COMMITTEES' | 'CCL' | 'TRAINING' | 'POLICY' | 'EVALUATION' | 'DOCUMENTATION'
   >('STANDARDS');
   const [copasstInitialTab, setCopasstInitialTab] = useState<
     'DASHBOARD' | 'CONFORMATION' | 'MEETINGS' | 'FINDINGS' | 'TRAININGS' | 'DOCUMENTS' | 'ELECTION' | 'VIGIA'
@@ -74,6 +76,7 @@ export const SstModule: React.FC = () => {
   >('DASHBOARD');
   const [policyInitialTab, setPolicyInitialTab] = useState<'POLICY' | 'OBJECTIVES' | 'TRACEABILITY'>('POLICY');
   const [evaluationInitialTab, setEvaluationInitialTab] = useState<'CHECKLIST' | 'DASHBOARD' | 'ACTIONS' | 'VALIDATION' | 'REPORT'>('CHECKLIST');
+  const [documentInitialTab, setDocumentInitialTab] = useState<'REPOSITORY' | 'PROCEDURE' | 'CODING' | 'RETENTION'>('REPOSITORY');
 
   // Filter state for the 60 Standards
   const [showOnlyApplicable, setShowOnlyApplicable] = useState(true);
@@ -404,6 +407,19 @@ export const SstModule: React.FC = () => {
             <ClipboardCheck className="w-3.5 h-3.5" />
             <span>2.1.3 Evaluación Inicial (Dec. 1072)</span>
           </button>
+
+          <button
+            onClick={() => {
+              setDocumentInitialTab('REPOSITORY');
+              setActiveSubTab('DOCUMENTATION');
+            }}
+            className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
+              activeSubTab === 'DOCUMENTATION' ? 'bg-indigo-700 text-white shadow' : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <FolderArchive className="w-3.5 h-3.5" />
+            <span>2.2.1 Archivo & Retención</span>
+          </button>
         </div>
       </div>
 
@@ -638,6 +654,7 @@ export const SstModule: React.FC = () => {
               const isPolicyStandard = std.code === '2.1.1';
               const isObjectivesStandard = std.code === '2.1.2';
               const isEvaluationStandard = std.code === '2.1.3' || std.actionType === 'INITIAL_EVALUATION';
+              const isDocumentationStandard = std.code === '2.2.1' || std.actionType === 'DOCUMENTATION';
 
               const action =
                 isPilaStandard ? (
@@ -747,6 +764,18 @@ export const SstModule: React.FC = () => {
                   >
                     <ClipboardCheck className="w-3.5 h-3.5" />
                     <span>2.1.3 Evaluación Inicial (Dec. 1072)</span>
+                  </button>
+                ) : isDocumentationStandard ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDocumentInitialTab('REPOSITORY');
+                      setActiveSubTab('DOCUMENTATION');
+                    }}
+                    className={`${actionBtn} bg-indigo-700 hover:bg-indigo-600 text-white shadow-sm`}
+                  >
+                    <FolderArchive className="w-3.5 h-3.5" />
+                    <span>2.2.1 Archivo & Retención</span>
                   </button>
                 ) : std.actionType === 'RESPONSIBLE' ? (
                   <button type="button" onClick={() => setIsResponsibleModalOpen(true)} className={`${actionBtn} bg-orange-600 hover:bg-orange-500 text-white shadow-sm`}>
@@ -1344,6 +1373,22 @@ export const SstModule: React.FC = () => {
       )}
 
       {/* ============================================================== */}
+      {/* SUBTAB 11: ARCHIVO Y RETENCIÓN DOCUMENTAL (Dec. 1072 Art. 2.2.4.6.12 & 13) */}
+      {/* ============================================================== */}
+      {activeSubTab === 'DOCUMENTATION' && (
+        <DocumentManagementModule
+          initialTab={documentInitialTab}
+          onNavigateToModule={(targetTab, sstSub) => {
+            if (sstSub) {
+              setActiveSubTab(sstSub as any);
+            } else if (targetTab) {
+              setActiveTab(targetTab);
+            }
+          }}
+        />
+      )}
+
+      {/* ============================================================== */}
       {/* MODALS */}
       {/* ============================================================== */}
 
@@ -1383,6 +1428,10 @@ export const SstModule: React.FC = () => {
         onOpenEvaluation={(tab) => {
           setEvaluationInitialTab(tab || 'CHECKLIST');
           setActiveSubTab('EVALUATION');
+        }}
+        onOpenDocumentation={(tab) => {
+          setDocumentInitialTab(tab || 'REPOSITORY');
+          setActiveSubTab('DOCUMENTATION');
         }}
       />
 
