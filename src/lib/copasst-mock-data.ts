@@ -195,6 +195,52 @@ export const initialCopasstGlobalState: CopasstGlobalState = {
       ],
       signedByPresident: true,
       signedBySecretary: true,
+      membersSignatures: [
+        {
+          workerId: 'wrk-001',
+          memberName: 'Marcela Rincón Ortiz',
+          role: 'Presidente del COPASST',
+          party: 'EMPLEADOR',
+          docNumber: 'CC 52.984.712',
+          signed: true,
+          signedAt: '2026-01-16 11:30:00',
+          signatureToken: 'SIG-COP-52984712-20260116-A1B2'
+        },
+        {
+          workerId: 'wrk-004',
+          memberName: 'Lic. Fernando Ortiz Salazar',
+          role: 'Suplente Empleador',
+          party: 'EMPLEADOR',
+          docNumber: 'CC 79.482.910',
+          signed: true,
+          signedAt: '2026-01-16 11:45:00',
+          signatureToken: 'SIG-COP-79482910-20260116-C3D4'
+        },
+        {
+          workerId: 'wrk-002',
+          memberName: 'Carlos Mario Mendoza',
+          role: 'Principal Trabajadores',
+          party: 'TRABAJADORES',
+          docNumber: 'CC 1.020.784.952',
+          signed: true,
+          signedAt: '2026-01-16 11:35:00',
+          signatureToken: 'SIG-COP-10207849-20260116-E5F6'
+        },
+        {
+          workerId: 'wrk-003',
+          memberName: 'Sandra Milena Gómez',
+          role: 'Secretaria del COPASST',
+          party: 'TRABAJADORES',
+          docNumber: 'CC 80.123.456',
+          signed: true,
+          signedAt: '2026-01-16 11:40:00',
+          signatureToken: 'SIG-COP-80123456-20260116-G7H8'
+        }
+      ],
+      scannedSignedActFileName: 'Acta_COPASST_01_Enero2026_Firmada_Escaneada.pdf',
+      scannedSignedActFileSize: '1.8 MB',
+      scannedSignedActUploadedAt: '2026-01-17 09:15:00',
+      customObservations: 'Se acordó dar prioridad a la inspección de áreas críticas de almacenamiento durante el primer trimestre.',
       isClosed: true,
       evidenceIds: ['evi-acta-cop-01']
     },
@@ -248,6 +294,52 @@ export const initialCopasstGlobalState: CopasstGlobalState = {
       ],
       signedByPresident: true,
       signedBySecretary: true,
+      membersSignatures: [
+        {
+          workerId: 'wrk-001',
+          memberName: 'Marcela Rincón Ortiz',
+          role: 'Presidente del COPASST',
+          party: 'EMPLEADOR',
+          docNumber: 'CC 52.984.712',
+          signed: true,
+          signedAt: '2026-02-20 12:05:00',
+          signatureToken: 'SIG-COP-52984712-20260220-B9C0'
+        },
+        {
+          workerId: 'wrk-004',
+          memberName: 'Lic. Fernando Ortiz Salazar',
+          role: 'Suplente Empleador',
+          party: 'EMPLEADOR',
+          docNumber: 'CC 79.482.910',
+          signed: true,
+          signedAt: '2026-02-20 12:15:00',
+          signatureToken: 'SIG-COP-79482910-20260220-D1E2'
+        },
+        {
+          workerId: 'wrk-002',
+          memberName: 'Carlos Mario Mendoza',
+          role: 'Principal Trabajadores',
+          party: 'TRABAJADORES',
+          docNumber: 'CC 1.020.784.952',
+          signed: true,
+          signedAt: '2026-02-20 12:10:00',
+          signatureToken: 'SIG-COP-10207849-20260220-F3G4'
+        },
+        {
+          workerId: 'wrk-003',
+          memberName: 'Sandra Milena Gómez',
+          role: 'Secretaria del COPASST',
+          party: 'TRABAJADORES',
+          docNumber: 'CC 80.123.456',
+          signed: true,
+          signedAt: '2026-02-20 12:12:00',
+          signatureToken: 'SIG-COP-80123456-20260220-H5I6'
+        }
+      ],
+      scannedSignedActFileName: 'Acta_COPASST_02_Febrero2026_Firmada.pdf',
+      scannedSignedActFileSize: '2.1 MB',
+      scannedSignedActUploadedAt: '2026-02-21 14:20:00',
+      customObservations: 'Se constató asistencia completa presencial y remota con registro biométrico.',
       isClosed: true,
       evidenceIds: ['evi-acta-cop-02']
     },
@@ -298,6 +390,45 @@ export const initialCopasstGlobalState: CopasstGlobalState = {
       ],
       signedByPresident: true,
       signedBySecretary: false, // Pendiente firma
+      membersSignatures: [
+        {
+          workerId: 'wrk-001',
+          memberName: 'Marcela Rincón Ortiz',
+          role: 'Presidente del COPASST',
+          party: 'EMPLEADOR',
+          docNumber: 'CC 52.984.712',
+          signed: true,
+          signedAt: '2026-03-20 16:30:00',
+          signatureToken: 'SIG-COP-52984712-20260320-J7K8'
+        },
+        {
+          workerId: 'wrk-004',
+          memberName: 'Lic. Fernando Ortiz Salazar',
+          role: 'Suplente Empleador',
+          party: 'EMPLEADOR',
+          docNumber: 'CC 79.482.910',
+          signed: false
+        },
+        {
+          workerId: 'wrk-002',
+          memberName: 'Carlos Mario Mendoza',
+          role: 'Principal Trabajadores',
+          party: 'TRABAJADORES',
+          docNumber: 'CC 1.020.784.952',
+          signed: true,
+          signedAt: '2026-03-20 16:35:00',
+          signatureToken: 'SIG-COP-10207849-20260320-L9M0'
+        },
+        {
+          workerId: 'wrk-003',
+          memberName: 'Sandra Milena Gómez',
+          role: 'Secretaria del COPASST',
+          party: 'TRABAJADORES',
+          docNumber: 'CC 80.123.456',
+          signed: false
+        }
+      ],
+      customObservations: 'Pendiente firma final de la Secretaria y del Suplente para cierre de custodia legal.',
       isClosed: false,
       evidenceIds: []
     }
@@ -439,5 +570,11 @@ export const initialCopasstGlobalState: CopasstGlobalState = {
       evidenceFileName: 'Lista_Asistencia_Inspecciones_Feb2026.pdf',
       status: 'EJECUTADA'
     }
-  ]
+  ],
+
+  // Notas y observaciones editables oficiales
+  conformationActNotes: 'Acta formalizada con presencia de delegados de gerencia y trabajadores. Se deja constancia de la asignación obligatoria de cuatro (4) horas semanales dentro de la jornada laboral para el funcionamiento del comité según el Decreto 1072/2015 Art. 2.2.4.6.8 Parágrafo 2.',
+  installationActNotes: 'Sesión de instalación donde se designó formalmente a la Secretaria del comité por consenso y se aprobó el cronograma de reuniones ordinarias del periodo 2025-2027.',
+  electionActNotes: 'Proceso de votación democrática y escrutinio transparente llevado a cabo conforme a la Resolución 2013 de 1986. Padrón electoral verificado al 100%.',
+  vigiaDesignationNotes: 'Designación oficial efectuada por la Gerencia General en cumplimiento del Parágrafo 2 del Artículo 2.2.4.6.8 del Decreto 1072 de 2015.'
 };

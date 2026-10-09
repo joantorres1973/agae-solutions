@@ -266,6 +266,11 @@ interface AppContextType {
   saveCopasstConformationAct: (actNumber: string, actDate: string) => void;
   saveCopasstInstallationAct: (presidentWorkerId: string, secretaryWorkerId: string, date: string) => void;
   addCopasstMeeting: (meeting: Omit<CopasstMeeting, 'id' | 'actaCode'>) => CopasstMeeting;
+  updateCopasstMeeting: (meetingId: string, updatedData: Partial<CopasstMeeting>) => void;
+  signMeetingMember: (meetingId: string, workerId: string) => void;
+  signMeetingAllMembers: (meetingId: string) => void;
+  uploadScannedMeetingAct: (meetingId: string, fileData: { fileName: string; fileBase64: string; fileSize: string }) => void;
+  updateCopasstDocumentNotes: (docType: 'CONFORMATION' | 'INSTALLATION' | 'ELECTION' | 'VIGIA', notes: string) => void;
   toggleCopasstCommitmentStatus: (commitmentId: string, newStatus: CopasstMeetingCommitment['status']) => void;
   createCopasstFinding: (finding: Omit<CopasstFindingItem, 'id' | 'status' | 'sentToAcpm'>, sendDirectToAcpm?: boolean) => void;
   addCopasstTraining: (training: Omit<CopasstTrainingCourse, 'id'>) => void;
@@ -1955,10 +1960,29 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const actaCode = `ACTA-COP-${currentYear}-${String(meetingCount).padStart(2, '0')}`;
     const newMeetingId = `mtg-${Date.now()}`;
 
+    // Inicializar firmas paritarias de TODOS los integrantes activos del COPASST si no vienen provistas
+    const initialSignatures = meetingData.membersSignatures && meetingData.membersSignatures.length > 0
+      ? meetingData.membersSignatures
+      : copasstState.members.map(member => {
+          const w = workers.find(wrk => wrk.id === member.workerId);
+          const isPresident = member.role === 'PRESIDENTE';
+          return {
+            workerId: member.workerId,
+            memberName: w ? `${w.firstName} ${w.lastName}` : 'Miembro COPASST',
+            role: member.role,
+            party: member.party,
+            docNumber: w ? `${w.docType} ${w.docNumber}` : undefined,
+            signed: isPresident,
+            signedAt: isPresident ? new Date().toISOString().replace('T', ' ').substring(0, 19) : undefined,
+            signatureToken: isPresident ? `SIG-COP-${member.workerId.slice(-4)}-${Date.now().toString(36).toUpperCase()}` : undefined
+          };
+        });
+
     const newMeeting: CopasstMeeting = {
       ...meetingData,
       id: newMeetingId,
       actaCode,
+      membersSignatures: initialSignatures,
       commitments: meetingData.commitments.map((c, idx) => ({
         ...c,
         id: `com-${Date.now()}-${idx}`,
@@ -1986,8 +2010,147 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       commitments: [...newMeeting.commitments, ...prev.commitments]
     }));
 
-    showNotification(`Reunión ordinaria ${actaCode} registrada y compromisos programados`);
+    showNotification(`Reunión ordinaria ${actaCode} registrada con quórum y firmas habilitadas`);
     return newMeeting;
+  };
+
+  const updateCopasstMeeting = (meetingId: string, updatedData: Partial<CopasstMeeting>) => {
+    if (blockedByDemo()) return;
+    setCopasstState(prev => ({
+      ...prev,
+      meetings: prev.meetings.map(m => m.id === meetingId ? { ...m, ...updatedData } : m)
+    }));
+    showNotification('Acta de reunión del COPASST actualizada exitosamente');
+  };
+
+  const signMeetingMember = (meetingId: string, workerId: string) => {
+    if (blockedByDemo()) return;
+    const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
+    const token = `SIG-COP-${workerId.slice(-4)}-${Date.now().toString(36).toUpperCase()}`;
+
+    setCopasstState(prev => ({
+      ...prev,
+      meetings: prev.meetings.map(m => {
+        if (m.id !== meetingId) return m;
+        const currentSigs = m.membersSignatures && m.membersSignatures.length > 0
+          ? m.membersSignatures
+          : prev.members.map(mb => {
+              const wrk = workers.find(w => w.id === mb.workerId);
+              return {
+                workerId: mb.workerId,
+                memberName: wrk ? `${wrk.firstName} ${wrk.lastName}` : 'Miembro COPASST',
+                role: mb.role,
+                party: mb.party,
+                docNumber: wrk ? `${wrk.docType} ${wrk.docNumber}` : undefined,
+                signed: false
+              };
+            });
+
+        const updatedSignatures = currentSigs.map(sig => {
+          if (sig.workerId === workerId) {
+            return {
+              ...sig,
+              signed: true,
+              signedAt: now,
+              signatureToken: token
+            };
+          }
+          return sig;
+        });
+
+        const isPresSigned = updatedSignatures.some(s => s.role === 'PRESIDENTE' && s.signed);
+        const isSecSigned = updatedSignatures.some(s => s.role === 'SECRETARIO' && s.signed);
+        const allSigned = updatedSignatures.length > 0 && updatedSignatures.every(s => s.signed);
+
+        return {
+          ...m,
+          membersSignatures: updatedSignatures,
+          signedByPresident: isPresSigned,
+          signedBySecretary: isSecSigned,
+          isClosed: allSigned
+        };
+      })
+    }));
+
+    showNotification('Firma electrónica de integrante registrada con token de auditoría legal (Ley 527 de 1999)', 'success');
+  };
+
+  const signMeetingAllMembers = (meetingId: string) => {
+    if (blockedByDemo()) return;
+    const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
+
+    setCopasstState(prev => ({
+      ...prev,
+      meetings: prev.meetings.map(m => {
+        if (m.id !== meetingId) return m;
+        const currentSigs = m.membersSignatures && m.membersSignatures.length > 0
+          ? m.membersSignatures
+          : prev.members.map(mb => {
+              const wrk = workers.find(w => w.id === mb.workerId);
+              return {
+                workerId: mb.workerId,
+                memberName: wrk ? `${wrk.firstName} ${wrk.lastName}` : 'Miembro COPASST',
+                role: mb.role,
+                party: mb.party,
+                docNumber: wrk ? `${wrk.docType} ${wrk.docNumber}` : undefined,
+                signed: true,
+                signedAt: now,
+                signatureToken: `SIG-COP-${mb.workerId.slice(-4)}-${Date.now().toString(36).toUpperCase()}`
+              };
+            });
+
+        const updatedSignatures = currentSigs.map(sig => ({
+          ...sig,
+          signed: true,
+          signedAt: sig.signedAt || now,
+          signatureToken: sig.signatureToken || `SIG-COP-${sig.workerId.slice(-4)}-${Date.now().toString(36).toUpperCase()}`
+        }));
+
+        return {
+          ...m,
+          membersSignatures: updatedSignatures,
+          signedByPresident: true,
+          signedBySecretary: true,
+          isClosed: true
+        };
+      })
+    }));
+
+    showNotification('Todas las firmas de los integrantes del COPASST formalizadas', 'success');
+  };
+
+  const uploadScannedMeetingAct = (meetingId: string, fileData: { fileName: string; fileBase64: string; fileSize: string }) => {
+    if (blockedByDemo()) return;
+    const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
+
+    setCopasstState(prev => ({
+      ...prev,
+      meetings: prev.meetings.map(m => {
+        if (m.id !== meetingId) return m;
+        return {
+          ...m,
+          scannedSignedActFileName: fileData.fileName,
+          scannedSignedActUrl: fileData.fileBase64,
+          scannedSignedActFileSize: fileData.fileSize,
+          scannedSignedActUploadedAt: now,
+          isClosed: true
+        };
+      })
+    }));
+
+    showNotification(`Acta física escaneada "${fileData.fileName}" bajo custodia digital legal`, 'success');
+  };
+
+  const updateCopasstDocumentNotes = (docType: 'CONFORMATION' | 'INSTALLATION' | 'ELECTION' | 'VIGIA', notes: string) => {
+    if (blockedByDemo()) return;
+    setCopasstState(prev => ({
+      ...prev,
+      conformationActNotes: docType === 'CONFORMATION' ? notes : prev.conformationActNotes,
+      installationActNotes: docType === 'INSTALLATION' ? notes : prev.installationActNotes,
+      electionActNotes: docType === 'ELECTION' ? notes : prev.electionActNotes,
+      vigiaDesignationNotes: docType === 'VIGIA' ? notes : prev.vigiaDesignationNotes
+    }));
+    showNotification('Cláusulas y observaciones del documento oficial guardadas', 'success');
   };
 
   const toggleCopasstCommitmentStatus = (commitmentId: string, newStatus: CopasstMeetingCommitment['status']) => {
@@ -2193,6 +2356,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         saveCopasstConformationAct,
         saveCopasstInstallationAct,
         addCopasstMeeting,
+        updateCopasstMeeting,
+        signMeetingMember,
+        signMeetingAllMembers,
+        uploadScannedMeetingAct,
+        updateCopasstDocumentNotes,
         toggleCopasstCommitmentStatus,
         createCopasstFinding,
         addCopasstTraining,

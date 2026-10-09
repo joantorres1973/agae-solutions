@@ -24,7 +24,8 @@ import {
   ArrowRight,
   TrendingUp,
   FileCheck2,
-  FileCheck
+  FileCheck,
+  Award
 } from 'lucide-react';
 import { SstStandardDefinition, SstStandardCycle, SstStandardStatus } from '@/types/sst';
 import { SstHazardItem } from '@/types';
@@ -57,6 +58,9 @@ export const SstModule: React.FC = () => {
   const [activeSubTab, setActiveSubTab] = useState<
     'STANDARDS' | 'RESPONSIBLE' | 'BUDGET' | 'MATRIX' | 'INSPECTIONS' | 'COMMITTEES'
   >('STANDARDS');
+  const [copasstInitialTab, setCopasstInitialTab] = useState<
+    'DASHBOARD' | 'CONFORMATION' | 'MEETINGS' | 'FINDINGS' | 'TRAININGS' | 'DOCUMENTS' | 'ELECTION' | 'VIGIA'
+  >('DASHBOARD');
 
   // Filter state for the 60 Standards
   const [showOnlyApplicable, setShowOnlyApplicable] = useState(true);
@@ -585,10 +589,31 @@ export const SstModule: React.FC = () => {
                 ) : isCopasstStandard ? (
                   <button
                     type="button"
-                    onClick={() => setActiveSubTab('COMMITTEES')}
-                    className={`${actionBtn} bg-teal-600 hover:bg-teal-500 text-white shadow-sm`}
+                    onClick={() => {
+                      if (std.code === '1.1.7') {
+                        setCopasstInitialTab('TRAININGS');
+                      } else {
+                        setCopasstInitialTab('CONFORMATION');
+                      }
+                      setActiveSubTab('COMMITTEES');
+                    }}
+                    className={`${actionBtn} ${
+                      std.code === '1.1.7'
+                        ? 'bg-amber-600 hover:bg-amber-500 text-white shadow-sm'
+                        : 'bg-teal-600 hover:bg-teal-500 text-white shadow-sm'
+                    }`}
                   >
-                    <Users className="w-3.5 h-3.5" /> Gestión COPASST/Vigía
+                    {std.code === '1.1.7' ? (
+                      <>
+                        <Award className="w-3.5 h-3.5" />
+                        <span>1.1.7 Capacitación COPASST</span>
+                      </>
+                    ) : (
+                      <>
+                        <Users className="w-3.5 h-3.5" />
+                        <span>1.1.6 Conformación COPASST</span>
+                      </>
+                    )}
                   </button>
                 ) : std.actionType === 'RESPONSIBLE' ? (
                   <button type="button" onClick={() => setIsResponsibleModalOpen(true)} className={`${actionBtn} bg-orange-600 hover:bg-orange-500 text-white shadow-sm`}>
@@ -1145,7 +1170,7 @@ export const SstModule: React.FC = () => {
       {/* SUBTAB 6: GESTIÓN INTEGRAL DEL COPASST O VIGÍA DE SST */}
       {/* ============================================================== */}
       {activeSubTab === 'COMMITTEES' && (
-        <CopasstVigiaModule />
+        <CopasstVigiaModule initialTab={copasstInitialTab} />
       )}
 
       {/* ============================================================== */}
@@ -1172,6 +1197,10 @@ export const SstModule: React.FC = () => {
         onOpenResponsibleModal={() => setIsResponsibleModalOpen(true)}
         onOpenBudgetModal={() => setIsBudgetModalOpen(true)}
         onNavigateToTab={(tab) => setActiveTab(tab)}
+        onOpenCopasst={(tab) => {
+          setCopasstInitialTab(tab || 'DASHBOARD');
+          setActiveSubTab('COMMITTEES');
+        }}
       />
 
       {/* 4. Modal Add Hazard GTC 45 */}

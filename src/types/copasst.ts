@@ -86,6 +86,8 @@ export interface VigiaActuation {
 export interface CopasstCandidate {
   id: string;
   workerId: string;
+  workerName?: string;
+  area?: string;
   registrationDate: string;
   proposalBrief?: string;
   status: 'POSTULADO' | 'ACEPTADO' | 'RETIRADO';
@@ -112,6 +114,10 @@ export interface CopasstElectionState {
   closedAt?: string;
   closedBy?: string;
   totalEligibleVoters: number;
+  totalVoters?: number;
+  votesSubmitted?: number;
+  blankVotes?: number;
+  nullVotes?: number;
   voterAuditLog: CopasstVoterAuditEntry[]; // Control de padrón
   candidates: CopasstCandidate[];
   resultsPublished: boolean;
@@ -136,25 +142,58 @@ export interface CopasstMeetingCommitment {
   linkedTaskId?: string; // Vinculado a tasks ("¿Qué tengo pendiente?")
 }
 
+export interface CopasstMeetingMemberSignature {
+  workerId: string;
+  memberName: string;
+  role: string; // e.g. "Presidente (Empleador)", "Secretaria (Trabajadores)", "Principal (Trabajadores)", "Suplente (Empleador)"
+  party: CopasstParty;
+  docNumber?: string;
+  signed?: boolean;
+  isSigned?: boolean;
+  signedAt?: string;
+  signatureToken?: string;
+  auditToken?: string;
+}
+
+export interface CopasstMeetingAgendaDetail {
+  pointNumber: number;
+  title: string;
+  discussionNotes?: string;
+  discussionNote?: string;
+}
+
 export interface CopasstMeeting {
   id: string;
   meetingNumber: number; // e.g. 1, 2, 3...
   actaCode: string; // e.g. "ACTA-COP-2026-01"
   date: string; // YYYY-MM-DD
+  time?: string;
   modality: CopasstMeetingModality;
   locationOrLink: string;
   attendeesWorkerIds: string[];
   absenteesWorkerIds: string[];
   agendaTopics: string[];
+  agendaDetails?: CopasstMeetingAgendaDetail[]; // Detalle por cada punto del orden del día estatutario
   discussionSummary: string;
   recommendations: string[];
   decisions: string[];
+  customObservations?: string; // Adiciones y cláusulas personalizadas del Líder SST o COPASST
   commitments: CopasstMeetingCommitment[];
+  // Firmas de TODO el COPASST (Soporte Jurídico Dec 1072 / Ley 527)
+  membersSignatures: CopasstMeetingMemberSignature[];
   signedByPresident: boolean;
   signedBySecretary: boolean;
   isClosed: boolean;
   documentPdfUrl?: string;
   evidenceIds: string[];
+  // Custodia digital del Acta física escaneada firmada a mano
+  scannedActBase64?: string;
+  scannedActFileName?: string;
+  scannedActUploadDate?: string;
+  scannedSignedActUrl?: string;
+  scannedSignedActFileName?: string;
+  scannedSignedActFileSize?: string;
+  scannedSignedActUploadedAt?: string;
 }
 
 // --------------------------------------------------
@@ -199,6 +238,10 @@ export interface CopasstTrainingCourse {
   attendedWorkerIds: string[];
   certificateUrl?: string;
   evidenceFileName?: string;
+  evidenceFileBase64?: string;
+  evidenceFileSize?: string;
+  evidenceFileType?: string;
+  notes?: string;
   status: 'PROGRAMADA' | 'EJECUTADA';
 }
 
@@ -225,6 +268,13 @@ export interface CopasstGlobalState {
   conformationActDate?: string;
   conformationActNumber?: string;
   installationActDate?: string;
+  
+  // Notas y cláusulas personalizadas editables de las actas oficiales
+  conformationActNotes?: string;
+  installationActNotes?: string;
+  electionActNotes?: string;
+  vigiaDesignationNotes?: string;
+  documentNotes?: Record<string, string>;
   
   // Actividades periódicas
   meetings: CopasstMeeting[];

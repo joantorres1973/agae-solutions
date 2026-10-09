@@ -15,7 +15,8 @@ import {
   X,
   FileCheck,
   Calendar,
-  Users
+  Users,
+  Award
 } from 'lucide-react';
 import { SstStandardDefinition, SstStandardStatus } from '@/types/sst';
 import { PilaSocialSecurityModal } from './PilaSocialSecurityModal';
@@ -27,6 +28,7 @@ interface SstStandardDetailModalProps {
   onOpenResponsibleModal?: () => void;
   onOpenBudgetModal?: () => void;
   onNavigateToTab?: (tab: string) => void;
+  onOpenCopasst?: (tab?: 'CONFORMATION' | 'TRAININGS') => void;
 }
 
 export const SstStandardDetailModal: React.FC<SstStandardDetailModalProps> = ({
@@ -35,7 +37,8 @@ export const SstStandardDetailModal: React.FC<SstStandardDetailModalProps> = ({
   onClose,
   onOpenResponsibleModal,
   onOpenBudgetModal,
-  onNavigateToTab
+  onNavigateToTab,
+  onOpenCopasst
 }) => {
   const {
     evidences,
@@ -202,17 +205,34 @@ export const SstStandardDetailModal: React.FC<SstStandardDetailModalProps> = ({
                 </button>
               )}
 
-              {isCopasstStandard && onNavigateToTab && (
+              {isCopasstStandard && (
                 <button
                   type="button"
                   onClick={() => {
                     onClose();
-                    onNavigateToTab('sst');
+                    if (onOpenCopasst) {
+                      onOpenCopasst(standard.code === '1.1.7' ? 'TRAININGS' : 'CONFORMATION');
+                    } else if (onNavigateToTab) {
+                      onNavigateToTab('sst');
+                    }
                   }}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold transition-all shrink-0"
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-white text-xs font-bold transition-all shrink-0 ${
+                    standard.code === '1.1.7'
+                      ? 'bg-amber-600 hover:bg-amber-500'
+                      : 'bg-teal-600 hover:bg-teal-500'
+                  }`}
                 >
-                  <Users className="w-3.5 h-3.5" />
-                  <span>Gestión COPASST / Vigía</span>
+                  {standard.code === '1.1.7' ? (
+                    <>
+                      <Award className="w-3.5 h-3.5" />
+                      <span>Ir a Capacitaciones COPASST (1.1.7)</span>
+                    </>
+                  ) : (
+                    <>
+                      <Users className="w-3.5 h-3.5" />
+                      <span>Ir a Gestión COPASST (1.1.6)</span>
+                    </>
+                  )}
                 </button>
               )}
 
