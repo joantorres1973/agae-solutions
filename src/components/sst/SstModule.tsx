@@ -25,7 +25,8 @@ import {
   TrendingUp,
   FileCheck2,
   FileCheck,
-  Award
+  Award,
+  HeartHandshake
 } from 'lucide-react';
 import { SstStandardDefinition, SstStandardCycle, SstStandardStatus } from '@/types/sst';
 import { SstHazardItem } from '@/types';
@@ -35,6 +36,7 @@ import { SstBudgetModal } from './SstBudgetModal';
 import { SstStandardDetailModal } from './SstStandardDetailModal';
 import { PilaSocialSecurityModal } from './PilaSocialSecurityModal';
 import { CopasstVigiaModule } from './copasst/CopasstVigiaModule';
+import { CclModule } from './ccl/CclModule';
 
 export const SstModule: React.FC = () => {
   const {
@@ -56,10 +58,13 @@ export const SstModule: React.FC = () => {
 
   // Navigation subtabs
   const [activeSubTab, setActiveSubTab] = useState<
-    'STANDARDS' | 'RESPONSIBLE' | 'BUDGET' | 'MATRIX' | 'INSPECTIONS' | 'COMMITTEES'
+    'STANDARDS' | 'RESPONSIBLE' | 'BUDGET' | 'MATRIX' | 'INSPECTIONS' | 'COMMITTEES' | 'CCL'
   >('STANDARDS');
   const [copasstInitialTab, setCopasstInitialTab] = useState<
     'DASHBOARD' | 'CONFORMATION' | 'MEETINGS' | 'FINDINGS' | 'TRAININGS' | 'DOCUMENTS' | 'ELECTION' | 'VIGIA'
+  >('DASHBOARD');
+  const [cclInitialTab, setCclInitialTab] = useState<
+    'DASHBOARD' | 'CASES' | 'ELECTIONS' | 'CONFORMATION' | 'MEETINGS' | 'REGULATION' | 'REPORTS'
   >('DASHBOARD');
 
   // Filter state for the 60 Standards
@@ -344,6 +349,16 @@ export const SstModule: React.FC = () => {
           >
             <Users className="w-3.5 h-3.5" />
             <span>COPASST</span>
+          </button>
+
+          <button
+            onClick={() => setActiveSubTab('CCL')}
+            className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
+              activeSubTab === 'CCL' ? 'bg-teal-600 text-white shadow' : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <HeartHandshake className="w-3.5 h-3.5" />
+            <span>1.1.8 Convivencia (CCL)</span>
           </button>
         </div>
       </div>
@@ -1174,6 +1189,13 @@ export const SstModule: React.FC = () => {
       )}
 
       {/* ============================================================== */}
+      {/* SUBTAB 7: GESTIÓN INTEGRAL DEL COMITÉ DE CONVIVENCIA LABORAL (CCL) */}
+      {/* ============================================================== */}
+      {activeSubTab === 'CCL' && (
+        <CclModule initialTab={cclInitialTab} />
+      )}
+
+      {/* ============================================================== */}
       {/* MODALS */}
       {/* ============================================================== */}
 
@@ -1200,6 +1222,10 @@ export const SstModule: React.FC = () => {
         onOpenCopasst={(tab) => {
           setCopasstInitialTab(tab || 'DASHBOARD');
           setActiveSubTab('COMMITTEES');
+        }}
+        onOpenCcl={(tab) => {
+          setCclInitialTab((tab as any) || 'DASHBOARD');
+          setActiveSubTab('CCL');
         }}
       />
 

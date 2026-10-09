@@ -16,7 +16,9 @@ import {
   FileCheck,
   Calendar,
   Users,
-  Award
+  Award,
+  HeartHandshake,
+  FolderLock
 } from 'lucide-react';
 import { SstStandardDefinition, SstStandardStatus } from '@/types/sst';
 import { PilaSocialSecurityModal } from './PilaSocialSecurityModal';
@@ -29,6 +31,7 @@ interface SstStandardDetailModalProps {
   onOpenBudgetModal?: () => void;
   onNavigateToTab?: (tab: string) => void;
   onOpenCopasst?: (tab?: 'CONFORMATION' | 'TRAININGS') => void;
+  onOpenCcl?: (tab?: string) => void;
 }
 
 export const SstStandardDetailModal: React.FC<SstStandardDetailModalProps> = ({
@@ -38,7 +41,8 @@ export const SstStandardDetailModal: React.FC<SstStandardDetailModalProps> = ({
   onOpenResponsibleModal,
   onOpenBudgetModal,
   onNavigateToTab,
-  onOpenCopasst
+  onOpenCopasst,
+  onOpenCcl
 }) => {
   const {
     evidences,
@@ -58,6 +62,7 @@ export const SstStandardDetailModal: React.FC<SstStandardDetailModalProps> = ({
 
   const isPilaStandard = standard.code === '1.1.4' || standard.code === '1.1.5';
   const isCopasstStandard = standard.code === '1.1.6' || standard.code === '1.1.7';
+  const isCclStandard = standard.code === '1.1.8';
 
   const handleSave = () => {
     updateStandardStatus(standard.id, status, notes);
@@ -236,6 +241,25 @@ export const SstStandardDetailModal: React.FC<SstStandardDetailModalProps> = ({
                 </button>
               )}
 
+              {isCclStandard && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    if (onOpenCcl) {
+                      onOpenCcl('DASHBOARD');
+                    } else if (onNavigateToTab) {
+                      onNavigateToTab('sst');
+                    }
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold transition-all shrink-0"
+                >
+                  <HeartHandshake className="w-3.5 h-3.5" />
+                  <span>Gestión CCL (Res. 3461 de 2025)</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              )}
+
               {standard.actionType === 'RESPONSIBLE' && onOpenResponsibleModal && (
                 <button
                   type="button"
@@ -361,6 +385,37 @@ export const SstStandardDetailModal: React.FC<SstStandardDetailModalProps> = ({
                 >
                   <Calendar className="w-3.5 h-3.5" />
                   <span>Abrir Gestor PILA & Fechas</span>
+                </button>
+              </div>
+            )}
+
+            {/* Banner especializado para Estándar 1.1.8 CCL (Resolución 3461 de 2025) */}
+            {isCclStandard && (
+              <div className="p-3.5 rounded-xl bg-gradient-to-r from-teal-50 to-emerald-50 border border-teal-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="space-y-0.5">
+                  <div className="font-bold text-teal-900 text-xs flex items-center gap-1.5">
+                    <HeartHandshake className="w-4 h-4 text-teal-600" />
+                    <span>Comité de Convivencia Laboral - Sistema Activo de Casos (Res. 3461 de 2025)</span>
+                  </div>
+                  <div className="text-[11px] text-teal-800">
+                    Gestione la conformación paritaria, cartas de confidencialidad, votación secreta, matriz de quejas con control de plazos y actas oficiales.
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    if (onOpenCcl) {
+                      onOpenCcl('DASHBOARD');
+                    } else if (onNavigateToTab) {
+                      onNavigateToTab('sst');
+                    }
+                  }}
+                  className="px-3.5 py-1.5 rounded-lg bg-teal-700 hover:bg-teal-600 text-white text-xs font-bold shadow-xs flex items-center gap-1.5 shrink-0 transition-colors"
+                >
+                  <FolderLock className="w-3.5 h-3.5" />
+                  <span>Abrir Módulo CCL</span>
                 </button>
               </div>
             )}

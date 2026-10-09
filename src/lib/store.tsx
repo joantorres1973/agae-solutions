@@ -55,10 +55,19 @@ import {
   CopasstMeetingCommitment,
   CopasstFindingItem,
   CopasstTrainingCourse,
-  CopasstMechanismType
+  CopasstMechanismType,
+  CclGlobalState,
+  CclComplaintCase,
+  CclComplaintStatus,
+  CclCommitmentItem,
+  CclHearingRecord,
+  CclFollowUpRecord,
+  CclMeeting,
+  CclEvidenceAttachment
 } from '@/types';
 import { initialPilaRecords } from './mock-pila-data';
 import { initialCopasstGlobalState } from './copasst-mock-data';
+import { initialCclGlobalState } from './ccl-mock-data';
 import { initialMasterWorkers } from './worker-mock-data';
 import {
   initialOrganization,
@@ -275,6 +284,38 @@ interface AppContextType {
   createCopasstFinding: (finding: Omit<CopasstFindingItem, 'id' | 'status' | 'sentToAcpm'>, sendDirectToAcpm?: boolean) => void;
   addCopasstTraining: (training: Omit<CopasstTrainingCourse, 'id'>) => void;
 
+  // Comité de Convivencia Laboral - CCL (Estándar 1.1.8 - Resolución 3461 de 2025)
+  cclState: CclGlobalState;
+  registerCclComplaint: (complaintData: {
+    channel: CclComplaintCase['channel'];
+    complainantWorkerId: string;
+    respondentWorkerId: string;
+    witnessesText?: string;
+    incidentDates: string;
+    incidentLocation: string;
+    factsDescription: string;
+    evidences?: CclEvidenceAttachment[];
+  }) => CclComplaintCase;
+  updateCclComplaintStage: (caseId: string, newStage: CclComplaintStatus, notes?: string, nextDueDate?: string) => void;
+  recordCclHearing: (caseId: string, party: 'complainant' | 'respondent', hearingData: CclHearingRecord) => void;
+  recordCclDialogueSession: (caseId: string, sessionData: { date: string; attendees: string[]; summary: string; agreementReached: boolean; actCode?: string }) => void;
+  addCclCommitment: (caseId: string, commitment: Omit<CclCommitmentItem, 'id' | 'status'>) => void;
+  toggleCclCommitmentStatus: (caseId: string, commitmentId: string, newStatus: CclCommitmentItem['status']) => void;
+  addCclFollowUp: (caseId: string, followUp: Omit<CclFollowUpRecord, 'id'>) => void;
+  closeCclComplaint: (caseId: string, closureData: { reason: NonNullable<CclComplaintCase['closure']>['closureReason']; summary: string; generateAcpmAction?: boolean; acpmDescription?: string }) => void;
+  registerCclCandidate: (workerId: string, proposalBrief?: string) => { success: boolean; message: string };
+  castCclVote: (voterDocNumber: string, candidateId: string) => { success: boolean; message: string };
+  closeCclElection: () => void;
+  setEmployerCclRepresentatives: (principalWorkerId: string, alternateWorkerId: string) => void;
+  signCclConfidentiality: (workerId: string) => void;
+  signCclMeetingMember: (meetingId: string, workerId: string) => void;
+  signCclMeetingAllMembers: (meetingId: string) => void;
+  uploadScannedCclMeetingAct: (meetingId: string, fileData: { fileName: string; fileBase64: string; fileSize: string }) => void;
+  addCclMeeting: (meeting: Omit<CclMeeting, 'id' | 'actaCode' | 'membersSignatures' | 'isClosed'>) => CclMeeting;
+  updateCclMeeting: (meetingId: string, updatedData: Partial<CclMeeting>) => void;
+  updateCclRegulation: (newText: string) => void;
+  updateCclDocumentNotes: (docType: string, notes: string) => void;
+
   // Global search & filters
   searchQuery: string;
   setSearchQuery: (q: string) => void;
@@ -327,6 +368,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   // COPASST o Vigía de SST (Estándares 1.1.6 y 1.1.7)
   const [copasstState, setCopasstState] = useState<CopasstGlobalState>(initialCopasstGlobalState);
+
+  // Comité de Convivencia Laboral - CCL (Estándar 1.1.8 - Resolución 3461 de 2025)
+  const [cclState, setCclState] = useState<CclGlobalState>(initialCclGlobalState);
   // Caracterización Inteligente & Motor de Aplicabilidad
   // Saved draft (browser only). The public landing does not render characterization data, so there is no hydration mismatch.
   const [initialDraft] = useState(() => (typeof window === 'undefined' ? null : loadDraft()));
@@ -2238,6 +2282,685 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     showNotification('Capacitación del COPASST registrada y expedientes de integrantes actualizados');
   };
 
+  // ==============================================================
+  // COMITÉ DE CONVIVENCIA LABORAL (CCL) - RESOLUCIÓN 3461 DE 2025
+  // ==============================================================
+
+  const registerCclComplaint = (data: {
+    channel: CclComplaintCase['channel'];
+    complainantWorkerId: string;
+    respondentWorkerId: string;
+    witnessesText?: string;
+    incidentDates: string;
+    incidentLocation: string;
+    factsDescription: string;
+    evidences?: CclEvidenceAttachment[];
+  }): CclComplaintCase => {
+    const year = new Date().getFullYear();
+    const caseIndex = (cclState.complaints.length + 1).toString().padStart(4, '0');
+    const caseCode = `CCL-${year}-${caseIndex}`;
+    const today = new Date().toISOString().split('T')[0];
+    const nowTime = new Date().toISOString().replace('T', ' ').substring(0, 16);
+
+    const addDays = (days: number) => {
+      const d = new Date();
+      d.setDate(d.getDate() + days);
+      return d.toISOString().split('T')[0];
+    };
+
+    const newCase: CclComplaintCase = {
+      id: caseCode,
+      code: caseCode,
+      filingDate: today,
+      receptionDate: today,
+      channel: data.channel,
+      status: 'RECIBIDA',
+      confidentialityLevel: 'RESERVADO_COMITE',
+      complainantWorkerId: data.complainantWorkerId,
+      respondentWorkerId: data.respondentWorkerId,
+      witnessesText: data.witnessesText,
+      incidentDates: data.incidentDates,
+      incidentLocation: data.incidentLocation,
+      factsDescription: data.factsDescription,
+      evidences: data.evidences || [],
+      examDeadline: addDays(8),
+      hearingsDeadline: addDays(15),
+      dialogueDeadline: addDays(25),
+      resolutionDeadline: addDays(60),
+      extensions: [],
+      followUps: [],
+      timeline: [
+        {
+          date: nowTime,
+          action: 'Recepción y radicación formal de presunta queja de convivencia',
+          responsible: 'Secretaría del CCL',
+          newStatus: 'RECIBIDA',
+          notes: 'Asignación de código confidencial y apertura de expediente reservado bajo amparo de la Resolución 3461 de 2025.'
+        }
+      ]
+    };
+
+    setTasks(prev => [
+      {
+        id: `tsk-ccl-${Date.now()}`,
+        title: `Actuación confidencial requerida - Expediente ${caseCode}`,
+        module: 'SST',
+        type: 'REPORTE',
+        dueDate: addDays(8),
+        priority: 'ALTA',
+        status: 'PENDIENTE',
+        responsible: 'Secretario/a CCL',
+        siteName: organization.sites[0]?.name || 'Sede Principal',
+        linkedId: caseCode
+      },
+      ...prev
+    ]);
+
+    setCclState(prev => ({
+      ...prev,
+      complaints: [newCase, ...prev.complaints]
+    }));
+
+    showNotification(`Caso ${caseCode} radicado confidencialmente bajo la Resolución 3461 de 2025`, 'success');
+    return newCase;
+  };
+
+  const updateCclComplaintStage = (caseId: string, newStage: CclComplaintStatus, notes?: string, nextDueDate?: string) => {
+    if (blockedByDemo()) return;
+    const nowTime = new Date().toISOString().replace('T', ' ').substring(0, 16);
+
+    setCclState(prev => ({
+      ...prev,
+      complaints: prev.complaints.map(c => {
+        if (c.id !== caseId) return c;
+        const prevStatus = c.status;
+        const updatedTimeline = [
+          {
+            date: nowTime,
+            action: `Transición procesal a: ${newStage.replace(/_/g, ' ')}`,
+            responsible: 'Comité de Convivencia Laboral',
+            previousStatus: prevStatus,
+            newStatus: newStage,
+            notes: notes || 'Actuación reglamentaria registrada en el expediente confidencial.'
+          },
+          ...c.timeline
+        ];
+
+        return {
+          ...c,
+          status: newStage,
+          timeline: updatedTimeline,
+          ...(nextDueDate ? { resolutionDeadline: nextDueDate } : {})
+        };
+      })
+    }));
+
+    showNotification(`Etapa del caso actualizada a: ${newStage.replace(/_/g, ' ')}`, 'info');
+  };
+
+  const recordCclHearing = (caseId: string, party: 'complainant' | 'respondent', hearingData: CclHearingRecord) => {
+    if (blockedByDemo()) return;
+    const nowTime = new Date().toISOString().replace('T', ' ').substring(0, 16);
+
+    setCclState(prev => ({
+      ...prev,
+      complaints: prev.complaints.map(c => {
+        if (c.id !== caseId) return c;
+        const currentHearings = c.hearings || {};
+        const partyLabel = party === 'complainant' ? 'Parte que presenta la queja (Parte A)' : 'Parte involucrada (Parte B)';
+
+        return {
+          ...c,
+          hearings: {
+            ...currentHearings,
+            [party]: hearingData
+          },
+          timeline: [
+            {
+              date: nowTime,
+              action: `Audiencia de escucha individual: ${partyLabel}`,
+              responsible: hearingData.recordedBy || 'Comité de Convivencia Laboral',
+              newStatus: c.status,
+              notes: 'Diligencia de escucha confidencial y separada realizada con garantía de debido proceso y no revictimización.'
+            },
+            ...c.timeline
+          ]
+        };
+      })
+    }));
+
+    showNotification('Audiencia de escucha confidencial registrada en el expediente', 'success');
+  };
+
+  const recordCclDialogueSession = (caseId: string, sessionData: { date: string; attendees: string[]; summary: string; agreementReached: boolean; actCode?: string }) => {
+    if (blockedByDemo()) return;
+    const nowTime = new Date().toISOString().replace('T', ' ').substring(0, 16);
+
+    setCclState(prev => ({
+      ...prev,
+      complaints: prev.complaints.map(c => {
+        if (c.id !== caseId) return c;
+        return {
+          ...c,
+          dialogueSession: sessionData,
+          status: sessionData.agreementReached ? 'PLAN_MEJORA' : 'DIALOGO_CONCERTACION',
+          timeline: [
+            {
+              date: nowTime,
+              action: 'Sesión conjunta de diálogo y concertación',
+              responsible: 'Presidente y Secretaria CCL',
+              newStatus: sessionData.agreementReached ? 'PLAN_MEJORA' : 'DIALOGO_CONCERTACION',
+              notes: sessionData.agreementReached 
+                ? 'Espacio de concertación finalizado con acuerdos y suscripción de compromisos de mejora.' 
+                : 'Sesión de diálogo adelantada sin concertación total; continúa deliberación preventiva.'
+            },
+            ...c.timeline
+          ]
+        };
+      })
+    }));
+
+    showNotification('Espacio de diálogo y concertación registrado en el expediente', 'success');
+  };
+
+  const addCclCommitment = (caseId: string, commitmentData: Omit<CclCommitmentItem, 'id' | 'status'>) => {
+    if (blockedByDemo()) return;
+    const commitmentId = `cmt-ccl-${Date.now()}`;
+    const newCommitment: CclCommitmentItem = {
+      ...commitmentData,
+      id: commitmentId,
+      status: 'PENDIENTE'
+    };
+
+    setTasks(prev => [
+      {
+        id: `tsk-cmt-${Date.now()}`,
+        title: `Compromiso de mejora CCL - Expediente ${caseId}`,
+        module: 'SST',
+        type: 'ACPM',
+        dueDate: commitmentData.dueDate,
+        priority: 'MEDIA',
+        status: 'PENDIENTE',
+        responsible: commitmentData.responsibleName,
+        siteName: organization.sites[0]?.name || 'Sede Principal',
+        linkedId: caseId
+      },
+      ...prev
+    ]);
+
+    setCclState(prev => ({
+      ...prev,
+      complaints: prev.complaints.map(c => {
+        if (c.id !== caseId) return c;
+        const currentPlan = c.improvementPlan || { commitments: [], recommendationsToOrganization: [], approvedAt: new Date().toISOString().split('T')[0] };
+        return {
+          ...c,
+          improvementPlan: {
+            ...currentPlan,
+            commitments: [...currentPlan.commitments, newCommitment]
+          }
+        };
+      })
+    }));
+
+    showNotification('Compromiso de mejora agregado y vinculado al Centro de Tareas');
+  };
+
+  const toggleCclCommitmentStatus = (caseId: string, commitmentId: string, newStatus: CclCommitmentItem['status']) => {
+    if (blockedByDemo()) return;
+    setCclState(prev => ({
+      ...prev,
+      complaints: prev.complaints.map(c => {
+        if (c.id !== caseId || !c.improvementPlan) return c;
+        return {
+          ...c,
+          improvementPlan: {
+            ...c.improvementPlan,
+            commitments: c.improvementPlan.commitments.map(item => item.id === commitmentId ? { ...item, status: newStatus } : item)
+          }
+        };
+      })
+    }));
+    showNotification(`Estado de compromiso actualizado a: ${newStatus}`);
+  };
+
+  const addCclFollowUp = (caseId: string, followUpData: Omit<CclFollowUpRecord, 'id'>) => {
+    if (blockedByDemo()) return;
+    const followUpId = `flw-ccl-${Date.now()}`;
+    const nowTime = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    const record: CclFollowUpRecord = {
+      ...followUpData,
+      id: followUpId
+    };
+
+    setCclState(prev => ({
+      ...prev,
+      complaints: prev.complaints.map(c => {
+        if (c.id !== caseId) return c;
+        return {
+          ...c,
+          status: 'EN_SEGUIMIENTO',
+          followUps: [...c.followUps, record],
+          timeline: [
+            {
+              date: nowTime,
+              action: 'Sesión de verificación y seguimiento de compromisos',
+              responsible: followUpData.conductedBy,
+              newStatus: 'EN_SEGUIMIENTO',
+              notes: followUpData.observations
+            },
+            ...c.timeline
+          ]
+        };
+      })
+    }));
+
+    showNotification('Seguimiento periódico registrado en el expediente');
+  };
+
+  const closeCclComplaint = (
+    caseId: string,
+    closureData: {
+      reason: NonNullable<CclComplaintCase['closure']>['closureReason'];
+      summary: string;
+      generateAcpmAction?: boolean;
+      acpmDescription?: string;
+    }
+  ) => {
+    if (blockedByDemo()) return;
+    const today = new Date().toISOString().split('T')[0];
+    const nowTime = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    let linkedAcpmId: string | undefined = undefined;
+
+    if (closureData.generateAcpmAction) {
+      linkedAcpmId = addFinding({
+        title: `[CCL Prevención] ${closureData.acpmDescription || 'Plan institucional de intervención psicosocial y convivencia'}`,
+        originModule: 'SST',
+        originType: 'ROUTINE',
+        originDetail: `Recomendación preventiva institucional derivada de la gestión del CCL (Res. 3461/2025)`,
+        siteName: organization.sites[0]?.name || 'Sede Principal',
+        processName: 'Gestión Humana y Convivencia',
+        description: closureData.acpmDescription || closureData.summary,
+        legalCriterion: 'Resolución 3461 de 2025 y Decreto 1072 de 2015 Art. 2.2.4.6.8',
+        severity: 'MENOR',
+        status: 'EN_ACPM',
+        reportedBy: 'Comité de Convivencia Laboral'
+      }, true);
+    }
+
+    const finalStatus: CclComplaintStatus = 
+      closureData.reason === 'REMITIDO_ALTA_DIRECCION' || closureData.reason === 'REMITIDO_MINTRABAJO' 
+        ? 'REMITIDA' 
+        : closureData.reason === 'ARCHIVO_BAJO_RESERVA' 
+        ? 'ARCHIVADA_RESERVA' 
+        : 'CERRADA';
+
+    setCclState(prev => ({
+      ...prev,
+      complaints: prev.complaints.map(c => {
+        if (c.id !== caseId) return c;
+        return {
+          ...c,
+          status: finalStatus,
+          closure: {
+            closedDate: today,
+            closureReason: closureData.reason,
+            closureSummary: closureData.summary,
+            sentToAcpm: Boolean(closureData.generateAcpmAction),
+            acpmActionId: linkedAcpmId
+          },
+          timeline: [
+            {
+              date: nowTime,
+              action: `Cierre formal del caso: ${closureData.reason.replace(/_/g, ' ')}`,
+              responsible: 'Comité de Convivencia Laboral',
+              newStatus: finalStatus,
+              notes: closureData.summary
+            },
+            ...c.timeline
+          ]
+        };
+      })
+    }));
+
+    showNotification(`Expediente ${caseId} cerrado formalmente bajo custodia reservada`, 'success');
+  };
+
+  const registerCclCandidate = (workerId: string, proposalBrief?: string): { success: boolean; message: string } => {
+    if (blockedByDemo()) return { success: false, message: 'Función en modo demostración' };
+    const wrk = workers.find(w => w.id === workerId);
+    if (!wrk) return { success: false, message: 'Trabajador no encontrado en la Base Maestra.' };
+
+    const hasPendingComplaint = cclState.complaints.some(
+      c => (c.complainantWorkerId === workerId || c.respondentWorkerId === workerId) && c.status !== 'ARCHIVADA_RESERVA'
+    );
+
+    if (hasPendingComplaint) {
+      return {
+        success: false,
+        message: 'No es elegible: El trabajador presenta una causal de inhabilidad reglamentada en la Resolución 3461 de 2025 (involucrado en presunta queja de convivencia laboral en el periodo legal).'
+      };
+    }
+
+    const candidateId = `cand-ccl-${Date.now()}`;
+    const today = new Date().toISOString().split('T')[0];
+
+    const newCandidate = {
+      id: candidateId,
+      workerId: wrk.id,
+      workerName: `${wrk.firstName} ${wrk.lastName}`,
+      workerDocNumber: wrk.docNumber,
+      workerPosition: wrk.position,
+      workerArea: wrk.area,
+      photoUrl: wrk.photoUrl,
+      registrationDate: today,
+      proposalBrief: proposalBrief || 'Compromiso firme con la imparcialidad, el diálogo asertivo y la sana convivencia laboral.',
+      eligibilityValidated: true,
+      status: 'HABILITADO' as const,
+      votesCount: 0,
+      isElected: false
+    };
+
+    setCclState(prev => ({
+      ...prev,
+      election: {
+        ...prev.election,
+        candidates: [...prev.election.candidates, newCandidate]
+      }
+    }));
+
+    showNotification(`Postulación de ${wrk.firstName} ${wrk.lastName} admitida y habilitada`, 'success');
+    return { success: true, message: 'Postulación registrada exitosamente con validación de inhabilidad aprobada.' };
+  };
+
+  const castCclVote = (voterDocNumber: string, candidateId: string): { success: boolean; message: string } => {
+    if (blockedByDemo()) return { success: false, message: 'Función en modo demo' };
+    if (!cclState.election.isVotingOpen || cclState.election.isClosed) {
+      return { success: false, message: 'El periodo electoral no se encuentra activo o ya fue cerrado.' };
+    }
+
+    const voter = workers.find(w => w.docNumber.trim() === voterDocNumber.trim());
+    if (!voter) {
+      return { success: false, message: 'El número de identificación no pertenece al censo de trabajadores de la empresa.' };
+    }
+
+    const alreadyVoted = cclState.election.voterAuditLog.some(log => log.voterDocNumber.trim() === voterDocNumber.trim());
+    if (alreadyVoted) {
+      return { success: false, message: 'Usted ya ha ejercido su derecho al voto en esta jornada electoral.' };
+    }
+
+    const now = new Date().toISOString();
+    const auditEntry = {
+      voterDocNumber: voterDocNumber.trim(),
+      votedAt: now,
+      ipAddress: '192.168.1.xxx'
+    };
+
+    setCclState(prev => {
+      const isBlank = candidateId === 'BLANCO';
+      const updatedCandidates = prev.election.candidates.map(cand => {
+        if (cand.id === candidateId) {
+          return { ...cand, votesCount: cand.votesCount + 1 };
+        }
+        return cand;
+      });
+
+      return {
+        ...prev,
+        election: {
+          ...prev.election,
+          votesSubmitted: prev.election.votesSubmitted + 1,
+          blankVotes: isBlank ? prev.election.blankVotes + 1 : prev.election.blankVotes,
+          voterAuditLog: [...prev.election.voterAuditLog, auditEntry],
+          candidates: updatedCandidates
+        }
+      };
+    });
+
+    return { success: true, message: 'Su voto secreto ha sido depositado y certificado legalmente.' };
+  };
+
+  const closeCclElection = () => {
+    if (blockedByDemo()) return;
+    const now = new Date().toISOString().replace('T', ' ').substring(0, 16);
+
+    const sorted = [...cclState.election.candidates].sort((a, b) => b.votesCount - a.votesCount);
+    const updatedCandidates = sorted.map((cand, index) => {
+      if (index === 0) {
+        return { ...cand, isElected: true, electedRole: 'PRINCIPAL' as const };
+      } else if (index === 1) {
+        return { ...cand, isElected: true, electedRole: 'SUPLENTE' as const };
+      }
+      return { ...cand, isElected: false };
+    });
+
+    const newMembers = [...cclState.members];
+    if (updatedCandidates[0]) {
+      const idx = newMembers.findIndex(m => m.party === 'TRABAJADORES' && m.isPrincipal);
+      if (idx !== -1) {
+        newMembers[idx] = { ...newMembers[idx], workerId: updatedCandidates[0].workerId };
+      }
+    }
+    if (updatedCandidates[1]) {
+      const idx = newMembers.findIndex(m => m.party === 'TRABAJADORES' && !m.isPrincipal);
+      if (idx !== -1) {
+        newMembers[idx] = { ...newMembers[idx], workerId: updatedCandidates[1].workerId };
+      }
+    }
+
+    setCclState(prev => ({
+      ...prev,
+      members: newMembers,
+      election: {
+        ...prev.election,
+        isVotingOpen: false,
+        isClosed: true,
+        closedAt: now,
+        resultsPublished: true,
+        candidates: updatedCandidates
+      }
+    }));
+
+    showNotification('Jornada electoral del CCL cerrada. Escrutinio oficial generado e inmutable.', 'success');
+  };
+
+  const setEmployerCclRepresentatives = (principalWorkerId: string, alternateWorkerId: string) => {
+    if (blockedByDemo()) return;
+    const today = new Date().toISOString().split('T')[0];
+
+    setCclState(prev => {
+      const updatedMembers = prev.members.map(m => {
+        if (m.party === 'EMPLEADOR' && m.isPrincipal) {
+          return { ...m, workerId: principalWorkerId, appointmentDate: today };
+        }
+        if (m.party === 'EMPLEADOR' && !m.isPrincipal) {
+          return { ...m, workerId: alternateWorkerId, appointmentDate: today };
+        }
+        return m;
+      });
+
+      return {
+        ...prev,
+        members: updatedMembers
+      };
+    });
+
+    showNotification('Representantes del empleador ante el CCL designados mediante carta oficial');
+  };
+
+  const signCclConfidentiality = (workerId: string) => {
+    if (blockedByDemo()) return;
+    const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
+    const token = `CONF-CCL-${workerId.slice(-4)}-${Date.now().toString(36).toUpperCase()}`;
+
+    setCclState(prev => ({
+      ...prev,
+      members: prev.members.map(m => {
+        if (m.workerId === workerId) {
+          return {
+            ...m,
+            signedConfidentialityAgreement: true,
+            confidentialitySignedAt: now,
+            confidentialityToken: token
+          };
+        }
+        return m;
+      }),
+      confidentialityAgreements: {
+        ...prev.confidentialityAgreements,
+        [workerId]: {
+          signed: true,
+          signedAt: now,
+          token
+        }
+      }
+    }));
+
+    showNotification('Carta de confidencialidad y reserva procesal firmada electrónicamente con validez legal');
+  };
+
+  const addCclMeeting = (meetingData: Omit<CclMeeting, 'id' | 'actaCode' | 'membersSignatures' | 'isClosed'>): CclMeeting => {
+    const year = new Date().getFullYear();
+    const count = (cclState.meetings.length + 1).toString().padStart(2, '0');
+    const actaCode = `ACTA-CCL-${meetingData.type === 'ORDINARIA' ? 'ORD' : 'EXT'}-${year}-${count}`;
+
+    const newMeeting: CclMeeting = {
+      ...meetingData,
+      id: `mtg-ccl-${Date.now()}`,
+      actaCode,
+      membersSignatures: cclState.members.map(m => {
+        const wrk = workers.find(w => w.id === m.workerId);
+        return {
+          workerId: m.workerId,
+          memberName: wrk ? `${wrk.firstName} ${wrk.lastName}` : 'Integrante CCL',
+          role: m.role,
+          party: m.party,
+          signed: false
+        };
+      }),
+      isClosed: false
+    };
+
+    setCclState(prev => ({
+      ...prev,
+      meetings: [newMeeting, ...prev.meetings]
+    }));
+
+    showNotification(`Reunión ${actaCode} convocada y registrada en el cronograma trimestral`);
+    return newMeeting;
+  };
+
+  const updateCclMeeting = (meetingId: string, updatedData: Partial<CclMeeting>) => {
+    if (blockedByDemo()) return;
+    setCclState(prev => ({
+      ...prev,
+      meetings: prev.meetings.map(m => m.id === meetingId ? { ...m, ...updatedData } : m)
+    }));
+    showNotification('Acta del Comité de Convivencia Laboral actualizada');
+  };
+
+  const signCclMeetingMember = (meetingId: string, workerId: string) => {
+    if (blockedByDemo()) return;
+    const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
+    const token = `SIG-CCL-${workerId.slice(-4)}-${Date.now().toString(36).toUpperCase()}`;
+
+    setCclState(prev => ({
+      ...prev,
+      meetings: prev.meetings.map(m => {
+        if (m.id !== meetingId) return m;
+        const updatedSigs = m.membersSignatures.map(sig => {
+          if (sig.workerId === workerId) {
+            return {
+              ...sig,
+              signed: true,
+              signedAt: now,
+              signatureToken: token
+            };
+          }
+          return sig;
+        });
+
+        const allSigned = updatedSigs.length > 0 && updatedSigs.every(s => s.signed);
+        return {
+          ...m,
+          membersSignatures: updatedSigs,
+          isClosed: allSigned
+        };
+      })
+    }));
+
+    showNotification('Firma electrónica de integrante del CCL registrada legalmente', 'success');
+  };
+
+  const signCclMeetingAllMembers = (meetingId: string) => {
+    if (blockedByDemo()) return;
+    const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
+
+    setCclState(prev => ({
+      ...prev,
+      meetings: prev.meetings.map(m => {
+        if (m.id !== meetingId) return m;
+        const updatedSigs = m.membersSignatures.map(sig => ({
+          ...sig,
+          signed: true,
+          signedAt: sig.signedAt || now,
+          signatureToken: sig.signatureToken || `SIG-CCL-${sig.workerId.slice(-4)}-${Date.now().toString(36).toUpperCase()}`
+        }));
+
+        return {
+          ...m,
+          membersSignatures: updatedSigs,
+          isClosed: true
+        };
+      })
+    }));
+
+    showNotification('Todas las firmas de los integrantes del CCL formalizadas en el acta', 'success');
+  };
+
+  const uploadScannedCclMeetingAct = (meetingId: string, fileData: { fileName: string; fileBase64: string; fileSize: string }) => {
+    if (blockedByDemo()) return;
+    const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
+
+    setCclState(prev => ({
+      ...prev,
+      meetings: prev.meetings.map(m => {
+        if (m.id !== meetingId) return m;
+        return {
+          ...m,
+          scannedActFileName: fileData.fileName,
+          scannedActUrl: fileData.fileBase64,
+          scannedActUploadDate: now,
+          isClosed: true
+        };
+      })
+    }));
+
+    showNotification(`Acta escaneada "${fileData.fileName}" custodiada digitalmente`, 'success');
+  };
+
+  const updateCclRegulation = (newText: string) => {
+    if (blockedByDemo()) return;
+    setCclState(prev => ({
+      ...prev,
+      reglamentoText: newText,
+      reglamentoVersion: '02'
+    }));
+    showNotification('Reglamento Interno del CCL actualizado y versionado', 'success');
+  };
+
+  const updateCclDocumentNotes = (docType: string, notes: string) => {
+    if (blockedByDemo()) return;
+    setCclState(prev => ({
+      ...prev,
+      documentNotes: {
+        ...prev.documentNotes,
+        [docType]: notes
+      }
+    }));
+    showNotification('Observaciones y personalización del documento guardadas', 'success');
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -2364,6 +3087,29 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         toggleCopasstCommitmentStatus,
         createCopasstFinding,
         addCopasstTraining,
+
+        // Comité de Convivencia Laboral - CCL (Estándar 1.1.8 - Resolución 3461 de 2025)
+        cclState,
+        registerCclComplaint,
+        updateCclComplaintStage,
+        recordCclHearing,
+        recordCclDialogueSession,
+        addCclCommitment,
+        toggleCclCommitmentStatus,
+        addCclFollowUp,
+        closeCclComplaint,
+        registerCclCandidate,
+        castCclVote,
+        closeCclElection,
+        setEmployerCclRepresentatives,
+        signCclConfidentiality,
+        signCclMeetingMember,
+        signCclMeetingAllMembers,
+        uploadScannedCclMeetingAct,
+        addCclMeeting,
+        updateCclMeeting,
+        updateCclRegulation,
+        updateCclDocumentNotes,
 
         searchQuery,
         setSearchQuery,

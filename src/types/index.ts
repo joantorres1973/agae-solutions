@@ -3,6 +3,7 @@ export * from './characterization';
 export * from './worker';
 export * from './social-security';
 export * from './copasst';
+export * from './ccl';
 
 export type ModuleType = 
   | 'SST'
