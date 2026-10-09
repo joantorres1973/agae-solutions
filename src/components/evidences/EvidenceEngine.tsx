@@ -73,7 +73,7 @@ export const EvidenceEngine: React.FC = () => {
               Motor Central de Evidencias Polimórfico
             </h1>
           </div>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-slate-600 mt-1">
             Principio: <strong>Carga única, uso múltiple</strong>. Un archivo (foto, acta, certificado) se almacena una sola vez y se vincula simultáneamente a inspecciones, ACPM, auditorías y requisitos legales sin duplicar espacio.
           </p>
         </div>
@@ -90,7 +90,7 @@ export const EvidenceEngine: React.FC = () => {
       {/* Search and Filters */}
       <div className="flex flex-wrap items-center justify-between gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs">
         <div className="flex items-center gap-3 flex-1 max-w-md">
-          <Search className="w-4 h-4 text-slate-500" />
+          <Search className="w-4 h-4 text-slate-600" />
           <input
             type="text"
             placeholder="Buscar por título, tag o nombre de archivo..."
@@ -101,7 +101,7 @@ export const EvidenceEngine: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2">
-          <Filter className="w-3.5 h-3.5 text-slate-500" />
+          <Filter className="w-3.5 h-3.5 text-slate-600" />
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
@@ -125,11 +125,11 @@ export const EvidenceEngine: React.FC = () => {
                   {evidence.fileType === 'IMAGE' ? <Image className="w-3 h-3" /> : <FileText className="w-3 h-3" />}
                   {evidence.fileType}
                 </span>
-                <span className="text-[10px] text-slate-500 font-mono">{evidence.fileSize}</span>
+                <span className="text-[10px] text-slate-600 font-mono">{evidence.fileSize}</span>
               </div>
 
               <h2 className="text-xs font-bold text-slate-800 line-clamp-2 mb-1">{evidence.title}</h2>
-              <p className="text-[11px] text-slate-500 font-mono truncate">{evidence.fileName}</p>
+              <p className="text-[11px] text-slate-600 font-mono truncate">{evidence.fileName}</p>
 
               {/* Tags */}
               <div className="flex flex-wrap gap-1 mt-2.5">
@@ -141,10 +141,10 @@ export const EvidenceEngine: React.FC = () => {
               </div>
             </div>
 
-            <div className="pt-3 border-t border-slate-200 text-[10px] text-slate-500 flex items-center justify-between">
+            <div className="pt-3 border-t border-slate-200 text-[10px] text-slate-600 flex items-center justify-between">
               <div>
                 <span>{evidence.uploadedBy.split(' ')[0]}</span>
-                <span className="block text-slate-500">{evidence.uploadedAt}</span>
+                <span className="block text-slate-600">{evidence.uploadedAt}</span>
               </div>
               <div className="flex items-center gap-1.5 text-emerald-700 font-semibold bg-emerald-50 px-2 py-1 rounded border border-emerald-200">
                 <Link2 className="w-3 h-3" />
@@ -161,7 +161,7 @@ export const EvidenceEngine: React.FC = () => {
           <form onSubmit={handleUpload} className="bg-slate-50 border border-slate-300 rounded-2xl max-w-lg w-full p-5 space-y-4 shadow-2xl">
             <div className="flex items-center justify-between border-b border-slate-200 pb-3">
               <h2 className="text-sm font-bold text-slate-900">Cargar Nueva Evidencia Central</h2>
-              <button type="button" onClick={() => setShowUploadModal(false)} className="text-slate-500 hover:text-slate-900">✕</button>
+              <button type="button" onClick={() => setShowUploadModal(false)} className="text-slate-600 hover:text-slate-900">✕</button>
             </div>
 
             <div className="space-y-3 text-xs">

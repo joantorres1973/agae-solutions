@@ -95,12 +95,12 @@ export const CompanyProfileModal: React.FC<CompanyProfileModalProps> = ({ isOpen
               <h2 className="text-base font-bold text-slate-900">
                 Caracterización Empresarial & Parametrización
               </h2>
-              <p className="text-[11px] text-slate-500">
+              <p className="text-[11px] text-slate-600">
                 La plataforma parametriza automáticamente los estándares SST y nivel PESV aplicable.
               </p>
             </div>
           </div>
-          <button onClick={onClose} className="text-slate-500 hover:text-slate-900">
+          <button onClick={onClose} className="text-slate-600 hover:text-slate-900">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -112,7 +112,7 @@ export const CompanyProfileModal: React.FC<CompanyProfileModalProps> = ({ isOpen
               <Sparkles className="w-3.5 h-3.5 text-teal-700" />
               ¿Desea realizar el Diagnóstico Completo y Condicional?
             </span>
-            <p className="text-[11px] text-slate-500 mt-0.5">
+            <p className="text-[11px] text-slate-600 mt-0.5">
               Acceda al Asistente Inteligente de 11 pasos: caracterización ambiental, operación vial, riesgos críticos y propuesta comercial.
             </p>
           </div>
@@ -138,7 +138,7 @@ export const CompanyProfileModal: React.FC<CompanyProfileModalProps> = ({ isOpen
               <div className="text-sm font-bold text-slate-900 mt-1">
                 {dynamicSstStandards} Estándares Mínimos
               </div>
-              <span className="text-[10px] text-slate-500 block mt-0.5">
+              <span className="text-[10px] text-slate-600 block mt-0.5">
                 (Basado en {employeeCount} trabajadores y Riesgo ARL {riskLevelArl})
               </span>
             </div>
@@ -150,7 +150,7 @@ export const CompanyProfileModal: React.FC<CompanyProfileModalProps> = ({ isOpen
               <div className="text-sm font-bold text-slate-900 mt-1">
                 Nivel {dynamicPesv} (24 Pasos)
               </div>
-              <span className="text-[10px] text-slate-500 block mt-0.5">
+              <span className="text-[10px] text-slate-600 block mt-0.5">
                 (Autoclasificación por volumen de flota y trabajadores)
               </span>
             </div>
@@ -247,7 +247,7 @@ export const CompanyProfileModal: React.FC<CompanyProfileModalProps> = ({ isOpen
               {organization.sites.map(site => (
                 <div key={site.id} className="p-2 rounded bg-white border border-slate-200 flex items-center justify-between text-[11px]">
                   <span className="text-slate-800 font-semibold">{site.name}</span>
-                  <span className="text-slate-500">{site.city} • {site.workerCount} trabajadores</span>
+                  <span className="text-slate-600">{site.city} • {site.workerCount} trabajadores</span>
                 </div>
               ))}
             </div>

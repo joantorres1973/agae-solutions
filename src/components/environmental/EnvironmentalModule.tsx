@@ -169,7 +169,7 @@ export const EnvironmentalModule: React.FC = () => {
               Gestión Ambiental & Calculadora de Huella de Carbono
             </h1>
           </div>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-slate-600 mt-1">
             Gestión Integral de Residuos (PGIRS), Aspectos/Impactos Ambientales y Cálculo de Emisiones GEI (Alcances 1, 2 y 3) según ISO 14064 y GHG Protocol.
           </p>
         </div>
@@ -178,7 +178,7 @@ export const EnvironmentalModule: React.FC = () => {
           <button
             onClick={() => setActiveSubTab('CARBON')}
             className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
-              activeSubTab === 'CARBON' ? 'bg-emerald-600 text-white' : 'text-slate-500 hover:text-slate-900'
+              activeSubTab === 'CARBON' ? 'bg-emerald-600 text-white' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             {!huellaHabilitada && <Lock className="inline w-3 h-3 mr-1 -mt-0.5" />}
@@ -187,7 +187,7 @@ export const EnvironmentalModule: React.FC = () => {
           <button
             onClick={() => setActiveSubTab('PGIRS')}
             className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
-              activeSubTab === 'PGIRS' ? 'bg-emerald-600 text-white' : 'text-slate-500 hover:text-slate-900'
+              activeSubTab === 'PGIRS' ? 'bg-emerald-600 text-white' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             {!envCoreIncluido && <Lock className="inline w-3 h-3 mr-1 -mt-0.5" />}
@@ -196,7 +196,7 @@ export const EnvironmentalModule: React.FC = () => {
           <button
             onClick={() => setActiveSubTab('ASPECTS')}
             className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
-              activeSubTab === 'ASPECTS' ? 'bg-emerald-600 text-white' : 'text-slate-500 hover:text-slate-900'
+              activeSubTab === 'ASPECTS' ? 'bg-emerald-600 text-white' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             {!envCoreIncluido && <Lock className="inline w-3 h-3 mr-1 -mt-0.5" />}
@@ -212,7 +212,7 @@ export const EnvironmentalModule: React.FC = () => {
             <Lock className="w-7 h-7 text-emerald-700" />
           </span>
           <h3 className="mt-4 text-lg font-bold text-slate-900">La calculadora de huella de carbono no está incluida en tu plan</h3>
-          <p className="mt-2 text-sm text-slate-500">
+          <p className="mt-2 text-sm text-slate-600">
             Se incluye sin costo al contratar ISO 14001 o 3 o más módulos de AGAE Integral 360+. También puedes agregarla como servicio adicional
             a tu módulo de Gestión Ambiental.
           </p>
@@ -233,7 +233,7 @@ export const EnvironmentalModule: React.FC = () => {
               <FileText className="w-5 h-5 text-emerald-700 shrink-0 mt-0.5" />
               <div>
                 <p className="text-sm font-bold text-slate-900">Informe PDF de emisiones</p>
-                <p className="text-xs text-slate-500">Resumen por alcance y por sede, detalle de fuentes, factores de emisión y metodología (GHG Protocol / ISO 14064-1).</p>
+                <p className="text-xs text-slate-600">Resumen por alcance y por sede, detalle de fuentes, factores de emisión y metodología (GHG Protocol / ISO 14064-1).</p>
               </div>
             </div>
             <div className="flex items-center gap-2 shrink-0">
@@ -265,7 +265,7 @@ export const EnvironmentalModule: React.FC = () => {
               <div className="text-2xl font-black text-slate-900 mt-1">
                 {(totalKg / 1000).toFixed(2)} <span className="text-xs text-emerald-700">Ton CO₂eq</span>
               </div>
-              <span className="text-[10px] text-slate-500 block mt-1">
+              <span className="text-[10px] text-slate-600 block mt-1">
                 {totalKg.toLocaleString()} kg CO₂eq contabilizados
               </span>
             </div>
@@ -277,7 +277,7 @@ export const EnvironmentalModule: React.FC = () => {
               <div className="text-xl font-black text-slate-900 mt-1">
                 {(s1Kg / 1000).toFixed(2)} <span className="text-xs text-rose-700">Ton CO₂eq</span>
               </div>
-              <span className="text-[10px] text-slate-500 block mt-1">
+              <span className="text-[10px] text-slate-600 block mt-1">
                 Combustibles flota propia y refrigerantes
               </span>
             </div>
@@ -289,7 +289,7 @@ export const EnvironmentalModule: React.FC = () => {
               <div className="text-xl font-black text-slate-900 mt-1">
                 {(s2Kg / 1000).toFixed(2)} <span className="text-xs text-amber-700">Ton CO₂eq</span>
               </div>
-              <span className="text-[10px] text-slate-500 block mt-1">
+              <span className="text-[10px] text-slate-600 block mt-1">
                 Consumo de la red nacional (SIN)
               </span>
             </div>
@@ -301,7 +301,7 @@ export const EnvironmentalModule: React.FC = () => {
               <div className="text-xl font-black text-slate-900 mt-1">
                 {(s3Kg / 1000).toFixed(2)} <span className="text-xs text-sky-700">Ton CO₂eq</span>
               </div>
-              <span className="text-[10px] text-slate-500 block mt-1">
+              <span className="text-[10px] text-slate-600 block mt-1">
                 Disposición de residuos ordinarios
               </span>
             </div>
@@ -314,7 +314,7 @@ export const EnvironmentalModule: React.FC = () => {
                 <Calculator className="w-4 h-4 text-emerald-700" />
                 <h2 className="text-sm font-bold text-slate-900">Registrar Consumo y Calcular Emisiones</h2>
               </div>
-              <p className="text-xs text-slate-500 mb-4">
+              <p className="text-xs text-slate-600 mb-4">
                 Trazabilidad inmutable: <strong>Consumo × Factor Metodológico = kg CO₂eq</strong>
               </p>
 
@@ -329,7 +329,7 @@ export const EnvironmentalModule: React.FC = () => {
                       className={`py-1.5 rounded-lg border text-xs font-bold transition-all ${
                         scope === 1
                           ? 'bg-rose-50 border-rose-500 text-rose-700'
-                          : 'bg-slate-50 border-slate-300 text-slate-500'
+                          : 'bg-slate-50 border-slate-300 text-slate-600'
                       }`}
                     >
                       Alcance 1
@@ -340,7 +340,7 @@ export const EnvironmentalModule: React.FC = () => {
                       className={`py-1.5 rounded-lg border text-xs font-bold transition-all ${
                         scope === 2
                           ? 'bg-amber-50 border-amber-500 text-amber-700'
-                          : 'bg-slate-50 border-slate-300 text-slate-500'
+                          : 'bg-slate-50 border-slate-300 text-slate-600'
                       }`}
                     >
                       Alcance 2
@@ -351,7 +351,7 @@ export const EnvironmentalModule: React.FC = () => {
                       className={`py-1.5 rounded-lg border text-xs font-bold transition-all ${
                         scope === 3
                           ? 'bg-sky-50 border-sky-500 text-sky-700'
-                          : 'bg-slate-50 border-slate-300 text-slate-500'
+                          : 'bg-slate-50 border-slate-300 text-slate-600'
                       }`}
                     >
                       Alcance 3
@@ -429,11 +429,11 @@ export const EnvironmentalModule: React.FC = () => {
                     <span className="text-[11px] font-bold text-teal-700 uppercase">
                       Factor Oficial Metodológico:
                     </span>
-                    <span className="text-[10px] text-slate-500">Administrable</span>
+                    <span className="text-[10px] text-slate-600">Administrable</span>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <span className="text-[10px] text-slate-500 block">Factor numérico</span>
+                      <span className="text-[10px] text-slate-600 block">Factor numérico</span>
                       <input
                         type="number"
                         step="any"
@@ -443,7 +443,7 @@ export const EnvironmentalModule: React.FC = () => {
                       />
                     </div>
                     <div>
-                      <span className="text-[10px] text-slate-500 block">Fuente Oficial</span>
+                      <span className="text-[10px] text-slate-600 block">Fuente Oficial</span>
                       <input
                         type="text"
                         value={factorSource}
@@ -482,7 +482,7 @@ export const EnvironmentalModule: React.FC = () => {
               <h2 className="text-sm font-bold text-slate-900 mb-2">
                 Libro Mayor de Emisiones GEI (Trazabilidad Auditable)
               </h2>
-              <p className="text-xs text-slate-500 mb-4">
+              <p className="text-xs text-slate-600 mb-4">
                 Cada cálculo conserva el valor de consumo, factor de emisión, fuente metodológica y archivo de soporte.
               </p>
 
@@ -504,20 +504,20 @@ export const EnvironmentalModule: React.FC = () => {
                         <span className="font-mono text-sm font-black text-emerald-700">
                           {record.totalKgCO2eq.toLocaleString()} kg
                         </span>
-                        <span className="text-[10px] text-slate-500 block">
+                        <span className="text-[10px] text-slate-600 block">
                           ({(record.totalKgCO2eq / 1000).toFixed(2)} Ton CO₂eq)
                         </span>
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-500 bg-white/80 p-2 rounded">
+                    <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-600 bg-white/80 p-2 rounded">
                       <div>
                         <span>Consumo: <strong className="text-slate-800">{record.consumptionValue.toLocaleString()} {record.consumptionUnit}</strong></span>
                       </div>
                       <div>
                         <span>Factor: <strong className="text-slate-800">{record.emissionFactor} {record.factorUnit}</strong></span>
                       </div>
-                      <div className="col-span-2 text-[10px] text-slate-500 truncate">
+                      <div className="col-span-2 text-[10px] text-slate-600 truncate">
                         Fuente Metodológica: {record.factorSource} ({record.factorYear})
                       </div>
                     </div>
@@ -525,7 +525,7 @@ export const EnvironmentalModule: React.FC = () => {
                     {record.evidenceFileName && (
                       <div className="flex items-center justify-between text-[10px] text-teal-700 pt-1">
                         <span>Evidencia: {record.evidenceFileName}</span>
-                        <span className="text-slate-500">{record.siteName} • {record.period}</span>
+                        <span className="text-slate-600">{record.siteName} • {record.period}</span>
                       </div>
                     )}
                   </div>
@@ -550,7 +550,7 @@ export const EnvironmentalModule: React.FC = () => {
               <Trash2 className="w-4 h-4 text-emerald-700" />
               Registro de Generación y Pesaje de Residuos
             </h2>
-            <p className="text-xs text-slate-500 mb-4">
+            <p className="text-xs text-slate-600 mb-4">
               Control de generación conforme al PGIRS. Enlaza con gestores autorizados y certificados de disposición final.
             </p>
 
@@ -643,7 +643,7 @@ export const EnvironmentalModule: React.FC = () => {
             </h2>
             <div className="grid grid-cols-3 gap-3 mb-4">
               <div className="bg-slate-50 p-3 rounded-lg border border-slate-200 text-center">
-                <span className="text-[10px] text-slate-500 block font-semibold">Total Generado</span>
+                <span className="text-[10px] text-slate-600 block font-semibold">Total Generado</span>
                 <span className="text-lg font-bold text-slate-900">{totalWasteKg.toLocaleString()} kg</span>
               </div>
               <div className="bg-rose-50 p-3 rounded-lg border border-rose-200 text-center">
@@ -670,7 +670,7 @@ export const EnvironmentalModule: React.FC = () => {
                       </span>
                       <span className="font-bold text-slate-900">{item.wasteName}</span>
                     </div>
-                    <div className="text-[11px] text-slate-500 mt-1">
+                    <div className="text-[11px] text-slate-600 mt-1">
                       Gestor: <strong className="text-slate-800">{item.authorizedGestor}</strong> (NIT {item.gestorNit})
                     </div>
                     <div className="text-[10px] text-teal-700 mt-0.5">
@@ -679,7 +679,7 @@ export const EnvironmentalModule: React.FC = () => {
                   </div>
                   <div className="text-right shrink-0">
                     <span className="font-mono text-base font-bold text-slate-900">{item.weightKg} kg</span>
-                    <span className="text-[10px] text-slate-500 block">{item.date}</span>
+                    <span className="text-[10px] text-slate-600 block">{item.date}</span>
                   </div>
                 </div>
               ))}
@@ -701,7 +701,7 @@ export const EnvironmentalModule: React.FC = () => {
             <Scale className="w-4 h-4 text-emerald-700" />
             Matriz de Aspectos e Impactos Ambientales (ISO 14001:2015)
           </h2>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-slate-600">
             Identificación de aspectos ambientales asociados a las actividades, valoración de significancia y controles operacionales.
           </p>
 
@@ -712,7 +712,7 @@ export const EnvironmentalModule: React.FC = () => {
                   SIGNIFICATIVO (ALTO)
                 </span>
                 <h3 className="font-bold text-slate-900 text-xs mt-1">Operaciones de Transporte: Emisión de Gases de Combustión (GEI)</h3>
-                <p className="text-[11px] text-slate-500 mt-0.5">
+                <p className="text-[11px] text-slate-600 mt-0.5">
                   Aspecto: Consumo de combustible fósil diesel • Impacto: Contribución al calentamiento global y deterioro de calidad del aire.
                 </p>
                 <div className="text-[11px] text-teal-700 mt-1">
@@ -730,7 +730,7 @@ export const EnvironmentalModule: React.FC = () => {
                   MODERADO
                 </span>
                 <h3 className="font-bold text-slate-900 text-xs mt-1">Mantenimiento de Flota: Generación de Aceites Residuales (RESPEL)</h3>
-                <p className="text-[11px] text-slate-500 mt-0.5">
+                <p className="text-[11px] text-slate-600 mt-0.5">
                   Aspecto: Generación de residuos peligrosos hidrocarburados • Impacto: Riesgo de contaminación de suelo y cuerpos de agua.
                 </p>
                 <div className="text-[11px] text-teal-700 mt-1">

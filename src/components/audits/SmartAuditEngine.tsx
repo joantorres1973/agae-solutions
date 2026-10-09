@@ -55,7 +55,7 @@ export const SmartAuditEngine: React.FC = () => {
       case 'OBSERVACION':
         return <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-sky-50 text-sky-700 border border-sky-200">OBSERVACIÓN</span>;
       case 'NO_APLICA':
-        return <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-slate-100 text-slate-500 border border-slate-300">NO APLICA</span>;
+        return <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-slate-100 text-slate-600 border border-slate-300">NO APLICA</span>;
       default:
         return <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-slate-100 text-slate-700 border border-slate-300">SIN EVALUAR</span>;
     }
@@ -106,7 +106,7 @@ export const SmartAuditEngine: React.FC = () => {
               Auditoría Inteligente & Asistente IA
             </h1>
           </div>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-slate-600 mt-1">
             Ejecución de auditorías transversales (SST, Ambiental, PESV e ISO) con generación inteligente de hallazgos y emisión inmediata del informe final.
           </p>
         </div>
@@ -126,19 +126,19 @@ export const SmartAuditEngine: React.FC = () => {
       {currentAudit && (
         <div className="glass-card p-4 rounded-xl border border-slate-300 grid grid-cols-1 md:grid-cols-4 gap-3 text-xs">
           <div>
-            <span className="text-[10px] text-slate-500 block font-semibold">CÓDIGO DE AUDITORÍA</span>
+            <span className="text-[10px] text-slate-600 block font-semibold">CÓDIGO DE AUDITORÍA</span>
             <span className="font-mono font-bold text-teal-700 text-sm">{currentAudit.code}</span>
           </div>
           <div>
-            <span className="text-[10px] text-slate-500 block font-semibold">ALCANCE Y PROCESOS</span>
+            <span className="text-[10px] text-slate-600 block font-semibold">ALCANCE Y PROCESOS</span>
             <span className="text-slate-800 font-medium line-clamp-1">{currentAudit.scope}</span>
           </div>
           <div>
-            <span className="text-[10px] text-slate-500 block font-semibold">AUDITOR LÍDER</span>
+            <span className="text-[10px] text-slate-600 block font-semibold">AUDITOR LÍDER</span>
             <span className="text-slate-800 font-medium">{currentAudit.leadAuditor}</span>
           </div>
           <div>
-            <span className="text-[10px] text-slate-500 block font-semibold">ESTADO / HALLAZGOS</span>
+            <span className="text-[10px] text-slate-600 block font-semibold">ESTADO / HALLAZGOS</span>
             <span className="text-amber-700 font-bold">{currentAudit.status} • {currentAudit.findingsGeneratedCount} Hallazgos generados</span>
           </div>
         </div>
@@ -152,7 +152,7 @@ export const SmartAuditEngine: React.FC = () => {
               <ClipboardCheck className="w-4 h-4 text-teal-700" />
               Checklist de Requisitos y Evaluación en Tiempo Real
             </h2>
-            <span className="text-[11px] text-slate-500 font-medium">
+            <span className="text-[11px] text-slate-600 font-medium">
               {currentAudit.checklist.length} Criterios Auditados
             </span>
           </div>
@@ -203,7 +203,7 @@ export const SmartAuditEngine: React.FC = () => {
                 {/* Notes & Evidence */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
                   <div>
-                    <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">
+                    <label className="text-[10px] font-semibold text-slate-600 block mb-0.5">
                       Notas del Auditor y Hallazgo Fáctico:
                     </label>
                     <textarea
@@ -216,7 +216,7 @@ export const SmartAuditEngine: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">
+                    <label className="text-[10px] font-semibold text-slate-600 block mb-0.5">
                       Evidencias Objetivas / Documentos Auditados:
                     </label>
                     <div className="p-2 rounded-lg bg-slate-50 border border-slate-200 text-slate-700 min-h-[58px] flex items-center justify-between">
@@ -250,7 +250,7 @@ export const SmartAuditEngine: React.FC = () => {
               </div>
               <button
                 onClick={() => setSelectedItemForFinding(null)}
-                className="text-slate-500 hover:text-slate-900"
+                className="text-slate-600 hover:text-slate-900"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -292,7 +292,7 @@ export const SmartAuditEngine: React.FC = () => {
 
               <div className="flex items-center justify-between pt-1">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-slate-500">Severidad:</span>
+                  <span className="text-xs text-slate-600">Severidad:</span>
                   <select
                     value={aiSeverity}
                     onChange={(e) => setAiSeverity(e.target.value as FindingSeverity)}
@@ -338,7 +338,7 @@ export const SmartAuditEngine: React.FC = () => {
                     onChange={(e) => setAiResultText(e.target.value)}
                     className="w-full bg-white border border-purple-200 rounded p-2 text-xs text-slate-800 leading-relaxed focus:outline-none"
                   />
-                  <p className="text-[10px] text-slate-500 italic">
+                  <p className="text-[10px] text-slate-600 italic">
                     * La IA apoya la redacción formal (Criterio, Condición, Causa y Consecuencia). El auditor conserva la potestad técnica de aprobación.
                   </p>
                 </div>
@@ -360,7 +360,7 @@ export const SmartAuditEngine: React.FC = () => {
                 className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
                   aiResultText
                     ? 'bg-rose-600 hover:bg-rose-500 text-white shadow-lg shadow-rose-600/20'
-                    : 'bg-slate-100 text-slate-500 cursor-not-allowed'
+                    : 'bg-slate-100 text-slate-600 cursor-not-allowed'
                 }`}
               >
                 Aprobar y Emitir a Matriz ACPM →
@@ -381,7 +381,7 @@ export const SmartAuditEngine: React.FC = () => {
                   Informe Oficial de Auditoría Interna — AGAE SOLUTIONS
                 </h2>
               </div>
-              <button onClick={() => setShowReportModal(false)} className="text-slate-500 hover:text-slate-900">
+              <button onClick={() => setShowReportModal(false)} className="text-slate-600 hover:text-slate-900">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -390,12 +390,12 @@ export const SmartAuditEngine: React.FC = () => {
             <div className="p-4 rounded-xl bg-white border border-slate-200 flex flex-col sm:flex-row justify-between gap-4">
               <div>
                 <h3 className="font-bold text-slate-900 text-base">{organization.name}</h3>
-                <p className="text-xs text-slate-500">NIT: {organization.nit} • CIIU {organization.ciiu}</p>
-                <p className="text-xs text-slate-500 mt-1">
+                <p className="text-xs text-slate-600">NIT: {organization.nit} • CIIU {organization.ciiu}</p>
+                <p className="text-xs text-slate-600 mt-1">
                   <strong>Informe:</strong> {currentAudit.code} — {currentAudit.title}
                 </p>
               </div>
-              <div className="text-right text-xs text-slate-500">
+              <div className="text-right text-xs text-slate-600">
                 <div>Fecha: <strong>{currentAudit.auditDate}</strong></div>
                 <div>Auditor Líder: <strong>{currentAudit.leadAuditor}</strong></div>
                 <div className="text-emerald-700 font-semibold mt-1">Estado: Aprobado para emisión</div>
@@ -415,25 +415,25 @@ export const SmartAuditEngine: React.FC = () => {
                   <span className="text-lg font-bold text-emerald-700">
                     {currentAudit.checklist.filter(i => i.status === 'CONFORME').length}
                   </span>
-                  <span className="text-[10px] block text-slate-500">Conformidades</span>
+                  <span className="text-[10px] block text-slate-600">Conformidades</span>
                 </div>
                 <div className="bg-rose-50 border border-rose-200 p-2 rounded">
                   <span className="text-lg font-bold text-rose-700">
                     {currentAudit.checklist.filter(i => i.status === 'NO_CONFORME').length}
                   </span>
-                  <span className="text-[10px] block text-slate-500">No Conformidades</span>
+                  <span className="text-[10px] block text-slate-600">No Conformidades</span>
                 </div>
                 <div className="bg-amber-50 border border-amber-200 p-2 rounded">
                   <span className="text-lg font-bold text-amber-700">
                     {currentAudit.checklist.filter(i => i.status === 'OPORTUNIDAD_MEJORA').length}
                   </span>
-                  <span className="text-[10px] block text-slate-500">Oportunidades</span>
+                  <span className="text-[10px] block text-slate-600">Oportunidades</span>
                 </div>
                 <div className="bg-sky-50 border border-sky-200 p-2 rounded">
                   <span className="text-lg font-bold text-sky-700">
                     {currentAudit.checklist.filter(i => i.status === 'OBSERVACION').length}
                   </span>
-                  <span className="text-[10px] block text-slate-500">Observaciones</span>
+                  <span className="text-[10px] block text-slate-600">Observaciones</span>
                 </div>
               </div>
 
@@ -459,7 +459,7 @@ export const SmartAuditEngine: React.FC = () => {
             </div>
 
             <div className="flex items-center justify-between pt-4 border-t border-slate-200">
-              <span className="text-xs text-slate-500">
+              <span className="text-xs text-slate-600">
                 Generado automáticamente sin doble digitación por AGAE SOLUTIONS
               </span>
               <div className="flex gap-2">

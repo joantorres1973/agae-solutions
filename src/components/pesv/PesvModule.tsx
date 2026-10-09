@@ -132,7 +132,7 @@ export const PesvModule: React.FC = () => {
               Plan Estratégico de Seguridad Vial (PESV)
             </h1>
           </div>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-slate-600 mt-1">
             Metodología oficial de <strong>Resolución 40595 de 2022</strong>. Nivel aplicable: <strong className="text-sky-700">{organization.pesvLevel}</strong> (24 Pasos).
           </p>
         </div>
@@ -141,7 +141,7 @@ export const PesvModule: React.FC = () => {
           <button
             onClick={() => setActiveSubTab('STEPS')}
             className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
-              activeSubTab === 'STEPS' ? 'bg-sky-600 text-white' : 'text-slate-500 hover:text-slate-900'
+              activeSubTab === 'STEPS' ? 'bg-sky-600 text-white' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             Los 24 Pasos PESV
@@ -149,7 +149,7 @@ export const PesvModule: React.FC = () => {
           <button
             onClick={() => setActiveSubTab('VEHICLES')}
             className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
-              activeSubTab === 'VEHICLES' ? 'bg-sky-600 text-white' : 'text-slate-500 hover:text-slate-900'
+              activeSubTab === 'VEHICLES' ? 'bg-sky-600 text-white' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             Matriz de Vehículos ({pesvVehicles.length})
@@ -157,7 +157,7 @@ export const PesvModule: React.FC = () => {
           <button
             onClick={() => setActiveSubTab('DRIVERS')}
             className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
-              activeSubTab === 'DRIVERS' ? 'bg-sky-600 text-white' : 'text-slate-500 hover:text-slate-900'
+              activeSubTab === 'DRIVERS' ? 'bg-sky-600 text-white' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             Matriz de Conductores ({pesvDrivers.length})
@@ -176,7 +176,7 @@ export const PesvModule: React.FC = () => {
               <div className="text-base font-bold text-slate-900 mt-1">
                 Nivel {organization.pesvLevel} (Avanzado)
               </div>
-              <p className="text-xs text-slate-500 mt-0.5">
+              <p className="text-xs text-slate-600 mt-0.5">
                 Organización dedicada a prestación de servicios de transporte con flota superior a 50 vehículos y conductores.
               </p>
             </div>
@@ -221,7 +221,7 @@ export const PesvModule: React.FC = () => {
                       <span className="w-5 h-5 rounded-full bg-sky-50 text-sky-700 border border-sky-200 flex items-center justify-center font-bold text-[10px]">
                         {step.num}
                       </span>
-                      <span className="text-[10px] text-slate-500 font-semibold">{step.phase}</span>
+                      <span className="text-[10px] text-slate-600 font-semibold">{step.phase}</span>
                     </div>
                     <p className="font-semibold text-slate-800 leading-snug">{step.title}</p>
                   </div>
@@ -246,7 +246,7 @@ export const PesvModule: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-sm font-bold text-slate-900">Flota de Vehículos Seguros (Paso 16 y 17)</h2>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-600">
                 Control de vigencia documental SOAT, RTM, mantenimientos preventivos y preoperacionales diarios.
               </p>
             </div>
@@ -279,21 +279,21 @@ export const PesvModule: React.FC = () => {
 
                 <div className="text-xs text-slate-700 space-y-1.5 bg-slate-50 p-2.5 rounded border border-slate-200">
                   <div className="flex items-center justify-between">
-                    <span className="text-slate-500">Vigencia SOAT:</span>
+                    <span className="text-slate-600">Vigencia SOAT:</span>
                     <span className="font-semibold text-emerald-700">{veh.soatExpiry}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-slate-500">Vigencia RTM:</span>
+                    <span className="text-slate-600">Vigencia RTM:</span>
                     <span className={`font-semibold ${veh.rtmExpiry.startsWith('2026-04') ? 'text-amber-700 font-bold' : 'text-emerald-700'}`}>
                       {veh.rtmExpiry} {veh.rtmExpiry.startsWith('2026-04') && '(Próximo)'}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-slate-500">Último Preoperacional:</span>
+                    <span className="text-slate-600">Último Preoperacional:</span>
                     <span className="text-teal-700">{veh.lastPreoperationalDate}</span>
                   </div>
                   <div className="flex items-center justify-between pt-1 border-t border-slate-200">
-                    <span className="text-slate-500">Conductor:</span>
+                    <span className="text-slate-600">Conductor:</span>
                     <span className="font-medium text-slate-800">{veh.assignedDriver}</span>
                   </div>
                 </div>
@@ -309,7 +309,7 @@ export const PesvModule: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-sm font-bold text-slate-900">Idoneidad y Expedientes de Conductores (Paso 8 y 10)</h2>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-600">
                 Validación obligatoria de aptitud física/mental, vigencia en SIMIT, licencias de conducción y cursos viales.
               </p>
             </div>
@@ -340,21 +340,21 @@ export const PesvModule: React.FC = () => {
 
                 <div className="text-xs text-slate-700 space-y-1.5 bg-slate-50 p-2.5 rounded border border-slate-200">
                   <div className="flex items-center justify-between">
-                    <span className="text-slate-500">C.C. / Identificación:</span>
+                    <span className="text-slate-600">C.C. / Identificación:</span>
                     <span className="font-mono text-slate-800">{driver.idNumber}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-slate-500">Licencia Categoría:</span>
+                    <span className="text-slate-600">Licencia Categoría:</span>
                     <span className="font-bold text-teal-700">{driver.licenseCategory} (Exp: {driver.licenseExpiry})</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-slate-500">Examen Médico Vial:</span>
+                    <span className="text-slate-600">Examen Médico Vial:</span>
                     <span className={`font-semibold ${driver.medicalExamExpiry < '2026-03-25' ? 'text-rose-700 font-bold' : 'text-emerald-700'}`}>
                       {driver.medicalExamExpiry} {driver.medicalExamExpiry < '2026-03-25' && '(VENCIDO)'}
                     </span>
                   </div>
                   <div className="flex items-center justify-between pt-1 border-t border-slate-200">
-                    <span className="text-slate-500">Paz y Salvo SIMIT:</span>
+                    <span className="text-slate-600">Paz y Salvo SIMIT:</span>
                     <span className="text-emerald-700 font-bold">Sin Infracciones Pendientes</span>
                   </div>
                 </div>
@@ -377,7 +377,7 @@ export const PesvModule: React.FC = () => {
           <form onSubmit={handleAddVehicle} className="bg-slate-50 border border-slate-300 rounded-2xl max-w-lg w-full p-5 space-y-4 shadow-2xl">
             <div className="flex items-center justify-between border-b border-slate-200 pb-3">
               <h2 className="text-sm font-bold text-slate-900">Registrar Vehículo en Flota PESV</h2>
-              <button type="button" onClick={() => setShowVehicleModal(false)} className="text-slate-500 hover:text-slate-900">✕</button>
+              <button type="button" onClick={() => setShowVehicleModal(false)} className="text-slate-600 hover:text-slate-900">✕</button>
             </div>
 
             <div className="space-y-3 text-xs">
@@ -488,7 +488,7 @@ export const PesvModule: React.FC = () => {
           <form onSubmit={handleAddDriver} className="bg-slate-50 border border-slate-300 rounded-2xl max-w-lg w-full p-5 space-y-4 shadow-2xl">
             <div className="flex items-center justify-between border-b border-slate-200 pb-3">
               <h2 className="text-sm font-bold text-slate-900">Registrar Conductor en PESV</h2>
-              <button type="button" onClick={() => setShowDriverModal(false)} className="text-slate-500 hover:text-slate-900">✕</button>
+              <button type="button" onClick={() => setShowDriverModal(false)} className="text-slate-600 hover:text-slate-900">✕</button>
             </div>
 
             <div className="space-y-3 text-xs">

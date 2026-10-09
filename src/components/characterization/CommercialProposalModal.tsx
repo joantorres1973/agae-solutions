@@ -54,7 +54,7 @@ export const CommercialProposalModal: React.FC<CommercialProposalModalProps> = (
                   {proposal.id}
                 </span>
               </div>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-600">
                 Solución modular generada por el Motor de Caracterización de AGAE SOLUTIONS
               </p>
             </div>
@@ -70,7 +70,7 @@ export const CommercialProposalModal: React.FC<CommercialProposalModalProps> = (
             </button>
             <button
               onClick={onClose}
-              className="text-slate-500 hover:text-slate-900 p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+              className="text-slate-600 hover:text-slate-900 p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
@@ -86,11 +86,11 @@ export const CommercialProposalModal: React.FC<CommercialProposalModalProps> = (
                 Cliente & Organización Evaluada
               </span>
               <h3 className="text-base font-black text-slate-900">{proposal.clientName}</h3>
-              <p className="text-slate-500 mt-0.5">NIT: {proposal.clientNit}</p>
-              <p className="text-slate-500">
+              <p className="text-slate-600 mt-0.5">NIT: {proposal.clientNit}</p>
+              <p className="text-slate-600">
                 {characterization.identification.ciudad}, {characterization.identification.departamento} • CIIU {characterization.identification.codigoCiiu}
               </p>
-              <p className="text-slate-500 mt-1">
+              <p className="text-slate-600 mt-1">
                 Contacto: {characterization.identification.representanteLegal} ({characterization.identification.emailContacto})
               </p>
             </div>
@@ -98,7 +98,7 @@ export const CommercialProposalModal: React.FC<CommercialProposalModalProps> = (
             <div className="flex flex-col justify-between border-t md:border-t-0 md:border-l border-slate-200 pt-3 md:pt-0 md:pl-4">
               <div className="grid grid-cols-2 gap-2 text-[11px]">
                 <div className="p-2 rounded bg-slate-50 border border-slate-200">
-                  <span className="text-slate-500 block text-[10px]">Complejidad</span>
+                  <span className="text-slate-600 block text-[10px]">Complejidad</span>
                   <span className={`font-bold ${
                     proposal.complexityTier === 'ALTA' || proposal.complexityTier === 'MUY_ALTA' 
                       ? 'text-rose-700' 
@@ -110,13 +110,13 @@ export const CommercialProposalModal: React.FC<CommercialProposalModalProps> = (
                   </span>
                 </div>
                 <div className="p-2 rounded bg-slate-50 border border-slate-200">
-                  <span className="text-slate-500 block text-[10px]">Trabajadores / Sedes</span>
+                  <span className="text-slate-600 block text-[10px]">Trabajadores / Sedes</span>
                   <span className="font-bold text-slate-900">
                     {characterization.size.totalTrabajadores} Colab. • {characterization.size.numeroSedes} Sede(s)
                   </span>
                 </div>
               </div>
-              <div className="flex items-center justify-between text-[11px] text-slate-500 mt-2">
+              <div className="flex items-center justify-between text-[11px] text-slate-600 mt-2">
                 <span>Fecha: <strong className="text-slate-800">{proposal.createdAt}</strong></span>
                 <span>Válida hasta: <strong className="text-slate-800">{proposal.validUntil}</strong></span>
               </div>
@@ -135,7 +135,7 @@ export const CommercialProposalModal: React.FC<CommercialProposalModalProps> = (
                 <p className="text-sm font-black text-slate-900 mt-1">
                   {characterization.calculatedSstStandards} Estándares Mínimos
                 </p>
-                <p className="text-[10px] text-slate-500 mt-1">
+                <p className="text-[10px] text-slate-600 mt-1">
                   Riesgo ARL {characterization.sst.claseRiesgoArl} con {characterization.highRisk.trabajoAlturas ? 'Alturas' : 'Sin alturas'} y {characterization.highRisk.manejoSustanciasQuimicas ? 'Químicos SGA' : 'Sin químicos'}.
                 </p>
               </div>
@@ -145,7 +145,7 @@ export const CommercialProposalModal: React.FC<CommercialProposalModalProps> = (
                 <p className="text-sm font-black text-slate-900 mt-1">
                   {characterization.calculatedPesvLevel === 'NO_APLICA' ? 'NO APLICA' : `Nivel ${characterization.calculatedPesvLevel}`}
                 </p>
-                <p className="text-[10px] text-slate-500 mt-1">
+                <p className="text-[10px] text-slate-600 mt-1">
                   {characterization.pesv.utilizaVehiculosParaActividades 
                     ? `Flota de ${characterization.pesv.detallesPesv?.numeroVehiculosTotal || 0} vehículos y ${characterization.pesv.detallesPesv?.numeroConductoresTotal || 0} conductores.`
                     : 'Sin vehículos en operación.'}
@@ -157,7 +157,7 @@ export const CommercialProposalModal: React.FC<CommercialProposalModalProps> = (
                 <p className="text-sm font-black text-slate-900 mt-1">
                   {characterization.environmental.generaResiduosPeligrosos ? 'RESPEL + PGIRS' : 'PGIRS Ordinarios'}
                 </p>
-                <p className="text-[10px] text-slate-500 mt-1">
+                <p className="text-[10px] text-slate-600 mt-1">
                   {characterization.environmental.generaResiduosPeligrosos 
                     ? `Generación de ${characterization.environmental.detallesRespel?.volumenKgMes || 0} kg/mes de RESPEL con reporte RUA.`
                     : 'Sin residuos peligrosos.'}
@@ -175,7 +175,7 @@ export const CommercialProposalModal: React.FC<CommercialProposalModalProps> = (
             <div className="rounded-xl border border-slate-200 overflow-hidden">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-white text-slate-500 border-b border-slate-200 text-[10px] uppercase font-bold">
+                  <tr className="bg-white text-slate-600 border-b border-slate-200 text-[10px] uppercase font-bold">
                     <th className="p-3">Módulo AGAE</th>
                     <th className="p-3">Clasificación</th>
                     <th className="p-3">Justificación de Aplicabilidad</th>
@@ -196,7 +196,7 @@ export const CommercialProposalModal: React.FC<CommercialProposalModalProps> = (
                             )}
                             <div>
                               <span>{mod.moduleName}</span>
-                              <span className="block text-[10px] text-slate-500 font-normal">{mod.legalBasis}</span>
+                              <span className="block text-[10px] text-slate-600 font-normal">{mod.legalBasis}</span>
                             </div>
                           </div>
                         </td>
@@ -208,7 +208,7 @@ export const CommercialProposalModal: React.FC<CommercialProposalModalProps> = (
                               ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                               : mod.tier === 'OPCIONAL'
                               ? 'bg-purple-50 text-purple-700 border border-purple-200'
-                              : 'bg-slate-100 text-slate-500'
+                              : 'bg-slate-100 text-slate-600'
                           }`}>
                             {mod.tier}
                           </span>
@@ -233,7 +233,7 @@ export const CommercialProposalModal: React.FC<CommercialProposalModalProps> = (
               <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 block mb-1">
                 Resumen Económico de la Propuesta
               </span>
-              <p className="text-[11px] text-slate-500">
+              <p className="text-[11px] text-slate-600">
                 Incluye licenciamiento multi-usuario en la nube, servidores redundantes, copias de seguridad automáticas y soporte técnico especializado.
               </p>
               {proposal.pricingBreakdown.multiModuleDiscountPercentage > 0 && (
@@ -245,7 +245,7 @@ export const CommercialProposalModal: React.FC<CommercialProposalModalProps> = (
             </div>
 
             <div className="space-y-1.5 text-right font-mono">
-              <div className="flex justify-between text-slate-500 text-xs">
+              <div className="flex justify-between text-slate-600 text-xs">
                 <span>Subtotal Módulos / Mes:</span>
                 <span>${proposal.pricingBreakdown.subtotalModulesCop.toLocaleString('es-CO')} COP</span>
               </div>
@@ -259,7 +259,7 @@ export const CommercialProposalModal: React.FC<CommercialProposalModalProps> = (
                 <span>Inversión Mensual Neta:</span>
                 <span className="text-emerald-700">${proposal.pricingBreakdown.totalMonthlyCop.toLocaleString('es-CO')} COP/mes</span>
               </div>
-              <div className="flex justify-between text-slate-500 text-[11px]">
+              <div className="flex justify-between text-slate-600 text-[11px]">
                 <span>Configuración Inicial & Onboarding:</span>
                 <span>${(proposal.pricingBreakdown.platformSetupCop + proposal.pricingBreakdown.trainingAndOnboardingCop).toLocaleString('es-CO')} COP (Pago Único)</span>
               </div>
@@ -284,7 +284,7 @@ export const CommercialProposalModal: React.FC<CommercialProposalModalProps> = (
 
         {/* Footer Actions */}
         <div className="px-6 py-3.5 border-t border-slate-200 bg-white flex items-center justify-between gap-3">
-          <p className="text-[11px] text-slate-500 hidden sm:block">
+          <p className="text-[11px] text-slate-600 hidden sm:block">
             Al adquirir AGAE, esta caracterización se convertirá automáticamente en su configuración operativa.
           </p>
 

@@ -64,7 +64,7 @@ function WorkspaceContent() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#f4f8f6]">
+    <div className="min-h-screen flex flex-col bg-[linear-gradient(180deg,#ffffff_0%,#f2faf5_45%,#ecf8f1_100%)]">
       <DemoBanner />
 
       {/* Top Navbar */}
@@ -80,7 +80,7 @@ function WorkspaceContent() {
           <div className="max-w-7xl mx-auto">
             <PlanPreviewBanner />
             {renderActiveView()}
-            <ProfessionalDisclaimer variant="compact" className="mt-10 pt-4 border-t border-slate-200 text-slate-500" />
+            <ProfessionalDisclaimer variant="compact" className="mt-10 pt-4 border-t border-slate-200 text-slate-600" />
           </div>
         </main>
       </div>

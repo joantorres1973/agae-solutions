@@ -47,7 +47,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenCompanyModal }) => {
         <div className="flex items-center gap-3">
           <div className="shrink-0">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo-agae-dark.png" alt="AGAE SOLUTIONS" className="h-9 w-auto" />
+            <img src="/logo-agae-light.png" alt="AGAE SOLUTIONS" className="h-10 w-auto" />
           </div>
           <div>
             <div className="flex items-center gap-2">
@@ -55,7 +55,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenCompanyModal }) => {
                 SaaS Enterprise
               </span>
             </div>
-            <p className="text-[11px] text-slate-500 font-medium hidden sm:block">
+            <p className="text-[11px] text-slate-600 font-medium hidden sm:block">
               HSEQ Integrado • SST Dec 1072 • PESV Res 40595 • Tri-Norma ISO
             </p>
           </div>
@@ -70,11 +70,11 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenCompanyModal }) => {
             <Building2 className="w-4 h-4 text-emerald-700 shrink-0" />
             <div className="max-w-[240px] truncate">
               <div className="text-xs font-semibold text-slate-800 truncate">{organization.name}</div>
-              <div className="text-[10px] text-slate-500">
+              <div className="text-[10px] text-slate-600">
                 NIT {organization.nit} • Riesgo {organization.riskLevelArl} • PESV {organization.pesvLevel}
               </div>
             </div>
-            <ChevronDown className="w-3.5 h-3.5 text-slate-500 ml-1" />
+            <ChevronDown className="w-3.5 h-3.5 text-slate-600 ml-1" />
           </button>
 
           {showOrgMenu && (
@@ -86,15 +86,15 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenCompanyModal }) => {
                 </span>
               </div>
               <p className="text-xs font-medium text-slate-800">{organization.name}</p>
-              <p className="text-[11px] text-slate-500 mt-0.5">{organization.economicActivity}</p>
+              <p className="text-[11px] text-slate-600 mt-0.5">{organization.economicActivity}</p>
               
               <div className="grid grid-cols-2 gap-2 mt-3 text-[11px] text-slate-700">
                 <div className="bg-slate-100 p-2 rounded border border-slate-300">
-                  <span className="text-slate-500 block text-[10px]">Trabajadores</span>
+                  <span className="text-slate-600 block text-[10px]">Trabajadores</span>
                   <span className="font-bold text-slate-900">{organization.employeeCount} Directos</span>
                 </div>
                 <div className="bg-slate-100 p-2 rounded border border-slate-300">
-                  <span className="text-slate-500 block text-[10px]">Sedes Activas</span>
+                  <span className="text-slate-600 block text-[10px]">Sedes Activas</span>
                   <span className="font-bold text-slate-900">{organization.sites.length} Operativas</span>
                 </div>
               </div>
@@ -127,7 +127,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenCompanyModal }) => {
 
         {/* Global Search Bar */}
         <div className="relative flex-1 max-w-xs hidden xl:block">
-          <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-500" />
+          <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-600" />
           <input
             type="text"
             placeholder="Buscar activo, hallazgo, ACPM o norma..."
@@ -185,7 +185,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenCompanyModal }) => {
                 logout();
                 setPortalView('landing');
               }}
-              className="p-2 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+              className="p-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors"
               title="Cerrar sesión"
             >
               <LogOut className="w-4 h-4" />

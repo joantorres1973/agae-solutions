@@ -70,8 +70,8 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = () => {
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
       {/* Top Banner: Corporate Identity & Quick Stats */}
-      <div className="glass-card rounded-2xl p-5 border border-teal-200 bg-gradient-to-r from-white via-white to-teal-50 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-teal-100 rounded-full blur-3xl pointer-events-none" />
+      <div className="glass-card rounded-2xl p-5 border border-emerald-100 bg-gradient-to-r from-white via-white to-emerald-50 relative isolate overflow-hidden">
+        <div className="absolute -z-10 top-0 right-0 w-96 h-96 bg-emerald-100/60 rounded-full blur-3xl pointer-events-none" />
         
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 relative z-10">
           <div>
@@ -79,7 +79,7 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = () => {
               <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-teal-100 text-teal-700 border border-teal-200">
                 Tablero Gerencial de Control HSEQ
               </span>
-              <span className="text-xs text-slate-500">
+              <span className="text-xs text-slate-600">
                 Periodo 2026 • Ciclo PHVA
               </span>
             </div>
@@ -102,7 +102,7 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = () => {
               <span className="text-[10px] text-emerald-700 font-semibold flex items-center gap-1">
                 <TrendingUp className="w-3 h-3" /> +3.4% vs trimestre anterior
               </span>
-              <span className="text-[10px] text-slate-500 block mt-0.5">
+              <span className="text-[10px] text-slate-600 block mt-0.5">
                 {organization.activeModules.length} Módulos Integrados
               </span>
             </div>
@@ -177,13 +177,13 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = () => {
             </span>
           </div>
           <div className="text-sm font-bold text-slate-900">SG-SST (Dec 1072)</div>
-          <div className="text-[11px] text-slate-500 mt-0.5">
+          <div className="text-[11px] text-slate-600 mt-0.5">
             Resolución 0312 • {organization.sstStandardCount} Estándares Mínimos
           </div>
           <div className="w-full bg-slate-100 rounded-full h-1.5 mt-3 overflow-hidden">
             <div className="bg-orange-500 h-1.5 rounded-full" style={{ width: `${complianceSST}%` }} />
           </div>
-          <div className="flex items-center justify-between text-[10px] text-slate-500 mt-2">
+          <div className="flex items-center justify-between text-[10px] text-slate-600 mt-2">
             <span>Riesgo ARL: Nivel {organization.riskLevelArl}</span>
             <span className="text-emerald-700 font-semibold">Cumple</span>
           </div>
@@ -203,13 +203,13 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = () => {
             </span>
           </div>
           <div className="text-sm font-bold text-slate-900">Gestión Ambiental & PGIRS</div>
-          <div className="text-[11px] text-slate-500 mt-0.5">
+          <div className="text-[11px] text-slate-600 mt-0.5">
             Huella: <strong className="text-slate-900">{totalGhgTon} Ton CO₂eq</strong> (Q1)
           </div>
           <div className="w-full bg-slate-100 rounded-full h-1.5 mt-3 overflow-hidden">
             <div className="bg-emerald-500 h-1.5 rounded-full" style={{ width: `${complianceAmb}%` }} />
           </div>
-          <div className="flex items-center justify-between text-[10px] text-slate-500 mt-2">
+          <div className="flex items-center justify-between text-[10px] text-slate-600 mt-2">
             <span>Gestores Certificados: 100%</span>
             <span className="text-emerald-700 font-semibold">Auditable</span>
           </div>
@@ -229,13 +229,13 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = () => {
             </span>
           </div>
           <div className="text-sm font-bold text-slate-900">Seguridad Vial (PESV)</div>
-          <div className="text-[11px] text-slate-500 mt-0.5">
+          <div className="text-[11px] text-slate-600 mt-0.5">
             Res 40595 de 2022 • Nivel {organization.pesvLevel}
           </div>
           <div className="w-full bg-slate-100 rounded-full h-1.5 mt-3 overflow-hidden">
             <div className="bg-sky-500 h-1.5 rounded-full" style={{ width: `${compliancePESV}%` }} />
           </div>
-          <div className="flex items-center justify-between text-[10px] text-slate-500 mt-2">
+          <div className="flex items-center justify-between text-[10px] text-slate-600 mt-2">
             <span>24 Pasos Implementados</span>
             <span className="text-amber-700 font-semibold">1 Alerta Médica</span>
           </div>
@@ -255,13 +255,13 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = () => {
             </span>
           </div>
           <div className="text-sm font-bold text-slate-900">Tri-Norma ISO (HLS)</div>
-          <div className="text-[11px] text-slate-500 mt-0.5">
+          <div className="text-[11px] text-slate-600 mt-0.5">
             ISO 9001 • ISO 14001 • ISO 45001
           </div>
           <div className="w-full bg-slate-100 rounded-full h-1.5 mt-3 overflow-hidden">
             <div className="bg-indigo-500 h-1.5 rounded-full" style={{ width: `${complianceISO}%` }} />
           </div>
-          <div className="flex items-center justify-between text-[10px] text-slate-500 mt-2">
+          <div className="flex items-center justify-between text-[10px] text-slate-600 mt-2">
             <span>Estructura Unificada</span>
             <span className="text-emerald-700 font-semibold">Certificado</span>
           </div>
@@ -278,7 +278,7 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = () => {
                 <Activity className="w-4 h-4 text-teal-700" />
                 Matriz Central ACPM — Estado de Mejora Continua
               </h2>
-              <p className="text-xs text-slate-500 mt-0.5">
+              <p className="text-xs text-slate-600 mt-0.5">
                 Acciones Correctivas, Preventivas y de Mejora generadas automáticamente desde todas las fuentes.
               </p>
             </div>
@@ -296,7 +296,7 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = () => {
                 Abiertas / En Análisis
               </span>
               <div className="text-2xl font-black text-slate-900 mt-1">{openAcpm}</div>
-              <span className="text-[10px] text-slate-500 mt-0.5 block">5 Porqués / Causa</span>
+              <span className="text-[10px] text-slate-600 mt-0.5 block">5 Porqués / Causa</span>
             </div>
 
             <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-300">
@@ -304,7 +304,7 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = () => {
                 En Ejecución
               </span>
               <div className="text-2xl font-black text-slate-900 mt-1">{inProgressAcpm}</div>
-              <span className="text-[10px] text-slate-500 mt-0.5 block">Planes en curso</span>
+              <span className="text-[10px] text-slate-600 mt-0.5 block">Planes en curso</span>
             </div>
 
             <div className="bg-slate-50 p-3.5 rounded-xl border border-purple-200 bg-purple-50">
@@ -357,7 +357,7 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = () => {
                 Periodo Q1 2026
               </span>
             </div>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-600">
               Consolidación de emisiones directas e indirectas con factores UPME y XM.
             </p>
 
@@ -404,7 +404,7 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = () => {
             <AlertTriangle className="w-4 h-4 text-amber-700" />
             <h2 className="text-sm font-bold text-slate-900">Alertas Próximas y Vencimientos Críticos</h2>
           </div>
-          <span className="text-xs text-slate-500">
+          <span className="text-xs text-slate-600">
             {criticalTasks.length} Tareas con prioridad alta
           </span>
         </div>
@@ -427,7 +427,7 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = () => {
                 <p className="text-xs font-semibold text-slate-800 line-clamp-2">{task.title}</p>
               </div>
 
-              <div className="mt-3 pt-2 border-t border-slate-200 flex items-center justify-between text-[11px] text-slate-500">
+              <div className="mt-3 pt-2 border-t border-slate-200 flex items-center justify-between text-[11px] text-slate-600">
                 <span>Resp: {task.responsible}</span>
                 <button
                   onClick={() => setActiveTab('tasks')}

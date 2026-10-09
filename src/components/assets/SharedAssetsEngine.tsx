@@ -87,7 +87,7 @@ export const SharedAssetsEngine: React.FC = () => {
               Activos Compartidos — Principio de No Duplicidad
             </h1>
           </div>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-slate-600 mt-1">
             Cada equipo registrado se almacena una sola vez y se reutiliza automáticamente en <strong>Inspecciones SST</strong>, <strong>Brigadas de Emergencia</strong>, <strong>PESV</strong>, <strong>Auditorías</strong> y <strong>ACPM</strong>.
           </p>
         </div>
@@ -104,7 +104,7 @@ export const SharedAssetsEngine: React.FC = () => {
       {/* Filter Bar */}
       <div className="flex flex-wrap items-center justify-between gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs">
         <div className="flex items-center gap-3 flex-1 max-w-md">
-          <Search className="w-4 h-4 text-slate-500" />
+          <Search className="w-4 h-4 text-slate-600" />
           <input
             type="text"
             placeholder="Buscar por código (EXT-01), nombre o ubicación..."
@@ -115,7 +115,7 @@ export const SharedAssetsEngine: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2">
-          <Filter className="w-3.5 h-3.5 text-slate-500" />
+          <Filter className="w-3.5 h-3.5 text-slate-600" />
           <select
             value={filterCategory}
             onChange={(e) => setFilterCategory(e.target.value)}
@@ -151,12 +151,12 @@ export const SharedAssetsEngine: React.FC = () => {
                 </div>
                 <div>
                   <h2 className="text-xs font-bold text-slate-900 leading-tight">{asset.name}</h2>
-                  <p className="text-[11px] text-slate-500 mt-1">{asset.locationDetails}</p>
+                  <p className="text-[11px] text-slate-600 mt-1">{asset.locationDetails}</p>
                 </div>
               </div>
             </div>
 
-            <div className="pt-2 border-t border-slate-200 text-[10px] text-slate-500 space-y-1">
+            <div className="pt-2 border-t border-slate-200 text-[10px] text-slate-600 space-y-1">
               <div className="flex items-center justify-between">
                 <span>Sede: <strong className="text-slate-800">{asset.siteName}</strong></span>
                 <span>Proceso: <strong className="text-slate-800">{asset.processName}</strong></span>
@@ -176,7 +176,7 @@ export const SharedAssetsEngine: React.FC = () => {
           <form onSubmit={handleAdd} className="bg-slate-50 border border-slate-300 rounded-2xl max-w-lg w-full p-5 space-y-4 shadow-2xl">
             <div className="flex items-center justify-between border-b border-slate-200 pb-3">
               <h2 className="text-sm font-bold text-slate-900">Registrar Nuevo Activo Compartido</h2>
-              <button type="button" onClick={() => setShowAddModal(false)} className="text-slate-500 hover:text-slate-900">✕</button>
+              <button type="button" onClick={() => setShowAddModal(false)} className="text-slate-600 hover:text-slate-900">✕</button>
             </div>
 
             <div className="space-y-3 text-xs">

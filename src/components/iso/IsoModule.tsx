@@ -101,14 +101,14 @@ export const IsoModule: React.FC = () => {
               Sistemas de Gestión ISO — Estructura HLS Integrada
             </h1>
           </div>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-slate-600 mt-1">
             Gestión armónica sin silos. Los requisitos comunes de <strong>ISO 9001</strong>, <strong>ISO 14001</strong> e <strong>ISO 45001</strong> se administran una sola vez bajo la Estructura de Alto Nivel.
           </p>
         </div>
 
         {/* Modular Subscription Switches */}
         <div className="flex items-center gap-2 bg-slate-50 p-2 rounded-lg border border-slate-300 text-xs">
-          <span className="text-[10px] text-slate-500 font-bold uppercase mr-1">Normas Contratadas:</span>
+          <span className="text-[10px] text-slate-600 font-bold uppercase mr-1">Normas Contratadas:</span>
           
           <label className="flex items-center gap-1.5 cursor-pointer">
             <input
@@ -117,7 +117,7 @@ export const IsoModule: React.FC = () => {
               onChange={() => toggleModule('ISO_9001')}
               className="accent-indigo-500"
             />
-            <span className={is9001 ? 'text-indigo-700 font-bold' : 'text-slate-500'}>ISO 9001</span>
+            <span className={is9001 ? 'text-indigo-700 font-bold' : 'text-slate-600'}>ISO 9001</span>
           </label>
 
           <label className="flex items-center gap-1.5 cursor-pointer">
@@ -127,7 +127,7 @@ export const IsoModule: React.FC = () => {
               onChange={() => toggleModule('ISO_14001')}
               className="accent-emerald-500"
             />
-            <span className={is14001 ? 'text-emerald-700 font-bold' : 'text-slate-500'}>ISO 14001</span>
+            <span className={is14001 ? 'text-emerald-700 font-bold' : 'text-slate-600'}>ISO 14001</span>
           </label>
 
           <label className="flex items-center gap-1.5 cursor-pointer">
@@ -137,7 +137,7 @@ export const IsoModule: React.FC = () => {
               onChange={() => toggleModule('ISO_45001')}
               className="accent-orange-500"
             />
-            <span className={is45001 ? 'text-orange-700 font-bold' : 'text-slate-500'}>ISO 45001</span>
+            <span className={is45001 ? 'text-orange-700 font-bold' : 'text-slate-600'}>ISO 45001</span>
           </label>
         </div>
       </div>
@@ -166,7 +166,7 @@ export const IsoModule: React.FC = () => {
             className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
               activeChapter === ch.num
                 ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
-                : 'bg-slate-50 text-slate-500 hover:text-slate-800 border border-slate-200'
+                : 'bg-slate-50 text-slate-600 hover:text-slate-800 border border-slate-200'
             }`}
           >
             Capítulo {ch.num}: {ch.title.split(' ')[0]}
@@ -184,7 +184,7 @@ export const IsoModule: React.FC = () => {
             <h2 className="text-base font-bold text-slate-900 mt-0.5">
               Capítulo {currentCh.num} — {currentCh.title}
             </h2>
-            <p className="text-xs text-slate-500 mt-0.5">{currentCh.desc}</p>
+            <p className="text-xs text-slate-600 mt-0.5">{currentCh.desc}</p>
           </div>
         </div>
 
@@ -199,11 +199,11 @@ export const IsoModule: React.FC = () => {
               {is9001 ? (
                 <span className="text-[10px] px-1.5 py-0.2 rounded bg-indigo-50 text-indigo-700 font-bold border border-indigo-200">Activo</span>
               ) : (
-                <span className="text-[10px] text-slate-500">Inactivo</span>
+                <span className="text-[10px] text-slate-600">Inactivo</span>
               )}
             </div>
             <p className="text-slate-700 leading-relaxed mt-2">{currentCh.iso9001}</p>
-            <div className="mt-4 pt-2 border-t border-slate-200 text-[10px] text-slate-500">
+            <div className="mt-4 pt-2 border-t border-slate-200 text-[10px] text-slate-600">
               Cumplimiento: <strong className="text-emerald-700">92.4%</strong>
             </div>
           </div>
@@ -217,11 +217,11 @@ export const IsoModule: React.FC = () => {
               {is14001 ? (
                 <span className="text-[10px] px-1.5 py-0.2 rounded bg-emerald-50 text-emerald-700 font-bold border border-emerald-200">Activo</span>
               ) : (
-                <span className="text-[10px] text-slate-500">Inactivo</span>
+                <span className="text-[10px] text-slate-600">Inactivo</span>
               )}
             </div>
             <p className="text-slate-700 leading-relaxed mt-2">{currentCh.iso14001}</p>
-            <div className="mt-4 pt-2 border-t border-slate-200 text-[10px] text-slate-500">
+            <div className="mt-4 pt-2 border-t border-slate-200 text-[10px] text-slate-600">
               Cumplimiento: <strong className="text-emerald-700">90.1%</strong>
             </div>
           </div>
@@ -235,11 +235,11 @@ export const IsoModule: React.FC = () => {
               {is45001 ? (
                 <span className="text-[10px] px-1.5 py-0.2 rounded bg-orange-50 text-orange-700 font-bold border border-orange-200">Activo</span>
               ) : (
-                <span className="text-[10px] text-slate-500">Inactivo</span>
+                <span className="text-[10px] text-slate-600">Inactivo</span>
               )}
             </div>
             <p className="text-slate-700 leading-relaxed mt-2">{currentCh.iso45001}</p>
-            <div className="mt-4 pt-2 border-t border-slate-200 text-[10px] text-slate-500">
+            <div className="mt-4 pt-2 border-t border-slate-200 text-[10px] text-slate-600">
               Cumplimiento: <strong className="text-emerald-700">89.5%</strong>
             </div>
           </div>

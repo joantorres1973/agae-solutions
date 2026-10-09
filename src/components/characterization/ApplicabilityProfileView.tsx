@@ -103,8 +103,8 @@ export const ApplicabilityProfileView: React.FC = () => {
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
       {/* Top Banner: Perfil de la Organización y Perfil de Aplicabilidad */}
-      <div className="glass-card rounded-2xl p-5 border border-teal-200 bg-gradient-to-r from-white via-white to-teal-50 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-teal-100 rounded-full blur-3xl pointer-events-none" />
+      <div className="glass-card rounded-2xl p-5 border border-emerald-100 bg-gradient-to-r from-white via-white to-emerald-50 relative isolate overflow-hidden">
+        <div className="absolute -z-10 top-0 right-0 w-96 h-96 bg-emerald-100/60 rounded-full blur-3xl pointer-events-none" />
 
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 relative z-10">
           <div>
@@ -112,14 +112,14 @@ export const ApplicabilityProfileView: React.FC = () => {
               <span className="px-2.5 py-0.5 text-[10px] font-bold rounded bg-teal-100 text-teal-700 border border-teal-200">
                 Perfil de Aplicabilidad & Caracterización
               </span>
-              <span className="text-xs text-slate-500">
+              <span className="text-xs text-slate-600">
                 Versión {characterization.version} • {characterization.lastUpdatedAt}
               </span>
             </div>
             <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
               {characterization.identification.razonSocial}
             </h1>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-xs text-slate-600 mt-0.5">
               NIT {characterization.identification.nit} • CIIU {characterization.identification.codigoCiiu} • Sector {sectorLabel(characterization.identification.sectorEconomico, characterization.identification.sectorOtro)}
             </p>
           </div>
@@ -152,7 +152,7 @@ export const ApplicabilityProfileView: React.FC = () => {
             <span className="text-base font-black text-slate-900 mt-0.5 block">
               {characterization.calculatedSstStandards} Estándares Mínimos
             </span>
-            <span className="text-[10px] text-slate-500">
+            <span className="text-[10px] text-slate-600">
               Riesgo ARL {characterization.sst.claseRiesgoArl} • Res. 0312/19
             </span>
           </div>
@@ -164,7 +164,7 @@ export const ApplicabilityProfileView: React.FC = () => {
             <span className="text-base font-black text-slate-900 mt-0.5 block">
               {characterization.calculatedPesvLevel === 'NO_APLICA' ? 'NO APLICA' : `Nivel ${characterization.calculatedPesvLevel}`}
             </span>
-            <span className="text-[10px] text-slate-500">
+            <span className="text-[10px] text-slate-600">
               {characterization.pesv.utilizaVehiculosParaActividades 
                 ? `${characterization.pesv.detallesPesv?.numeroVehiculosTotal || 0} Vehículos • Res. 40595`
                 : 'Sin operación vehicular'}
@@ -178,7 +178,7 @@ export const ApplicabilityProfileView: React.FC = () => {
             <span className="text-base font-black text-slate-900 mt-0.5 block">
               {characterization.environmental.generaResiduosPeligrosos ? 'RESPEL + PGIRS' : 'PGIRS Ordinarios'}
             </span>
-            <span className="text-[10px] text-slate-500">
+            <span className="text-[10px] text-slate-600">
               {characterization.environmental.generaResiduosPeligrosos 
                 ? `${characterization.environmental.detallesRespel?.volumenKgMes || 0} kg/mes • Dec. 1076`
                 : 'Sin residuos peligrosos'}
@@ -192,7 +192,7 @@ export const ApplicabilityProfileView: React.FC = () => {
             <span className="text-base font-black text-slate-900 mt-0.5 block">
               {characterization.sites.length} Sede(s) Activas
             </span>
-            <span className="text-[10px] text-slate-500">
+            <span className="text-[10px] text-slate-600">
               {characterization.size.totalTrabajadores} Trabajadores Globales
             </span>
           </div>
@@ -207,7 +207,7 @@ export const ApplicabilityProfileView: React.FC = () => {
             className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold transition-all ${
               activeSubTab === 'matrix'
                 ? 'bg-teal-100 text-teal-700 border border-teal-200 shadow-sm'
-                : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
             }`}
           >
             <Cpu className="w-4 h-4 text-teal-700" />
@@ -219,7 +219,7 @@ export const ApplicabilityProfileView: React.FC = () => {
             className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold transition-all ${
               activeSubTab === 'decisions'
                 ? 'bg-amber-100 text-amber-700 border border-amber-200 shadow-sm'
-                : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
             }`}
           >
             <FileCheck2 className="w-4 h-4 text-amber-700" />
@@ -231,7 +231,7 @@ export const ApplicabilityProfileView: React.FC = () => {
             className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold transition-all ${
               activeSubTab === 'history'
                 ? 'bg-purple-100 text-purple-700 border border-purple-200 shadow-sm'
-                : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
             }`}
           >
             <History className="w-4 h-4 text-purple-700" />
@@ -247,7 +247,7 @@ export const ApplicabilityProfileView: React.FC = () => {
         <div className="space-y-4">
           {/* Status Filters */}
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-[11px] font-semibold text-slate-500">Filtrar por Estado:</span>
+            <span className="text-[11px] font-semibold text-slate-600">Filtrar por Estado:</span>
             {[
               { id: 'ALL', label: 'Todos los Requisitos' },
               { id: 'APLICA', label: 'Aplica' },
@@ -282,7 +282,7 @@ export const ApplicabilityProfileView: React.FC = () => {
                       {req.code}
                     </span>
                     <h3 className="font-bold text-slate-900 text-xs">{req.name}</h3>
-                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">
                       {req.category}
                     </span>
                   </div>
@@ -292,7 +292,7 @@ export const ApplicabilityProfileView: React.FC = () => {
                       req.status === 'APLICA'
                         ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                         : req.status === 'NO_APLICA'
-                        ? 'bg-slate-100 text-slate-500 border border-slate-300'
+                        ? 'bg-slate-100 text-slate-600 border border-slate-300'
                         : req.status === 'REQUIERE_VALIDACION'
                         ? 'bg-amber-50 text-amber-700 border border-amber-200'
                         : 'bg-rose-50 text-rose-700 border border-rose-200'
@@ -317,13 +317,13 @@ export const ApplicabilityProfileView: React.FC = () => {
                   {req.reason}
                 </p>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 border-t border-slate-200 text-[10px] text-slate-500">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 border-t border-slate-200 text-[10px] text-slate-600">
                   <div>
-                    <span className="text-slate-500">Fundamento Legal: </span>
+                    <span className="text-slate-600">Fundamento Legal: </span>
                     <strong className="text-slate-700 font-normal">{req.legalCitation}</strong>
                   </div>
                   <div>
-                    <span className="text-slate-500">Acción Requerida: </span>
+                    <span className="text-slate-600">Acción Requerida: </span>
                     <strong className="text-teal-700 font-normal">{req.actionRequired}</strong>
                   </div>
                 </div>
@@ -343,7 +343,7 @@ export const ApplicabilityProfileView: React.FC = () => {
               <ShieldCheck className="w-4 h-4 text-emerald-700" />
               Principio de Trazabilidad: Conservación de Justificaciones de No Aplicabilidad
             </h3>
-            <p className="text-[11px] text-slate-500">
+            <p className="text-[11px] text-slate-600">
               Cuando un componente o requisito es calificado como <strong>NO APLICA</strong>, la plataforma nunca lo borra. Conserva el motivo técnico, las variables que originaron la decisión, el usuario responsable, la fecha y la evidencia adjunta.
             </p>
           </div>
@@ -374,30 +374,30 @@ export const ApplicabilityProfileView: React.FC = () => {
                 </div>
 
                 <div className="p-3 rounded-lg bg-slate-50 border border-slate-200 text-[11px]">
-                  <span className="text-[10px] font-bold text-slate-500 uppercase block mb-1">
+                  <span className="text-[10px] font-bold text-slate-600 uppercase block mb-1">
                     Justificación Técnica / Legal Registrada:
                   </span>
                   <p className="text-slate-800 leading-relaxed">{dec.justification}</p>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[10px] text-slate-500 pt-1">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[10px] text-slate-600 pt-1">
                   <div>
-                    <span className="text-slate-500">Resultado AGAE Inicial: </span>
+                    <span className="text-slate-600">Resultado AGAE Inicial: </span>
                     <strong className="text-slate-700 font-normal">{dec.initialAgaeResult}</strong>
                   </div>
                   <div>
-                    <span className="text-slate-500">Usuario Responsable: </span>
+                    <span className="text-slate-600">Usuario Responsable: </span>
                     <strong className="text-slate-700 font-normal">{dec.userName} ({dec.userRole})</strong>
                   </div>
                   <div>
-                    <span className="text-slate-500">Fecha y Hora: </span>
+                    <span className="text-slate-600">Fecha y Hora: </span>
                     <strong className="text-slate-700 font-normal">{dec.timestamp}</strong>
                   </div>
                 </div>
 
                 {dec.evidenceNotes && (
-                  <div className="text-[10px] text-slate-500 pt-1">
-                    <span className="text-slate-500">Evidencia / Soporte Vinculado: </span>
+                  <div className="text-[10px] text-slate-600 pt-1">
+                    <span className="text-slate-600">Evidencia / Soporte Vinculado: </span>
                     <span className="text-teal-700">{dec.evidenceNotes}</span>
                   </div>
                 )}
@@ -417,7 +417,7 @@ export const ApplicabilityProfileView: React.FC = () => {
               <History className="w-4 h-4 text-purple-700" />
               Control de Versiones de Caracterización (Evolución de la Organización)
             </h3>
-            <p className="text-[11px] text-slate-500">
+            <p className="text-[11px] text-slate-600">
               Si la empresa adquiere nuevos vehículos, contrata más personal o inicia trabajos en alturas, AGAE detecta los cambios, evalúa el impacto y registra la versión en la bitácora histórica.
             </p>
           </div>
@@ -435,11 +435,11 @@ export const ApplicabilityProfileView: React.FC = () => {
                     </span>
                     <span className="text-slate-900 font-bold text-xs">{ver.reason}</span>
                   </div>
-                  <span className="text-[11px] text-slate-500 font-mono">{ver.timestamp}</span>
+                  <span className="text-[11px] text-slate-600 font-mono">{ver.timestamp}</span>
                 </div>
 
                 <div className="space-y-1.5">
-                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
+                  <span className="text-[10px] font-bold text-slate-600 uppercase tracking-wider block">
                     Modificaciones y Hallazgos Detectados:
                   </span>
                   <ul className="space-y-1">
@@ -452,7 +452,7 @@ export const ApplicabilityProfileView: React.FC = () => {
                   </ul>
                 </div>
 
-                <div className="flex items-center justify-between pt-2 border-t border-slate-200 text-[10px] text-slate-500">
+                <div className="flex items-center justify-between pt-2 border-t border-slate-200 text-[10px] text-slate-600">
                   <span>Autor: <strong className="text-slate-700 font-normal">{ver.author}</strong></span>
                   <div className="flex items-center gap-1.5">
                     <span>Módulos Impactados:</span>
@@ -476,9 +476,9 @@ export const ApplicabilityProfileView: React.FC = () => {
             <div className="border-b border-slate-200 pb-2 flex items-center justify-between">
               <div>
                 <h3 className="font-bold text-slate-900 text-sm">Validar Requisito: {targetReq.code}</h3>
-                <p className="text-[11px] text-slate-500">{targetReq.name}</p>
+                <p className="text-[11px] text-slate-600">{targetReq.name}</p>
               </div>
-              <button onClick={() => setSelectedReqForDecision(null)} className="text-slate-500 hover:text-slate-900">
+              <button onClick={() => setSelectedReqForDecision(null)} className="text-slate-600 hover:text-slate-900">
                 ✕
               </button>
             </div>
@@ -527,7 +527,7 @@ export const ApplicabilityProfileView: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="text-slate-500 block text-[10px]">Usuario Responsable</label>
+                  <label className="text-slate-600 block text-[10px]">Usuario Responsable</label>
                   <input
                     type="text"
                     value={decisionUserName}
@@ -536,7 +536,7 @@ export const ApplicabilityProfileView: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="text-slate-500 block text-[10px]">Cargo</label>
+                  <label className="text-slate-600 block text-[10px]">Cargo</label>
                   <input
                     type="text"
                     value={decisionUserRole}

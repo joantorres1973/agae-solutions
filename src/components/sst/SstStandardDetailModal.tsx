@@ -93,7 +93,7 @@ export const SstStandardDetailModal: React.FC<SstStandardDetailModalProps> = ({
             </span>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-600">
                   {standard.cycle} • {standard.numeralGroup}
                 </span>
                 <span className="text-[10px] px-1.5 py-0.2 rounded font-mono font-bold bg-slate-100 text-slate-700">
@@ -108,7 +108,7 @@ export const SstStandardDetailModal: React.FC<SstStandardDetailModalProps> = ({
 
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+            className="p-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -156,7 +156,7 @@ export const SstStandardDetailModal: React.FC<SstStandardDetailModalProps> = ({
             <div className="p-3.5 rounded-xl bg-gradient-to-r from-orange-50 via-white to-slate-50 border border-orange-200 flex items-center justify-between">
               <div>
                 <span className="font-bold text-slate-900 block">Herramienta Integrada Disponible</span>
-                <span className="text-[11px] text-slate-500">
+                <span className="text-[11px] text-slate-600">
                   {standard.actionType === 'RESPONSIBLE' ? 'Gestione la hoja de vida, licencia y la Carta de Asignación formal generada en vivo.' :
                    standard.actionType === 'BUDGET' ? 'Configure el presupuesto integrado SST + Vial PESV con aprobación de gerencia.' :
                    standard.actionType === 'HAZARDS' ? 'Identifique peligros y valore riesgos según la matriz GTC 45.' :
@@ -269,7 +269,7 @@ export const SstStandardDetailModal: React.FC<SstStandardDetailModalProps> = ({
                       <FileText className="w-4 h-4 text-teal-700 shrink-0" />
                       <div>
                         <div className="font-semibold text-slate-900">{ev.title}</div>
-                        <div className="text-[10px] text-slate-500">
+                        <div className="text-[10px] text-slate-600">
                           {ev.fileName} • {ev.fileSize} • Subido por {ev.uploadedBy}
                         </div>
                       </div>
@@ -281,7 +281,7 @@ export const SstStandardDetailModal: React.FC<SstStandardDetailModalProps> = ({
                 ))}
               </div>
             ) : (
-              <div className="p-3 rounded-lg bg-white/80 border border-dashed border-slate-200 text-center text-slate-500 text-xs">
+              <div className="p-3 rounded-lg bg-white/80 border border-dashed border-slate-200 text-center text-slate-600 text-xs">
                 No hay archivos adjuntos directamente a este estándar. Puede cargar un archivo o vincular una evidencia existente.
               </div>
             )}
@@ -316,7 +316,7 @@ export const SstStandardDetailModal: React.FC<SstStandardDetailModalProps> = ({
 
         {/* Modal Footer */}
         <div className="p-4 border-t border-slate-200 bg-white/80 flex items-center justify-between shrink-0">
-          <div className="text-[11px] text-slate-500">
+          <div className="text-[11px] text-slate-600">
             Aplica en: {standard.applicableIn7 ? '7 estándares' : standard.applicableIn21 ? '21 estándares' : '60 estándares'}
           </div>
           <div className="flex items-center gap-2">

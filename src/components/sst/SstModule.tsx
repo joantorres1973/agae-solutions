@@ -229,7 +229,7 @@ export const SstModule: React.FC = () => {
     <div className="space-y-5 animate-in fade-in duration-300">
       
       {/* Top Banner & Module Header */}
-      <div className="glass-card p-5 rounded-2xl border border-slate-300 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+      <div className="glass-card p-5 rounded-2xl flex flex-col gap-4">
         <div>
           <div className="flex flex-wrap items-center gap-2.5">
             <span className="p-2 rounded-xl bg-orange-100 text-orange-700 border border-orange-200">
@@ -280,7 +280,7 @@ export const SstModule: React.FC = () => {
           <button
             onClick={() => setActiveSubTab('STANDARDS')}
             className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
-              activeSubTab === 'STANDARDS' ? 'bg-orange-600 text-white shadow' : 'text-slate-500 hover:text-slate-900'
+              activeSubTab === 'STANDARDS' ? 'bg-orange-600 text-white shadow' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             <ShieldCheck className="w-3.5 h-3.5" />
@@ -290,7 +290,7 @@ export const SstModule: React.FC = () => {
           <button
             onClick={() => setActiveSubTab('RESPONSIBLE')}
             className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
-              activeSubTab === 'RESPONSIBLE' ? 'bg-orange-600 text-white shadow' : 'text-slate-500 hover:text-slate-900'
+              activeSubTab === 'RESPONSIBLE' ? 'bg-orange-600 text-white shadow' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             <UserCheck className="w-3.5 h-3.5" />
@@ -300,7 +300,7 @@ export const SstModule: React.FC = () => {
           <button
             onClick={() => setActiveSubTab('BUDGET')}
             className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
-              activeSubTab === 'BUDGET' ? 'bg-orange-600 text-white shadow' : 'text-slate-500 hover:text-slate-900'
+              activeSubTab === 'BUDGET' ? 'bg-orange-600 text-white shadow' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             <DollarSign className="w-3.5 h-3.5" />
@@ -310,7 +310,7 @@ export const SstModule: React.FC = () => {
           <button
             onClick={() => setActiveSubTab('MATRIX')}
             className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
-              activeSubTab === 'MATRIX' ? 'bg-orange-600 text-white shadow' : 'text-slate-500 hover:text-slate-900'
+              activeSubTab === 'MATRIX' ? 'bg-orange-600 text-white shadow' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             <SlidersHorizontal className="w-3.5 h-3.5" />
@@ -320,7 +320,7 @@ export const SstModule: React.FC = () => {
           <button
             onClick={() => setActiveSubTab('INSPECTIONS')}
             className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
-              activeSubTab === 'INSPECTIONS' ? 'bg-orange-600 text-white shadow' : 'text-slate-500 hover:text-slate-900'
+              activeSubTab === 'INSPECTIONS' ? 'bg-orange-600 text-white shadow' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             <ClipboardList className="w-3.5 h-3.5" />
@@ -330,7 +330,7 @@ export const SstModule: React.FC = () => {
           <button
             onClick={() => setActiveSubTab('COMMITTEES')}
             className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
-              activeSubTab === 'COMMITTEES' ? 'bg-orange-600 text-white shadow' : 'text-slate-500 hover:text-slate-900'
+              activeSubTab === 'COMMITTEES' ? 'bg-orange-600 text-white shadow' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             <Users className="w-3.5 h-3.5" />
@@ -345,7 +345,7 @@ export const SstModule: React.FC = () => {
         <div className="glass-card p-4 rounded-xl border border-slate-300 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+              <span className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">
                 Autoevaluación Res. 0312
               </span>
               <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${
@@ -358,7 +358,7 @@ export const SstModule: React.FC = () => {
             </div>
             <div className="flex items-baseline gap-2 mt-1">
               <span className="text-3xl font-black text-slate-900 font-mono">{scoreResult.percentage}%</span>
-              <span className="text-xs text-slate-500 font-mono">/ 100%</span>
+              <span className="text-xs text-slate-600 font-mono">/ 100%</span>
             </div>
           </div>
           <div className="space-y-1.5 mt-2">
@@ -371,7 +371,7 @@ export const SstModule: React.FC = () => {
                 style={{ width: `${Math.min(scoreResult.percentage, 100)}%` }}
               />
             </div>
-            <p className="text-[10px] text-slate-500 leading-tight">
+            <p className="text-[10px] text-slate-600 leading-tight">
               {scoreResult.legalConsequence}
             </p>
           </div>
@@ -390,7 +390,7 @@ export const SstModule: React.FC = () => {
               Definido por: <strong>{organization.employeeCount} trabajadores</strong> y <strong>Riesgo ARL {organization.riskLevelArl}</strong> (Art. 16 Res. 0312).
             </p>
           </div>
-          <div className="pt-2 border-t border-slate-200 flex items-center justify-between text-[11px] text-slate-500">
+          <div className="pt-2 border-t border-slate-200 flex items-center justify-between text-[11px] text-slate-600">
             <span>Catálogo Completo: 60</span>
             <button
               onClick={() => setShowOnlyApplicable(!showOnlyApplicable)}
@@ -415,7 +415,7 @@ export const SstModule: React.FC = () => {
             <div className="text-sm font-bold text-slate-900 mt-1 truncate">
               {sstResponsible.fullName}
             </div>
-            <p className="text-[11px] text-slate-500 mt-0.5 truncate">
+            <p className="text-[11px] text-slate-600 mt-0.5 truncate">
               Licencia: {sstResponsible.licenseNumber}
             </p>
           </div>
@@ -445,13 +445,13 @@ export const SstModule: React.FC = () => {
             <div className="text-sm font-bold text-slate-900 mt-1 font-mono">
               ${(totalPlannedBudget / 1000000).toFixed(1)}M COP
             </div>
-            <p className="text-[11px] text-slate-500 mt-0.5">
+            <p className="text-[11px] text-slate-600 mt-0.5">
               Ejecutado: ${(totalExecutedBudget / 1000000).toFixed(1)}M ({((totalExecutedBudget / (totalPlannedBudget || 1)) * 100).toFixed(0)}%)
             </p>
           </div>
 
           <div className="pt-2 border-t border-slate-200 flex items-center justify-between text-[11px]">
-            <span className="text-slate-500 truncate">
+            <span className="text-slate-600 truncate">
               {isPesvActive ? 'SST + PESV Vial' : 'Solo SG-SST'}
             </span>
             <button
@@ -492,7 +492,7 @@ export const SstModule: React.FC = () => {
                   </span>
                   <span className="font-mono text-xs font-bold text-slate-900">{stat.percentage}%</span>
                 </div>
-                <div className="text-[11px] text-slate-500 mt-1">
+                <div className="text-[11px] text-slate-600 mt-1">
                   {stat.complies} de {stat.total} conformes
                 </div>
                 <div className="w-full bg-white rounded-full h-1 mt-1.5">
@@ -513,7 +513,7 @@ export const SstModule: React.FC = () => {
           <div className="glass-card p-4 rounded-xl border border-slate-300 flex flex-col md:flex-row md:items-center justify-between gap-3">
             {/* Search Input */}
             <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-500" />
+              <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-600" />
               <input
                 type="text"
                 placeholder="Buscar por código (ej: 1.1.1), artículo (Dec 1072) o palabra clave..."
@@ -543,7 +543,7 @@ export const SstModule: React.FC = () => {
                 className={`px-3 py-2 rounded-lg font-semibold transition-all border ${
                   showOnlyApplicable
                     ? 'bg-orange-100 text-orange-700 border-orange-200'
-                    : 'bg-white text-slate-500 border-slate-300 hover:text-slate-900'
+                    : 'bg-white text-slate-600 border-slate-300 hover:text-slate-900'
                 }`}
               >
                 {showOnlyApplicable ? `Solo Aplicables (${scoreResult.applicableCount})` : 'Catálogo 60 Estándares'}
@@ -583,7 +583,7 @@ export const SstModule: React.FC = () => {
 
                       <div className="space-y-1">
                         <div className="flex flex-wrap items-center gap-2">
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-600">
                             {std.cycle} • {std.numeralGroup}
                           </span>
 
@@ -605,7 +605,7 @@ export const SstModule: React.FC = () => {
                           </div>
 
                           {!isApplicableForCompany && (
-                            <span className="px-1.5 py-0.2 rounded text-[9px] font-medium bg-slate-100 text-slate-500">
+                            <span className="px-1.5 py-0.2 rounded text-[9px] font-medium bg-slate-100 text-slate-600">
                               (No exigido a su tamaño de empresa)
                             </span>
                           )}
@@ -624,8 +624,8 @@ export const SstModule: React.FC = () => {
                             <BookOpen className="w-3 h-3" />
                             {std.decreto1072Article}
                           </span>
-                          <span className="text-slate-500">•</span>
-                          <span className="text-slate-500 truncate max-w-md">{std.criterion}</span>
+                          <span className="text-slate-600">•</span>
+                          <span className="text-slate-600 truncate max-w-md">{std.criterion}</span>
                         </div>
                       </div>
                     </div>
@@ -725,7 +725,7 @@ export const SstModule: React.FC = () => {
                   Estándar 1.1.1: Responsable Asignado del SG-SST
                 </h2>
               </div>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs text-slate-600 mt-1">
                 Decreto 1072 de 2015 Art. 2.2.4.6.8 Parágrafo 1 y Art. 2.2.4.6.35 • Resolución 0312 de 2019.
               </p>
             </div>
@@ -749,37 +749,37 @@ export const SstModule: React.FC = () => {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                 <div className="bg-white p-3 rounded-lg border border-slate-200">
-                  <span className="text-[10px] text-slate-500 block">Nombre del Responsable</span>
+                  <span className="text-[10px] text-slate-600 block">Nombre del Responsable</span>
                   <span className="text-sm font-bold text-slate-900 block mt-0.5">{sstResponsible.fullName}</span>
-                  <span className="text-[11px] text-slate-500 block mt-0.5">{sstResponsible.profession}</span>
+                  <span className="text-[11px] text-slate-600 block mt-0.5">{sstResponsible.profession}</span>
                 </div>
 
                 <div className="bg-white p-3 rounded-lg border border-slate-200">
-                  <span className="text-[10px] text-slate-500 block">Identificación Oficial</span>
+                  <span className="text-[10px] text-slate-600 block">Identificación Oficial</span>
                   <span className="text-sm font-mono font-bold text-teal-700 block mt-0.5">
                     {sstResponsible.docType} {sstResponsible.docNumber}
                   </span>
-                  <span className="text-[11px] text-slate-500 block mt-0.5">
+                  <span className="text-[11px] text-slate-600 block mt-0.5">
                     Nivel: {sstResponsible.professionalRole}
                   </span>
                 </div>
 
                 <div className="bg-white p-3 rounded-lg border border-slate-200">
-                  <span className="text-[10px] text-slate-500 block">Licencia de SST</span>
+                  <span className="text-[10px] text-slate-600 block">Licencia de SST</span>
                   <span className="text-xs font-mono font-bold text-emerald-700 block mt-0.5">
                     {sstResponsible.licenseNumber}
                   </span>
-                  <span className="text-[10px] text-slate-500 block mt-0.5">
+                  <span className="text-[10px] text-slate-600 block mt-0.5">
                     Vigente hasta: {sstResponsible.licenseExpDate}
                   </span>
                 </div>
 
                 <div className="bg-white p-3 rounded-lg border border-slate-200">
-                  <span className="text-[10px] text-slate-500 block">Capacitación 50h / 20h SST</span>
+                  <span className="text-[10px] text-slate-600 block">Capacitación 50h / 20h SST</span>
                   <span className="text-xs font-semibold text-purple-700 block mt-0.5">
                     Certificado Válido (MinTrabajo/SENA)
                   </span>
-                  <span className="text-[10px] text-slate-500 block mt-0.5">
+                  <span className="text-[10px] text-slate-600 block mt-0.5">
                     {sstResponsible.courseEntity}
                   </span>
                 </div>
@@ -793,7 +793,7 @@ export const SstModule: React.FC = () => {
                     Facultad de Parar Labores Activa
                   </span>
                 </div>
-                <p className="text-slate-500 text-[11px]">
+                <p className="text-slate-600 text-[11px]">
                   El responsable cuenta con autoridad legal para ordenar la suspensión preventiva de cualquier actividad o tarea de alto riesgo que represente un peligro inminente para la salud de los trabajadores.
                 </p>
               </div>
@@ -809,7 +809,7 @@ export const SstModule: React.FC = () => {
                 <div className="p-2.5 rounded-lg bg-white border border-slate-200 flex items-center justify-between">
                   <div>
                     <span className="font-semibold text-slate-900 block">Hoja de Vida</span>
-                    <span className="text-[10px] text-slate-500">Soportes de idoneidad</span>
+                    <span className="text-[10px] text-slate-600">Soportes de idoneidad</span>
                   </div>
                   <CheckCircle2 className="w-4 h-4 text-emerald-700" />
                 </div>
@@ -817,7 +817,7 @@ export const SstModule: React.FC = () => {
                 <div className="p-2.5 rounded-lg bg-white border border-slate-200 flex items-center justify-between">
                   <div>
                     <span className="font-semibold text-slate-900 block">Licencia SST</span>
-                    <span className="text-[10px] text-slate-500">Resolución seccional</span>
+                    <span className="text-[10px] text-slate-600">Resolución seccional</span>
                   </div>
                   <CheckCircle2 className="w-4 h-4 text-emerald-700" />
                 </div>
@@ -825,7 +825,7 @@ export const SstModule: React.FC = () => {
                 <div className="p-2.5 rounded-lg bg-white border border-slate-200 flex items-center justify-between">
                   <div>
                     <span className="font-semibold text-slate-900 block">Certificado Curso 50h</span>
-                    <span className="text-[10px] text-slate-500">Actualización 20h</span>
+                    <span className="text-[10px] text-slate-600">Actualización 20h</span>
                   </div>
                   <CheckCircle2 className="w-4 h-4 text-emerald-700" />
                 </div>
@@ -833,7 +833,7 @@ export const SstModule: React.FC = () => {
                 <div className="p-2.5 rounded-lg bg-white border border-slate-200 flex items-center justify-between">
                   <div>
                     <span className="font-semibold text-slate-900 block">Carta de Asignación</span>
-                    <span className="text-[10px] text-slate-500">Firmada por empleador</span>
+                    <span className="text-[10px] text-slate-600">Firmada por empleador</span>
                   </div>
                   <CheckCircle2 className="w-4 h-4 text-emerald-700" />
                 </div>
@@ -883,7 +883,7 @@ export const SstModule: React.FC = () => {
           {/* Quick Summary of Budget */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="glass-card p-4 rounded-xl border border-slate-300">
-              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
+              <span className="text-[10px] font-bold text-slate-600 uppercase tracking-wider block">
                 Total Presupuestado 2026
               </span>
               <div className="text-2xl font-black text-slate-900 font-mono mt-1">
@@ -913,7 +913,7 @@ export const SstModule: React.FC = () => {
               <div className="text-base font-bold text-slate-900 mt-1">
                 {sstBudgetState.status === 'APROBADO_GERENCIA' ? '✓ Aprobado por Gerencia' : sstBudgetState.status}
               </div>
-              <span className="text-[10px] text-slate-500 block mt-1">
+              <span className="text-[10px] text-slate-600 block mt-1">
                 {sstBudgetState.approvalDate || 'Vigencia Fiscal 2026'}
               </span>
             </div>
@@ -945,7 +945,7 @@ export const SstModule: React.FC = () => {
                       </span>
                       <span className="font-semibold text-slate-900">{item.concept}</span>
                     </div>
-                    <span className="text-[11px] text-slate-500 mt-0.5 block">{item.responsible}</span>
+                    <span className="text-[11px] text-slate-600 mt-0.5 block">{item.responsible}</span>
                   </div>
                   <div className="text-right">
                     <span className="font-mono font-bold text-slate-900 block">
@@ -973,7 +973,7 @@ export const SstModule: React.FC = () => {
                 <span className="text-[10px] font-bold uppercase tracking-wider text-orange-700 bg-orange-50 px-2 py-0.5 rounded border border-orange-200">
                   Estándar 4.1.1 & 4.1.2 (Res. 0312)
                 </span>
-                <span className="text-[10px] font-semibold text-slate-500">
+                <span className="text-[10px] font-semibold text-slate-600">
                   Decreto 1072 de 2015 Art. 2.2.4.6.15
                 </span>
               </div>
@@ -1013,13 +1013,13 @@ export const SstModule: React.FC = () => {
 
                 <div className="text-xs text-slate-700 grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div className="bg-slate-50 p-2.5 rounded border border-slate-200">
-                    <span className="text-slate-500 block text-[10px] font-semibold">Descripción del Peligro y Efectos:</span>
+                    <span className="text-slate-600 block text-[10px] font-semibold">Descripción del Peligro y Efectos:</span>
                     <p className="mt-0.5 font-medium">{haz.hazardDescription}</p>
                     <span className="text-[10px] text-amber-700 block mt-1">Efecto: {haz.possibleEffects}</span>
                   </div>
 
                   <div className="bg-slate-50 p-2.5 rounded border border-slate-200">
-                    <span className="text-slate-500 block text-[10px] font-semibold">Controles Jerarquizados (Dec 1072 Art. 2.2.4.6.24):</span>
+                    <span className="text-slate-600 block text-[10px] font-semibold">Controles Jerarquizados (Dec 1072 Art. 2.2.4.6.24):</span>
                     <div className="space-y-0.5 mt-0.5 text-[11px]">
                       {haz.controls.elimination && <div>• <strong className="text-rose-700">Eliminación:</strong> {haz.controls.elimination}</div>}
                       {haz.controls.engineering && <div>• <strong className="text-teal-700">Ingeniería:</strong> {haz.controls.engineering}</div>}
@@ -1044,7 +1044,7 @@ export const SstModule: React.FC = () => {
               <span className="text-[10px] font-bold uppercase tracking-wider text-orange-700 bg-orange-50 px-2 py-0.5 rounded border border-orange-200">
                 Estándar 4.2.4 (Res. 0312)
               </span>
-              <span className="text-[10px] text-slate-500">
+              <span className="text-[10px] text-slate-600">
                 Dec 1072 Art. 2.2.4.6.24 Num. 5
               </span>
             </div>
@@ -1052,7 +1052,7 @@ export const SstModule: React.FC = () => {
               <ClipboardList className="w-4 h-4 text-orange-700" />
               Ejecutar Inspección Operacional en Campo
             </h2>
-            <p className="text-xs text-slate-500 mb-4">
+            <p className="text-xs text-slate-600 mb-4">
               Cualquier desviación o condición subestándar identificada en la inspección se transfiere <strong>automáticamente a la Matriz ACPM</strong> sin doble digitación.
             </p>
 
@@ -1122,7 +1122,7 @@ export const SstModule: React.FC = () => {
             <h2 className="text-sm font-bold text-slate-900 mb-2">
               Activos Registrados Disponibles para Inspección
             </h2>
-            <p className="text-xs text-slate-500 mb-3">
+            <p className="text-xs text-slate-600 mb-3">
               Un extintor o camión registrado aquí se reutiliza en emergencias, inspecciones preoperacionales y mantenimientos preventivos.
             </p>
 
@@ -1134,7 +1134,7 @@ export const SstModule: React.FC = () => {
                       <span className="font-mono font-bold text-teal-700">{asset.code}</span>
                       <span className="font-semibold text-slate-900">{asset.name}</span>
                     </div>
-                    <div className="text-[11px] text-slate-500 mt-0.5">
+                    <div className="text-[11px] text-slate-600 mt-0.5">
                       {asset.locationDetails} • {asset.siteName}
                     </div>
                   </div>
@@ -1142,7 +1142,7 @@ export const SstModule: React.FC = () => {
                     <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 font-bold border border-emerald-200">
                       {asset.status}
                     </span>
-                    <span className="block text-[10px] text-slate-500 mt-1">
+                    <span className="block text-[10px] text-slate-600 mt-1">
                       Prox. Insp: {asset.nextInspectionDate}
                     </span>
                   </div>
@@ -1232,7 +1232,7 @@ export const SstModule: React.FC = () => {
           <form onSubmit={handleAddHazard} className="bg-slate-50 border border-slate-300 rounded-2xl max-w-xl w-full p-5 space-y-4 shadow-2xl">
             <div className="flex items-center justify-between border-b border-slate-200 pb-3">
               <h2 className="text-sm font-bold text-slate-900">Identificar Nuevo Peligro (GTC 45)</h2>
-              <button type="button" onClick={() => setShowHazardModal(false)} className="text-slate-500 hover:text-slate-900">✕</button>
+              <button type="button" onClick={() => setShowHazardModal(false)} className="text-slate-600 hover:text-slate-900">✕</button>
             </div>
 
             <div className="space-y-3 text-xs">

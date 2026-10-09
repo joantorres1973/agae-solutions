@@ -59,6 +59,12 @@ export const WorkerDigitalDossierModal: React.FC<WorkerDigitalDossierModalProps>
   const [isLaborModalOpen, setIsLaborModalOpen] = useState(false);
   const [isEppModalOpen, setIsEppModalOpen] = useState(false);
   const [isDocModalOpen, setIsDocModalOpen] = useState(false);
+  const [docModalType, setDocModalType] = useState<WorkerDigitalDocument['type'] | undefined>(undefined);
+
+  const handleOpenDocModal = (type?: WorkerDigitalDocument['type']) => {
+    setDocModalType(type);
+    setIsDocModalOpen(true);
+  };
 
   const worker = useMemo(() => {
     if (!workerId) return null;
@@ -166,19 +172,19 @@ export const WorkerDigitalDossierModal: React.FC<WorkerDigitalDossierModalProps>
   return (
     <>
       <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
-        <div className="bg-slate-900 border border-slate-700 w-full max-w-5xl rounded-2xl shadow-2xl overflow-hidden flex flex-col h-[92vh] max-h-[900px]">
+        <div className="bg-slate-50 border border-slate-300 w-full max-w-5xl rounded-2xl shadow-2xl overflow-hidden flex flex-col h-[92vh] max-h-[900px]">
           {/* Header del Expediente Digital */}
-          <div className="p-4 sm:p-5 border-b border-slate-800 bg-gradient-to-r from-slate-950 via-slate-900 to-[#061e16] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="p-4 sm:p-5 border-b border-slate-200 bg-gradient-to-r from-white via-white to-emerald-50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <div className="relative">
                 {worker.photoUrl ? (
                   <img
                     src={worker.photoUrl}
                     alt={worker.firstName}
-                    className="w-14 h-14 rounded-2xl object-cover border-2 border-emerald-500/60 shadow-lg shrink-0"
+                    className="w-14 h-14 rounded-2xl object-cover border-2 border-emerald-200 shadow-lg shrink-0"
                   />
                 ) : (
-                  <div className="w-14 h-14 rounded-2xl bg-emerald-950 border-2 border-emerald-500/60 flex items-center justify-center text-lg font-bold text-emerald-300 shadow-lg shrink-0">
+                  <div className="w-14 h-14 rounded-2xl bg-emerald-50 border-2 border-emerald-200 flex items-center justify-center text-lg font-bold text-emerald-700 shadow-lg shrink-0">
                     {worker.firstName[0]}
                     {worker.lastName[0]}
                   </div>
@@ -193,29 +199,29 @@ export const WorkerDigitalDossierModal: React.FC<WorkerDigitalDossierModalProps>
 
               <div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <h2 className="text-lg font-bold text-white tracking-tight">
+                  <h2 className="text-lg font-bold text-slate-900 tracking-tight">
                     {worker.firstName} {worker.lastName}
                   </h2>
-                  <span className="text-xs px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 border border-slate-700 font-mono">
+                  <span className="text-xs px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-300 font-mono">
                     {worker.docType} {worker.docNumber}
                   </span>
                   <span
                     className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${
                       worker.status === 'ACTIVO'
-                        ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
-                        : 'bg-slate-800 text-slate-400 border border-slate-700'
+                        ? 'bg-emerald-100 text-emerald-700 border border-emerald-200'
+                        : 'bg-slate-100 text-slate-600 border border-slate-300'
                     }`}
                   >
                     {worker.status}
                   </span>
                 </div>
 
-                <div className="text-xs text-slate-300 mt-1 flex flex-wrap items-center gap-3">
-                  <span className="font-semibold text-emerald-400">{worker.position}</span>
-                  <span className="text-slate-500">•</span>
+                <div className="text-xs text-slate-700 mt-1 flex flex-wrap items-center gap-3">
+                  <span className="font-semibold text-emerald-700">{worker.position}</span>
+                  <span className="text-slate-600">•</span>
                   <span>{worker.area}</span>
-                  <span className="text-slate-500">•</span>
-                  <span className="text-slate-400">{worker.siteName}</span>
+                  <span className="text-slate-600">•</span>
+                  <span className="text-slate-600">{worker.siteName}</span>
                 </div>
               </div>
             </div>
@@ -223,11 +229,11 @@ export const WorkerDigitalDossierModal: React.FC<WorkerDigitalDossierModalProps>
             {/* Actions & Health Gauge */}
             <div className="flex items-center gap-2.5 self-end sm:self-center">
               <div className="hidden md:flex flex-col items-end mr-2 text-right">
-                <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">
+                <span className="text-[10px] text-slate-600 uppercase tracking-wider font-semibold">
                   Expediente Digital
                 </span>
                 <div className="flex items-center gap-2">
-                  <div className="w-24 h-2 bg-slate-800 rounded-full overflow-hidden">
+                  <div className="w-24 h-2 bg-slate-100 rounded-full overflow-hidden">
                     <div
                       className={`h-full rounded-full ${
                         completeness === 100
@@ -239,13 +245,13 @@ export const WorkerDigitalDossierModal: React.FC<WorkerDigitalDossierModalProps>
                       style={{ width: `${completeness}%` }}
                     />
                   </div>
-                  <span className="text-xs font-bold text-emerald-400">{completeness}%</span>
+                  <span className="text-xs font-bold text-emerald-700">{completeness}%</span>
                 </div>
               </div>
 
               <button
                 onClick={handlePrint}
-                className="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors text-xs font-medium flex items-center gap-1.5 border border-slate-700"
+                className="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 transition-colors text-xs font-medium flex items-center gap-1.5 border border-slate-300"
                 title="Imprimir Ficha Completa del Trabajador"
               >
                 <Printer className="w-3.5 h-3.5" />
@@ -254,7 +260,7 @@ export const WorkerDigitalDossierModal: React.FC<WorkerDigitalDossierModalProps>
 
               <button
                 onClick={() => onEditWorker(worker)}
-                className="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-emerald-400 hover:text-emerald-300 transition-colors text-xs font-semibold flex items-center gap-1.5 border border-slate-700"
+                className="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-emerald-700 hover:text-emerald-700 transition-colors text-xs font-semibold flex items-center gap-1.5 border border-slate-300"
               >
                 <Edit className="w-3.5 h-3.5" />
                 <span>Editar</span>
@@ -262,7 +268,7 @@ export const WorkerDigitalDossierModal: React.FC<WorkerDigitalDossierModalProps>
 
               <button
                 onClick={onClose}
-                className="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-800 transition-colors"
+                className="text-slate-600 hover:text-slate-900 p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -270,19 +276,19 @@ export const WorkerDigitalDossierModal: React.FC<WorkerDigitalDossierModalProps>
           </div>
 
           {/* Navigation Subtabs */}
-          <div className="flex border-b border-slate-800 bg-slate-950/50 px-4 text-xs font-semibold overflow-x-auto select-none no-scrollbar">
+          <div className="flex border-b border-slate-200 bg-white/80 px-4 text-xs font-semibold overflow-x-auto select-none no-scrollbar">
             <button
               onClick={() => setActiveTab('SUMMARY')}
               className={`py-3 px-3.5 border-b-2 flex items-center gap-2 shrink-0 transition-colors ${
                 activeTab === 'SUMMARY'
-                  ? 'border-emerald-500 text-emerald-400 bg-emerald-950/20'
-                  : 'border-transparent text-slate-400 hover:text-slate-200'
+                  ? 'border-emerald-500 text-emerald-700 bg-emerald-50'
+                  : 'border-transparent text-slate-600 hover:text-slate-800'
               }`}
             >
               <CheckCircle2 className="w-4 h-4" />
               <span>Resumen 360°</span>
               {alerts.length > 0 && (
-                <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-amber-100 text-amber-700 border border-amber-200">
                   {alerts.length}
                 </span>
               )}
@@ -292,8 +298,8 @@ export const WorkerDigitalDossierModal: React.FC<WorkerDigitalDossierModalProps>
               onClick={() => setActiveTab('PERSONAL')}
               className={`py-3 px-3.5 border-b-2 flex items-center gap-2 shrink-0 transition-colors ${
                 activeTab === 'PERSONAL'
-                  ? 'border-emerald-500 text-emerald-400 bg-emerald-950/20'
-                  : 'border-transparent text-slate-400 hover:text-slate-200'
+                  ? 'border-emerald-500 text-emerald-700 bg-emerald-50'
+                  : 'border-transparent text-slate-600 hover:text-slate-800'
               }`}
             >
               <User className="w-4 h-4" />
@@ -304,13 +310,13 @@ export const WorkerDigitalDossierModal: React.FC<WorkerDigitalDossierModalProps>
               onClick={() => setActiveTab('LABOR')}
               className={`py-3 px-3.5 border-b-2 flex items-center gap-2 shrink-0 transition-colors ${
                 activeTab === 'LABOR'
-                  ? 'border-emerald-500 text-emerald-400 bg-emerald-950/20'
-                  : 'border-transparent text-slate-400 hover:text-slate-200'
+                  ? 'border-emerald-500 text-emerald-700 bg-emerald-50'
+                  : 'border-transparent text-slate-600 hover:text-slate-800'
               }`}
             >
               <Briefcase className="w-4 h-4" />
               <span>Laboral & Historial</span>
-              <span className="text-[10px] px-1.5 py-0.2 rounded bg-slate-800 text-slate-400">
+              <span className="text-[10px] px-1.5 py-0.2 rounded bg-slate-100 text-slate-600">
                 {worker.laborHistory.length}
               </span>
             </button>
@@ -319,8 +325,8 @@ export const WorkerDigitalDossierModal: React.FC<WorkerDigitalDossierModalProps>
               onClick={() => setActiveTab('ACADEMIC')}
               className={`py-3 px-3.5 border-b-2 flex items-center gap-2 shrink-0 transition-colors ${
                 activeTab === 'ACADEMIC'
-                  ? 'border-emerald-500 text-emerald-400 bg-emerald-950/20'
-                  : 'border-transparent text-slate-400 hover:text-slate-200'
+                  ? 'border-emerald-500 text-emerald-700 bg-emerald-50'
+                  : 'border-transparent text-slate-600 hover:text-slate-800'
               }`}
             >
               <GraduationCap className="w-4 h-4" />
@@ -331,13 +337,13 @@ export const WorkerDigitalDossierModal: React.FC<WorkerDigitalDossierModalProps>
               onClick={() => setActiveTab('DOCS')}
               className={`py-3 px-3.5 border-b-2 flex items-center gap-2 shrink-0 transition-colors ${
                 activeTab === 'DOCS'
-                  ? 'border-emerald-500 text-emerald-400 bg-emerald-950/20'
-                  : 'border-transparent text-slate-400 hover:text-slate-200'
+                  ? 'border-emerald-500 text-emerald-700 bg-emerald-50'
+                  : 'border-transparent text-slate-600 hover:text-slate-800'
               }`}
             >
               <FileText className="w-4 h-4" />
               <span>Hoja de Vida Digital</span>
-              <span className="text-[10px] px-1.5 py-0.2 rounded bg-slate-800 text-slate-400">
+              <span className="text-[10px] px-1.5 py-0.2 rounded bg-slate-100 text-slate-600">
                 {worker.digitalDocuments.length}
               </span>
             </button>
@@ -346,13 +352,13 @@ export const WorkerDigitalDossierModal: React.FC<WorkerDigitalDossierModalProps>
               onClick={() => setActiveTab('SST')}
               className={`py-3 px-3.5 border-b-2 flex items-center gap-2 shrink-0 transition-colors ${
                 activeTab === 'SST'
-                  ? 'border-orange-500 text-orange-400 bg-orange-950/20'
-                  : 'border-transparent text-slate-400 hover:text-slate-200'
+                  ? 'border-orange-500 text-orange-700 bg-orange-50'
+                  : 'border-transparent text-slate-600 hover:text-slate-800'
               }`}
             >
               <HardHat className="w-4 h-4" />
               <span>Expediente SG-SST</span>
-              <span className="text-[9px] px-1.5 py-0.2 rounded bg-orange-950 text-orange-400 border border-orange-800">
+              <span className="text-[9px] px-1.5 py-0.2 rounded bg-orange-50 text-orange-700 border border-orange-200">
                 Auto
               </span>
             </button>
@@ -361,8 +367,8 @@ export const WorkerDigitalDossierModal: React.FC<WorkerDigitalDossierModalProps>
               onClick={() => setActiveTab('AUDIT')}
               className={`py-3 px-3.5 border-b-2 flex items-center gap-2 shrink-0 transition-colors ${
                 activeTab === 'AUDIT'
-                  ? 'border-emerald-500 text-emerald-400 bg-emerald-950/20'
-                  : 'border-transparent text-slate-400 hover:text-slate-200'
+                  ? 'border-emerald-500 text-emerald-700 bg-emerald-50'
+                  : 'border-transparent text-slate-600 hover:text-slate-800'
               }`}
             >
               <History className="w-4 h-4" />
@@ -379,8 +385,8 @@ export const WorkerDigitalDossierModal: React.FC<WorkerDigitalDossierModalProps>
               <div className="space-y-5">
                 {/* Alertas Automáticas */}
                 {alerts.length > 0 && (
-                  <div className="p-3.5 rounded-xl bg-amber-950/30 border border-amber-500/40 space-y-2">
-                    <div className="flex items-center gap-2 text-amber-300 font-bold text-xs">
+                  <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 space-y-2">
+                    <div className="flex items-center gap-2 text-amber-700 font-bold text-xs">
                       <AlertTriangle className="w-4 h-4" />
                       <span>Alertas Automáticas del Trabajador ({alerts.length})</span>
                     </div>
@@ -390,8 +396,8 @@ export const WorkerDigitalDossierModal: React.FC<WorkerDigitalDossierModalProps>
                           key={idx}
                           className={`p-2 rounded-lg border text-[11px] flex items-start gap-2 ${
                             al.type === 'DANGER'
-                              ? 'bg-rose-950/40 border-rose-800/60 text-rose-300'
-                              : 'bg-amber-950/40 border-amber-800/60 text-amber-300'
+                              ? 'bg-rose-50 border-rose-200 text-rose-700'
+                              : 'bg-amber-50 border-amber-200 text-amber-700'
                           }`}
                         >
                           <span className="mt-0.5">🔔</span>
@@ -407,9 +413,9 @@ export const WorkerDigitalDossierModal: React.FC<WorkerDigitalDossierModalProps>
 
                 {/* Métricas Resumen */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800">
-                    <span className="text-[10px] text-slate-400 uppercase font-semibold">Tiempo en Empresa</span>
-                    <div className="text-base font-bold text-white mt-1">
+                  <div className="p-3 rounded-xl bg-white/80 border border-slate-200">
+                    <span className="text-[10px] text-slate-600 uppercase font-semibold">Tiempo en Empresa</span>
+                    <div className="text-base font-bold text-slate-900 mt-1">
                       {Math.max(
                         0,
                         Math.floor(
@@ -419,50 +425,50 @@ export const WorkerDigitalDossierModal: React.FC<WorkerDigitalDossierModalProps>
                       )}{' '}
                       meses
                     </div>
-                    <span className="text-[10px] text-slate-500">Desde {worker.hireDate}</span>
+                    <span className="text-[10px] text-slate-600">Desde {worker.hireDate}</span>
                   </div>
 
-                  <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800">
-                    <span className="text-[10px] text-slate-400 uppercase font-semibold">Dotaciones EPP</span>
-                    <div className="text-base font-bold text-orange-400 mt-1">
+                  <div className="p-3 rounded-xl bg-white/80 border border-slate-200">
+                    <span className="text-[10px] text-slate-600 uppercase font-semibold">Dotaciones EPP</span>
+                    <div className="text-base font-bold text-orange-700 mt-1">
                       {worker.eppDeliveries.length} entregas
                     </div>
-                    <span className="text-[10px] text-slate-500">
+                    <span className="text-[10px] text-slate-600">
                       Última: {worker.eppDeliveries[0]?.date || 'Sin registro'}
                     </span>
                   </div>
 
-                  <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800">
-                    <span className="text-[10px] text-slate-400 uppercase font-semibold">Capacitaciones SST</span>
-                    <div className="text-base font-bold text-emerald-400 mt-1">
+                  <div className="p-3 rounded-xl bg-white/80 border border-slate-200">
+                    <span className="text-[10px] text-slate-600 uppercase font-semibold">Capacitaciones SST</span>
+                    <div className="text-base font-bold text-emerald-700 mt-1">
                       {worker.trainings.filter(t => t.approved).length} aprobadas
                     </div>
-                    <span className="text-[10px] text-slate-500">
+                    <span className="text-[10px] text-slate-600">
                       {worker.trainings.reduce((acc, t) => acc + t.hours, 0)} horas totales
                     </span>
                   </div>
 
-                  <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800">
-                    <span className="text-[10px] text-slate-400 uppercase font-semibold">Examen Médico</span>
-                    <div className="text-base font-bold text-blue-400 mt-1">
+                  <div className="p-3 rounded-xl bg-white/80 border border-slate-200">
+                    <span className="text-[10px] text-slate-600 uppercase font-semibold">Examen Médico</span>
+                    <div className="text-base font-bold text-blue-700 mt-1">
                       {worker.occupationalExams[0]?.concept.replace(/_/g, ' ') || 'Sin examen'}
                     </div>
-                    <span className="text-[10px] text-slate-500">
+                    <span className="text-[10px] text-slate-600">
                       {worker.occupationalExams[0]?.date || 'Pendiente'}
                     </span>
                   </div>
                 </div>
 
                 {/* Accesos directos para alimentar el perfil */}
-                <div className="p-4 rounded-xl bg-slate-950/80 border border-slate-800 space-y-3">
+                <div className="p-4 rounded-xl bg-white border border-slate-200 space-y-3">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h4 className="font-bold text-white text-xs">Alimentación Automática del Expediente</h4>
-                      <p className="text-[11px] text-slate-400">
+                      <h4 className="font-bold text-slate-900 text-xs">Alimentación Automática del Expediente</h4>
+                      <p className="text-[11px] text-slate-600">
                         Cada acción que registres nutre directamente el perfil integral sin duplicar información.
                       </p>
                     </div>
-                    <span className="text-[10px] text-emerald-400 bg-emerald-950 px-2 py-0.5 rounded border border-emerald-800">
+                    <span className="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
                       Un Dato → Múltiples Usos
                     </span>
                   </div>
@@ -470,46 +476,46 @@ export const WorkerDigitalDossierModal: React.FC<WorkerDigitalDossierModalProps>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                     <button
                       onClick={() => setIsLaborModalOpen(true)}
-                      className="p-3 rounded-lg bg-slate-900 hover:bg-slate-800/80 border border-slate-700/80 text-left transition-all group flex items-start gap-2.5"
+                      className="p-3 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-300 text-left transition-all group flex items-start gap-2.5"
                     >
-                      <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400 group-hover:bg-emerald-500/20">
+                      <div className="p-2 rounded-lg bg-emerald-100 text-emerald-700 group-hover:bg-emerald-100">
                         <TrendingUp className="w-4 h-4" />
                       </div>
                       <div>
-                        <div className="font-semibold text-white group-hover:text-emerald-300">
+                        <div className="font-semibold text-slate-900 group-hover:text-emerald-700">
                           + Registrar Movimiento
                         </div>
-                        <div className="text-[10px] text-slate-400">Ascenso o cambio con historial</div>
+                        <div className="text-[10px] text-slate-600">Ascenso o cambio con historial</div>
                       </div>
                     </button>
 
                     <button
                       onClick={() => setIsEppModalOpen(true)}
-                      className="p-3 rounded-lg bg-slate-900 hover:bg-slate-800/80 border border-slate-700/80 text-left transition-all group flex items-start gap-2.5"
+                      className="p-3 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-300 text-left transition-all group flex items-start gap-2.5"
                     >
-                      <div className="p-2 rounded-lg bg-orange-500/10 text-orange-400 group-hover:bg-orange-500/20">
+                      <div className="p-2 rounded-lg bg-orange-100 text-orange-700 group-hover:bg-orange-100">
                         <HardHat className="w-4 h-4" />
                       </div>
                       <div>
-                        <div className="font-semibold text-white group-hover:text-orange-300">
+                        <div className="font-semibold text-slate-900 group-hover:text-orange-700">
                           + Entregar EPP
                         </div>
-                        <div className="text-[10px] text-slate-400">Dotación periódica o inicial</div>
+                        <div className="text-[10px] text-slate-600">Dotación periódica o inicial</div>
                       </div>
                     </button>
 
                     <button
-                      onClick={() => setIsDocModalOpen(true)}
-                      className="p-3 rounded-lg bg-slate-900 hover:bg-slate-800/80 border border-slate-700/80 text-left transition-all group flex items-start gap-2.5"
+                      onClick={() => handleOpenDocModal()}
+                      className="p-3 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-300 text-left transition-all group flex items-start gap-2.5"
                     >
-                      <div className="p-2 rounded-lg bg-blue-500/10 text-blue-400 group-hover:bg-blue-500/20">
+                      <div className="p-2 rounded-lg bg-blue-100 text-blue-700 group-hover:bg-blue-100">
                         <FileText className="w-4 h-4" />
                       </div>
                       <div>
-                        <div className="font-semibold text-white group-hover:text-blue-300">
+                        <div className="font-semibold text-slate-900 group-hover:text-blue-700">
                           + Adjuntar Documento
                         </div>
-                        <div className="text-[10px] text-slate-400">HV, diploma, soporte o licencia</div>
+                        <div className="text-[10px] text-slate-600">HV, diploma, soporte o licencia</div>
                       </div>
                     </button>
                   </div>
@@ -517,16 +523,16 @@ export const WorkerDigitalDossierModal: React.FC<WorkerDigitalDossierModalProps>
 
                 {/* Sincronización con Estándar 1.1.1 si aplica */}
                 {worker.licenses.some(l => l.type === 'LICENCIA_SST') && (
-                  <div className="p-3.5 rounded-xl bg-purple-950/30 border border-purple-800/50 flex items-center justify-between gap-3">
+                  <div className="p-3.5 rounded-xl bg-purple-50 border border-purple-200 flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-lg bg-purple-500/20 text-purple-300">
+                      <div className="p-2 rounded-lg bg-purple-100 text-purple-700">
                         <Award className="w-5 h-5" />
                       </div>
                       <div>
-                        <h4 className="font-bold text-purple-200">
+                        <h4 className="font-bold text-purple-800">
                           Candidato a Responsable SG-SST (Estándar 1.1.1)
                         </h4>
-                        <p className="text-[11px] text-purple-300/80">
+                        <p className="text-[11px] text-purple-700">
                           Este trabajador cuenta con Licencia SST registrada (
                           {worker.licenses.find(l => l.type === 'LICENCIA_SST')?.number}). Puedes sincronizar su perfil directamente con la Resolución 0312.
                         </p>
@@ -548,58 +554,58 @@ export const WorkerDigitalDossierModal: React.FC<WorkerDigitalDossierModalProps>
             {/* ============================================================ */}
             {activeTab === 'PERSONAL' && (
               <div className="space-y-4">
-                <div className="p-4 rounded-xl bg-slate-950/70 border border-slate-800 space-y-3">
-                  <h4 className="font-bold text-white text-xs border-b border-slate-800 pb-2">
+                <div className="p-4 rounded-xl bg-white/80 border border-slate-200 space-y-3">
+                  <h4 className="font-bold text-slate-900 text-xs border-b border-slate-200 pb-2">
                     Identificación del Trabajador
                   </h4>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                     <div>
-                      <span className="text-slate-400">Nombres Completos:</span>
-                      <p className="font-semibold text-white">{worker.firstName} {worker.lastName}</p>
+                      <span className="text-slate-600">Nombres Completos:</span>
+                      <p className="font-semibold text-slate-900">{worker.firstName} {worker.lastName}</p>
                     </div>
                     <div>
-                      <span className="text-slate-400">Documento de Identidad:</span>
-                      <p className="font-semibold text-white font-mono">{worker.docType} {worker.docNumber}</p>
+                      <span className="text-slate-600">Documento de Identidad:</span>
+                      <p className="font-semibold text-slate-900 font-mono">{worker.docType} {worker.docNumber}</p>
                     </div>
                     <div>
-                      <span className="text-slate-400">Fecha de Nacimiento:</span>
-                      <p className="font-semibold text-white">{worker.birthDate || 'No registrada'}</p>
+                      <span className="text-slate-600">Fecha de Nacimiento:</span>
+                      <p className="font-semibold text-slate-900">{worker.birthDate || 'No registrada'}</p>
                     </div>
                     <div>
-                      <span className="text-slate-400">Estado en la Plataforma:</span>
-                      <p className="font-semibold text-emerald-400">{worker.status}</p>
+                      <span className="text-slate-600">Estado en la Plataforma:</span>
+                      <p className="font-semibold text-emerald-700">{worker.status}</p>
                     </div>
                     <div>
-                      <span className="text-slate-400">Fecha de Ingreso:</span>
-                      <p className="font-semibold text-white">{worker.hireDate}</p>
+                      <span className="text-slate-600">Fecha de Ingreso:</span>
+                      <p className="font-semibold text-slate-900">{worker.hireDate}</p>
                     </div>
                     <div>
-                      <span className="text-slate-400">Fecha de Retiro:</span>
-                      <p className="font-semibold text-white">{worker.terminationDate || 'Vigente (Sin retiro)'}</p>
+                      <span className="text-slate-600">Fecha de Retiro:</span>
+                      <p className="font-semibold text-slate-900">{worker.terminationDate || 'Vigente (Sin retiro)'}</p>
                     </div>
                   </div>
                 </div>
 
-                <div className="p-4 rounded-xl bg-slate-950/70 border border-slate-800 space-y-3">
-                  <h4 className="font-bold text-white text-xs border-b border-slate-800 pb-2">
+                <div className="p-4 rounded-xl bg-white/80 border border-slate-200 space-y-3">
+                  <h4 className="font-bold text-slate-900 text-xs border-b border-slate-200 pb-2">
                     Datos de Contacto y Ubicación
                   </h4>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                     <div>
-                      <span className="text-slate-400">Correo Electrónico:</span>
-                      <p className="font-semibold text-white">{worker.email}</p>
+                      <span className="text-slate-600">Correo Electrónico:</span>
+                      <p className="font-semibold text-slate-900">{worker.email}</p>
                     </div>
                     <div>
-                      <span className="text-slate-400">Teléfono / Celular:</span>
-                      <p className="font-semibold text-white">{worker.phone}</p>
+                      <span className="text-slate-600">Teléfono / Celular:</span>
+                      <p className="font-semibold text-slate-900">{worker.phone}</p>
                     </div>
                     <div>
-                      <span className="text-slate-400">Dirección:</span>
-                      <p className="font-semibold text-white">{worker.address || 'No registrada'}</p>
+                      <span className="text-slate-600">Dirección:</span>
+                      <p className="font-semibold text-slate-900">{worker.address || 'No registrada'}</p>
                     </div>
                     <div>
-                      <span className="text-slate-400">Ciudad / Municipio:</span>
-                      <p className="font-semibold text-white">{worker.city}</p>
+                      <span className="text-slate-600">Ciudad / Municipio:</span>
+                      <p className="font-semibold text-slate-900">{worker.city}</p>
                     </div>
                   </div>
                 </div>
@@ -612,9 +618,9 @@ export const WorkerDigitalDossierModal: React.FC<WorkerDigitalDossierModalProps>
             {activeTab === 'LABOR' && (
               <div className="space-y-4">
                 {/* Cargo Actual */}
-                <div className="p-4 rounded-xl bg-slate-950/70 border border-slate-800 space-y-3">
-                  <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                    <h4 className="font-bold text-white text-xs">Condición Laboral Actual</h4>
+                <div className="p-4 rounded-xl bg-white/80 border border-slate-200 space-y-3">
+                  <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+                    <h4 className="font-bold text-slate-900 text-xs">Condición Laboral Actual</h4>
                     <button
                       onClick={() => setIsLaborModalOpen(true)}
                       className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-[11px] flex items-center gap-1.5 transition-colors"
@@ -626,87 +632,87 @@ export const WorkerDigitalDossierModal: React.FC<WorkerDigitalDossierModalProps>
 
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                     <div>
-                      <span className="text-slate-400">Cargo Actual:</span>
-                      <p className="font-bold text-emerald-400">{worker.position}</p>
+                      <span className="text-slate-600">Cargo Actual:</span>
+                      <p className="font-bold text-emerald-700">{worker.position}</p>
                     </div>
                     <div>
-                      <span className="text-slate-400">Área:</span>
-                      <p className="font-semibold text-white">{worker.area}</p>
+                      <span className="text-slate-600">Área:</span>
+                      <p className="font-semibold text-slate-900">{worker.area}</p>
                     </div>
                     <div>
-                      <span className="text-slate-400">Proceso:</span>
-                      <p className="font-semibold text-white">{worker.processName}</p>
+                      <span className="text-slate-600">Proceso:</span>
+                      <p className="font-semibold text-slate-900">{worker.processName}</p>
                     </div>
                     <div>
-                      <span className="text-slate-400">Centro de Trabajo / Sede:</span>
-                      <p className="font-semibold text-white">{worker.siteName}</p>
+                      <span className="text-slate-600">Centro de Trabajo / Sede:</span>
+                      <p className="font-semibold text-slate-900">{worker.siteName}</p>
                     </div>
                     <div>
-                      <span className="text-slate-400">Jefe Inmediato:</span>
-                      <p className="font-semibold text-white">{worker.immediateBoss || 'No asignado'}</p>
+                      <span className="text-slate-600">Jefe Inmediato:</span>
+                      <p className="font-semibold text-slate-900">{worker.immediateBoss || 'No asignado'}</p>
                     </div>
                     <div>
-                      <span className="text-slate-400">Tipo de Vinculación:</span>
-                      <p className="font-semibold text-white">{worker.contractType.replace(/_/g, ' ')}</p>
+                      <span className="text-slate-600">Tipo de Vinculación:</span>
+                      <p className="font-semibold text-slate-900">{worker.contractType.replace(/_/g, ' ')}</p>
                     </div>
                     <div>
-                      <span className="text-slate-400">Modalidad de Trabajo:</span>
-                      <p className="font-semibold text-white">{worker.workModality}</p>
+                      <span className="text-slate-600">Modalidad de Trabajo:</span>
+                      <p className="font-semibold text-slate-900">{worker.workModality}</p>
                     </div>
                     <div>
-                      <span className="text-slate-400">Jornada Laboral:</span>
-                      <p className="font-semibold text-white">{worker.workShift.replace(/_/g, ' ')}</p>
+                      <span className="text-slate-600">Jornada Laboral:</span>
+                      <p className="font-semibold text-slate-900">{worker.workShift.replace(/_/g, ' ')}</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Línea de Tiempo del Historial Laboral */}
-                <div className="p-4 rounded-xl bg-slate-950/70 border border-slate-800 space-y-3">
-                  <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                <div className="p-4 rounded-xl bg-white/80 border border-slate-200 space-y-3">
+                  <div className="flex items-center justify-between border-b border-slate-200 pb-2">
                     <div>
-                      <h4 className="font-bold text-white text-xs">
+                      <h4 className="font-bold text-slate-900 text-xs">
                         Línea de Tiempo del Historial Laboral
                       </h4>
-                      <p className="text-[11px] text-slate-400">
+                      <p className="text-[11px] text-slate-600">
                         Conserva todos los cargos, promociones y traslados sin sobrescribir información histórica.
                       </p>
                     </div>
-                    <span className="text-[10px] text-slate-400 font-mono">
+                    <span className="text-[10px] text-slate-600 font-mono">
                       {worker.laborHistory.length} registros
                     </span>
                   </div>
 
-                  <div className="relative pl-6 space-y-4 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-800">
+                  <div className="relative pl-6 space-y-4 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-100">
                     {worker.laborHistory.map((item, idx) => (
                       <div key={item.id || idx} className="relative group">
-                        <div className="absolute -left-6 top-1 w-3.5 h-3.5 rounded-full bg-slate-900 border-2 border-emerald-500 group-hover:scale-125 transition-transform" />
-                        <div className="p-3 rounded-lg bg-slate-900/90 border border-slate-800 hover:border-slate-700 transition-colors">
+                        <div className="absolute -left-6 top-1 w-3.5 h-3.5 rounded-full bg-slate-50 border-2 border-emerald-500 group-hover:scale-125 transition-transform" />
+                        <div className="p-3 rounded-lg bg-slate-50 border border-slate-200 hover:border-slate-300 transition-colors">
                           <div className="flex items-center justify-between gap-2">
-                            <span className="font-bold text-white text-xs">{item.newPosition}</span>
-                            <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 font-semibold border border-emerald-800">
+                            <span className="font-bold text-slate-900 text-xs">{item.newPosition}</span>
+                            <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200">
                               {item.reason}
                             </span>
                           </div>
-                          <div className="text-[11px] text-slate-400 mt-1 flex flex-wrap gap-2">
+                          <div className="text-[11px] text-slate-600 mt-1 flex flex-wrap gap-2">
                             <span>📅 {item.changeDate}</span>
                             <span>•</span>
                             <span>Área: {item.newArea}</span>
                             {item.newSalary && (
                               <>
                                 <span>•</span>
-                                <span className="text-emerald-400">
+                                <span className="text-emerald-700">
                                   ${item.newSalary.toLocaleString()} COP
                                 </span>
                               </>
                             )}
                           </div>
                           {item.previousPosition && (
-                            <div className="text-[10px] text-slate-500 mt-1">
+                            <div className="text-[10px] text-slate-600 mt-1">
                               Cargo previo: {item.previousPosition}
                             </div>
                           )}
                           {item.notes && (
-                            <p className="text-[11px] text-slate-300 mt-1.5 italic bg-slate-950/40 p-1.5 rounded">
+                            <p className="text-[11px] text-slate-700 mt-1.5 italic bg-white/80 p-1.5 rounded">
                               "{item.notes}"
                             </p>
                           )}
@@ -724,57 +730,163 @@ export const WorkerDigitalDossierModal: React.FC<WorkerDigitalDossierModalProps>
             {activeTab === 'ACADEMIC' && (
               <div className="space-y-4">
                 {/* Títulos & Nivel Educativo */}
-                <div className="p-4 rounded-xl bg-slate-950/70 border border-slate-800 space-y-3">
-                  <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                    <h4 className="font-bold text-white text-xs">Formación Académica Formal</h4>
-                    <span className="text-[10px] text-emerald-400 font-semibold uppercase">
-                      Nivel: {worker.educationLevel}
-                    </span>
+                <div className="p-4 rounded-xl bg-white/80 border border-slate-200 space-y-3">
+                  <div className="flex items-center justify-between border-b border-slate-200 pb-2 flex-wrap gap-2">
+                    <div>
+                      <h4 className="font-bold text-slate-900 text-xs">Formación Académica Formal</h4>
+                      <span className="text-[10px] text-emerald-700 font-semibold uppercase">
+                        Nivel Declarado: {worker.educationLevel}
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => handleOpenDocModal('DIPLOMA')}
+                      className="px-2.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs flex items-center gap-1.5 transition-colors shadow-sm"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>+ Cargar Diploma / Acta de Grado</span>
+                    </button>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {worker.academicRecords.length === 0 ? (
-                      <p className="text-slate-500 text-xs italic">No hay títulos académicos registrados.</p>
+                      <p className="text-slate-600 text-xs italic">No hay títulos académicos registrados.</p>
                     ) : (
                       worker.academicRecords.map(acad => (
-                        <div key={acad.id} className="p-3 rounded-lg bg-slate-900 border border-slate-800">
-                          <div className="font-semibold text-white">{acad.degreeTitle}</div>
-                          <div className="text-[11px] text-slate-400 mt-0.5">{acad.institution}</div>
-                          <div className="text-[10px] text-slate-500 mt-1">
+                        <div key={acad.id} className="p-3 rounded-lg bg-slate-50 border border-slate-200">
+                          <div className="font-semibold text-slate-900">{acad.degreeTitle}</div>
+                          <div className="text-[11px] text-slate-600 mt-0.5">{acad.institution}</div>
+                          <div className="text-[10px] text-slate-600 mt-1">
                             Graduado: {acad.graduationDate} • Estado: {acad.status}
                           </div>
                         </div>
                       ))
                     )}
                   </div>
+
+                  {/* Diplomas y Actas de Grado Digitalizadas y Adjuntas */}
+                  {(() => {
+                    const diplomas = worker.digitalDocuments.filter(d => d.type === 'DIPLOMA');
+                    return (
+                      <div className="mt-3 pt-3 border-t border-slate-200">
+                        <div className="flex items-center justify-between mb-2">
+                          <h5 className="font-bold text-slate-800 text-xs flex items-center gap-1.5">
+                            <GraduationCap className="w-4 h-4 text-blue-600" />
+                            <span>Soportes Digitales de Diplomas & Actas ({diplomas.length})</span>
+                          </h5>
+                          {diplomas.length > 0 && (
+                            <span className="text-[10px] text-emerald-700 font-semibold">
+                              ✓ Soportes Verificados en Expediente
+                            </span>
+                          )}
+                        </div>
+
+                        {diplomas.length === 0 ? (
+                          <div className="p-3 rounded-xl bg-blue-50/50 border border-dashed border-blue-200 text-center flex flex-col items-center justify-center gap-1.5">
+                            <p className="text-slate-600 text-[11px]">
+                              Aún no has adjuntado el archivo digital del diploma para este trabajador.
+                            </p>
+                            <button
+                              onClick={() => handleOpenDocModal('DIPLOMA')}
+                              className="text-xs text-blue-600 hover:text-blue-800 font-bold inline-flex items-center gap-1 underline underline-offset-2"
+                            >
+                              <Plus className="w-3.5 h-3.5" /> Subir archivo del diploma ahora (PDF / Imagen)
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                            {diplomas.map(dip => (
+                              <div
+                                key={dip.id}
+                                className="p-2.5 rounded-xl bg-white border border-blue-200 shadow-sm flex items-center justify-between gap-2.5 hover:border-blue-400 transition-colors"
+                              >
+                                <div className="flex items-center gap-2.5 min-w-0">
+                                  <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center shrink-0">
+                                    <FileCheck className="w-4 h-4" />
+                                  </div>
+                                  <div className="min-w-0">
+                                    <p className="font-bold text-slate-900 text-xs truncate">{dip.title}</p>
+                                    <p className="text-[10px] text-slate-500 truncate">
+                                      {dip.fileName} {dip.fileSize ? `• ${dip.fileSize}` : ''}
+                                    </p>
+                                  </div>
+                                </div>
+
+                                <div className="flex items-center gap-1 shrink-0">
+                                  {dip.url ? (
+                                    <>
+                                      <a
+                                        href={dip.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="px-2 py-1 rounded bg-blue-50 hover:bg-blue-100 text-blue-700 text-[11px] font-semibold flex items-center gap-1 border border-blue-200 transition-colors"
+                                        title="Ver diploma"
+                                      >
+                                        <Eye className="w-3 h-3" />
+                                        <span>Ver</span>
+                                      </a>
+                                      <a
+                                        href={dip.url}
+                                        download={dip.fileName || `${dip.title}.pdf`}
+                                        className="px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-medium flex items-center gap-1 transition-colors"
+                                        title="Descargar diploma"
+                                      >
+                                        <Download className="w-3 h-3" />
+                                      </a>
+                                    </>
+                                  ) : (
+                                    <button
+                                      onClick={() => showNotification(`Descargando ${dip.fileName}`)}
+                                      className="px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-medium flex items-center gap-1 transition-colors"
+                                    >
+                                      <Download className="w-3 h-3" />
+                                      <span>Descargar</span>
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
 
                 {/* Licencias Profesionales (SST, Tarjeta, COPNIA) */}
-                <div className="p-4 rounded-xl bg-slate-950/70 border border-slate-800 space-y-3">
-                  <h4 className="font-bold text-white text-xs border-b border-slate-800 pb-2 flex items-center justify-between">
-                    <span>Licencias y Tarjetas Profesionales</span>
-                    <span className="text-[10px] text-slate-400 font-normal">
-                      Vigencia legal verificada
-                    </span>
-                  </h4>
+                <div className="p-4 rounded-xl bg-white/80 border border-slate-200 space-y-3">
+                  <div className="flex items-center justify-between border-b border-slate-200 pb-2 flex-wrap gap-2">
+                    <div>
+                      <h4 className="font-bold text-slate-900 text-xs">Licencias y Tarjetas Profesionales</h4>
+                      <span className="text-[10px] text-slate-600 font-normal">
+                        Vigencia legal verificada
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => handleOpenDocModal('LICENCIA_SST')}
+                      className="px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-[11px] flex items-center gap-1 transition-colors border border-slate-300"
+                    >
+                      <Plus className="w-3 h-3" />
+                      <span>+ Adjuntar Licencia / Tarjeta</span>
+                    </button>
+                  </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {worker.licenses.length === 0 ? (
-                      <p className="text-slate-500 text-xs italic">No registra licencias profesionales obligatorias.</p>
+                      <p className="text-slate-600 text-xs italic">No registra licencias profesionales obligatorias.</p>
                     ) : (
                       worker.licenses.map(lic => (
-                        <div key={lic.id} className="p-3 rounded-lg bg-slate-900 border border-slate-800 space-y-1">
+                        <div key={lic.id} className="p-3 rounded-lg bg-slate-50 border border-slate-200 space-y-1">
                           <div className="flex items-center justify-between">
-                            <span className="font-bold text-white">{lic.name}</span>
-                            <span className="text-[10px] px-1.5 py-0.2 rounded bg-emerald-950 text-emerald-400 border border-emerald-800 font-semibold">
+                            <span className="font-bold text-slate-900">{lic.name}</span>
+                            <span className="text-[10px] px-1.5 py-0.2 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold">
                               {lic.status}
                             </span>
                           </div>
-                          <p className="text-slate-300 font-mono text-[11px]">No. {lic.number}</p>
+                          <p className="text-slate-700 font-mono text-[11px]">No. {lic.number}</p>
                           {lic.resolutionNumber && (
-                            <p className="text-[11px] text-slate-400">{lic.resolutionNumber}</p>
+                            <p className="text-[11px] text-slate-600">{lic.resolutionNumber}</p>
                           )}
-                          <div className="text-[10px] text-slate-500 flex justify-between pt-1">
+                          <div className="text-[10px] text-slate-600 flex justify-between pt-1">
                             <span>Expide: {lic.issuingEntity}</span>
                             {lic.expiryDate && <span>Vence: {lic.expiryDate}</span>}
                           </div>
@@ -785,45 +897,54 @@ export const WorkerDigitalDossierModal: React.FC<WorkerDigitalDossierModalProps>
                 </div>
 
                 {/* Certificaciones Técnicas (Alturas, 50H, etc.) */}
-                <div className="p-4 rounded-xl bg-slate-950/70 border border-slate-800 space-y-3">
-                  <h4 className="font-bold text-white text-xs border-b border-slate-800 pb-2">
-                    Certificaciones y Cursos de Ley (SST / PESV / Ambiental)
-                  </h4>
+                <div className="p-4 rounded-xl bg-white/80 border border-slate-200 space-y-3">
+                  <div className="flex items-center justify-between border-b border-slate-200 pb-2 flex-wrap gap-2">
+                    <h4 className="font-bold text-slate-900 text-xs">
+                      Certificaciones y Cursos de Ley (SST / PESV / Ambiental)
+                    </h4>
+                    <button
+                      onClick={() => handleOpenDocModal('CERTIFICADO_ALTURAS')}
+                      className="px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-[11px] flex items-center gap-1 transition-colors border border-slate-300"
+                    >
+                      <Plus className="w-3 h-3" />
+                      <span>+ Adjuntar Certificación</span>
+                    </button>
+                  </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {worker.certifications.length === 0 ? (
-                      <p className="text-slate-500 text-xs italic">Sin certificaciones técnicas registradas.</p>
+                      <p className="text-slate-600 text-xs italic">Sin certificaciones técnicas registradas.</p>
                     ) : (
                       worker.certifications.map(cert => (
                         <div
                           key={cert.id}
                           className={`p-3 rounded-lg border space-y-1 ${
                             cert.status === 'VENCIDO'
-                              ? 'bg-rose-950/20 border-rose-800/60'
+                              ? 'bg-rose-50 border-rose-200'
                               : cert.status === 'POR_VENCER'
-                              ? 'bg-amber-950/20 border-amber-800/60'
-                              : 'bg-slate-900 border-slate-800'
+                              ? 'bg-amber-50 border-amber-200'
+                              : 'bg-slate-50 border-slate-200'
                           }`}
                         >
                           <div className="flex items-center justify-between gap-2">
-                            <span className="font-semibold text-white">{cert.title}</span>
+                            <span className="font-semibold text-slate-900">{cert.title}</span>
                             <span
                               className={`text-[9px] px-1.5 py-0.2 rounded font-bold uppercase ${
                                 cert.status === 'VENCIDO'
-                                  ? 'bg-rose-950 text-rose-300 border border-rose-800'
+                                  ? 'bg-rose-50 text-rose-700 border border-rose-200'
                                   : cert.status === 'POR_VENCER'
-                                  ? 'bg-amber-950 text-amber-300 border border-amber-800'
-                                  : 'bg-emerald-950 text-emerald-300 border border-emerald-800'
+                                  ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                                  : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                               }`}
                             >
                               {cert.status}
                             </span>
                           </div>
-                          <div className="text-[11px] text-slate-400">Entidad: {cert.entity}</div>
-                          <div className="text-[10px] text-slate-500 flex justify-between pt-1">
+                          <div className="text-[11px] text-slate-600">Entidad: {cert.entity}</div>
+                          <div className="text-[10px] text-slate-600 flex justify-between pt-1">
                             <span>Expedido: {cert.issueDate}</span>
                             {cert.expiryDate && (
-                              <span className="font-semibold text-amber-400">Vence: {cert.expiryDate}</span>
+                              <span className="font-semibold text-amber-700">Vence: {cert.expiryDate}</span>
                             )}
                           </div>
                         </div>
@@ -841,13 +962,13 @@ export const WorkerDigitalDossierModal: React.FC<WorkerDigitalDossierModalProps>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h4 className="font-bold text-white text-xs">Repositorio Digital de Documentos</h4>
-                    <p className="text-[11px] text-slate-400">
+                    <h4 className="font-bold text-slate-900 text-xs">Repositorio Digital de Documentos</h4>
+                    <p className="text-[11px] text-slate-600">
                       Expediente documental con control de vigencia y alertas automáticas.
                     </p>
                   </div>
                   <button
-                    onClick={() => setIsDocModalOpen(true)}
+                    onClick={() => handleOpenDocModal()}
                     className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs flex items-center gap-1.5 transition-colors shadow-sm"
                   >
                     <Plus className="w-3.5 h-3.5" />
@@ -855,41 +976,47 @@ export const WorkerDigitalDossierModal: React.FC<WorkerDigitalDossierModalProps>
                   </button>
                 </div>
 
-                <div className="divide-y divide-slate-800 rounded-xl bg-slate-950/70 border border-slate-800 overflow-hidden">
+                <div className="divide-y divide-slate-200 rounded-xl bg-white/80 border border-slate-200 overflow-hidden">
                   {worker.digitalDocuments.length === 0 ? (
-                    <div className="p-8 text-center text-slate-500 text-xs">
+                    <div className="p-8 text-center text-slate-600 text-xs">
                       No hay documentos cargados en el expediente de este trabajador.
                     </div>
                   ) : (
                     worker.digitalDocuments.map(doc => (
                       <div
                         key={doc.id}
-                        className="p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-900/60 transition-colors"
+                        className="p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50 transition-colors"
                       >
                         <div className="flex items-start gap-3">
-                          <div className="p-2 rounded-lg bg-blue-500/10 text-blue-400 shrink-0 mt-0.5">
+                          <div className="p-2 rounded-lg bg-blue-100 text-blue-700 shrink-0 mt-0.5">
                             <FileText className="w-4 h-4" />
                           </div>
                           <div>
                             <div className="flex items-center gap-2">
-                              <span className="font-semibold text-white text-xs">{doc.title}</span>
+                              <span className="font-semibold text-slate-900 text-xs">{doc.title}</span>
                               <span
                                 className={`text-[9px] px-1.5 py-0.2 rounded font-bold uppercase ${
                                   doc.status === 'VENCIDO'
-                                    ? 'bg-rose-950 text-rose-300 border border-rose-800'
+                                    ? 'bg-rose-50 text-rose-700 border border-rose-200'
                                     : doc.status === 'POR_VENCER'
-                                    ? 'bg-amber-950 text-amber-300 border border-amber-800'
-                                    : 'bg-emerald-950 text-emerald-300 border border-emerald-800'
+                                    ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                                    : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                                 }`}
                               >
                                 {doc.status}
                               </span>
                             </div>
-                            <div className="text-[11px] text-slate-400 mt-0.5">
-                              {doc.fileName} • Tipo: {doc.type.replace(/_/g, ' ')}
+                            <div className="text-[11px] text-slate-600 mt-0.5 flex items-center gap-1.5 flex-wrap">
+                              <span className="font-mono">{doc.fileName}</span>
+                              {doc.fileSize && (
+                                <span className="text-[10px] px-1.5 py-0.2 rounded bg-slate-100 border border-slate-200 text-slate-700 font-mono">
+                                  {doc.fileSize}
+                                </span>
+                              )}
+                              <span>• Tipo: {doc.type.replace(/_/g, ' ')}</span>
                             </div>
                             {doc.expiryDate && (
-                              <div className="text-[10px] text-amber-400 mt-0.5 flex items-center gap-1">
+                              <div className="text-[10px] text-amber-700 mt-0.5 flex items-center gap-1">
                                 <Clock className="w-3 h-3" />
                                 <span>Vence el: {doc.expiryDate}</span>
                               </div>
@@ -897,16 +1024,40 @@ export const WorkerDigitalDossierModal: React.FC<WorkerDigitalDossierModalProps>
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-2 self-end sm:self-center">
-                          <button
-                            onClick={() =>
-                              showNotification(`Descargando documento digital: ${doc.fileName}`)
-                            }
-                            className="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs flex items-center gap-1 transition-colors"
-                          >
-                            <Download className="w-3.5 h-3.5" />
-                            <span>Descargar</span>
-                          </button>
+                        <div className="flex items-center gap-1.5 self-end sm:self-center">
+                          {doc.url ? (
+                            <>
+                              <a
+                                href={doc.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="px-2.5 py-1 rounded bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-xs flex items-center gap-1 transition-colors font-medium"
+                                title="Abrir / Previsualizar archivo"
+                              >
+                                <Eye className="w-3.5 h-3.5" />
+                                <span>Ver</span>
+                              </a>
+                              <a
+                                href={doc.url}
+                                download={doc.fileName || `${doc.title}.pdf`}
+                                className="px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs flex items-center gap-1 transition-colors font-medium"
+                                title="Descargar archivo en tu equipo"
+                              >
+                                <Download className="w-3.5 h-3.5" />
+                                <span>Descargar</span>
+                              </a>
+                            </>
+                          ) : (
+                            <button
+                              onClick={() =>
+                                showNotification(`Descargando documento digital: ${doc.fileName}`)
+                              }
+                              className="px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs flex items-center gap-1 transition-colors"
+                            >
+                              <Download className="w-3.5 h-3.5" />
+                              <span>Descargar</span>
+                            </button>
+                          )}
                         </div>
                       </div>
                     ))
@@ -921,30 +1072,30 @@ export const WorkerDigitalDossierModal: React.FC<WorkerDigitalDossierModalProps>
             {activeTab === 'SST' && (
               <div className="space-y-4">
                 {/* Inducciones & Reinducciones */}
-                <div className="p-4 rounded-xl bg-slate-950/70 border border-slate-800 space-y-2.5">
-                  <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                    <h4 className="font-bold text-white text-xs flex items-center gap-2">
-                      <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                <div className="p-4 rounded-xl bg-white/80 border border-slate-200 space-y-2.5">
+                  <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+                    <h4 className="font-bold text-slate-900 text-xs flex items-center gap-2">
+                      <ShieldCheck className="w-4 h-4 text-emerald-700" />
                       <span>Inducción y Reinducción en SG-SST</span>
                     </h4>
-                    <span className="text-[10px] text-slate-400">
+                    <span className="text-[10px] text-slate-600">
                       {worker.inductions.length} registros
                     </span>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                     {worker.inductions.length === 0 ? (
-                      <p className="text-slate-500 text-xs italic">Sin registros de inducción.</p>
+                      <p className="text-slate-600 text-xs italic">Sin registros de inducción.</p>
                     ) : (
                       worker.inductions.map(ind => (
-                        <div key={ind.id} className="p-2.5 rounded-lg bg-slate-900 border border-slate-800 text-[11px]">
-                          <div className="flex justify-between font-semibold text-white">
+                        <div key={ind.id} className="p-2.5 rounded-lg bg-slate-50 border border-slate-200 text-[11px]">
+                          <div className="flex justify-between font-semibold text-slate-900">
                             <span>{ind.type}</span>
-                            <span className="text-emerald-400 font-bold">
+                            <span className="text-emerald-700 font-bold">
                               {ind.evaluationScore ? `${ind.evaluationScore} pts` : 'Aprobada'}
                             </span>
                           </div>
-                          <div className="text-slate-400 text-[10px] mt-0.5">
+                          <div className="text-slate-600 text-[10px] mt-0.5">
                             Fecha: {ind.date} • Formador: {ind.trainerName}
                           </div>
                         </div>
@@ -954,10 +1105,10 @@ export const WorkerDigitalDossierModal: React.FC<WorkerDigitalDossierModalProps>
                 </div>
 
                 {/* Dotaciones de EPP */}
-                <div className="p-4 rounded-xl bg-slate-950/70 border border-slate-800 space-y-2.5">
-                  <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                    <h4 className="font-bold text-white text-xs flex items-center gap-2">
-                      <HardHat className="w-4 h-4 text-orange-400" />
+                <div className="p-4 rounded-xl bg-white/80 border border-slate-200 space-y-2.5">
+                  <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+                    <h4 className="font-bold text-slate-900 text-xs flex items-center gap-2">
+                      <HardHat className="w-4 h-4 text-orange-700" />
                       <span>Historial de Entrega de EPP (Dotaciones)</span>
                     </h4>
                     <button
@@ -971,17 +1122,17 @@ export const WorkerDigitalDossierModal: React.FC<WorkerDigitalDossierModalProps>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                     {worker.eppDeliveries.length === 0 ? (
-                      <p className="text-slate-500 text-xs italic">No hay entregas registradas.</p>
+                      <p className="text-slate-600 text-xs italic">No hay entregas registradas.</p>
                     ) : (
                       worker.eppDeliveries.map(epp => (
-                        <div key={epp.id} className="p-2.5 rounded-lg bg-slate-900 border border-slate-800 text-[11px]">
-                          <div className="font-semibold text-white flex justify-between">
+                        <div key={epp.id} className="p-2.5 rounded-lg bg-slate-50 border border-slate-200 text-[11px]">
+                          <div className="font-semibold text-slate-900 flex justify-between">
                             <span>{epp.elementName}</span>
-                            <span className="text-orange-400 font-mono">x{epp.quantity}</span>
+                            <span className="text-orange-700 font-mono">x{epp.quantity}</span>
                           </div>
-                          <div className="text-slate-400 text-[10px] mt-0.5 flex justify-between">
+                          <div className="text-slate-600 text-[10px] mt-0.5 flex justify-between">
                             <span>Fecha: {epp.date} ({epp.deliveryReason})</span>
-                            <span className="text-emerald-400">Firma: {epp.signedReceipt ? '✓' : 'Pendiente'}</span>
+                            <span className="text-emerald-700">Firma: {epp.signedReceipt ? '✓' : 'Pendiente'}</span>
                           </div>
                         </div>
                       ))
@@ -990,23 +1141,23 @@ export const WorkerDigitalDossierModal: React.FC<WorkerDigitalDossierModalProps>
                 </div>
 
                 {/* Comités y Designaciones (COPASST, Vigía, Convivencia, Brigada) */}
-                <div className="p-4 rounded-xl bg-slate-950/70 border border-slate-800 space-y-2.5">
-                  <h4 className="font-bold text-white text-xs border-b border-slate-800 pb-2 flex items-center gap-2">
-                    <Users className="w-4 h-4 text-blue-400" />
+                <div className="p-4 rounded-xl bg-white/80 border border-slate-200 space-y-2.5">
+                  <h4 className="font-bold text-slate-900 text-xs border-b border-slate-200 pb-2 flex items-center gap-2">
+                    <Users className="w-4 h-4 text-blue-700" />
                     <span>Participación en Comités de Ley y Brigadas</span>
                   </h4>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                     {worker.committeeParticipations.length === 0 ? (
-                      <p className="text-slate-500 text-xs italic">El trabajador no integra comités actualmente.</p>
+                      <p className="text-slate-600 text-xs italic">El trabajador no integra comités actualmente.</p>
                     ) : (
                       worker.committeeParticipations.map(com => (
-                        <div key={com.id} className="p-2.5 rounded-lg bg-slate-900 border border-slate-800 text-[11px]">
-                          <div className="flex justify-between font-semibold text-white">
+                        <div key={com.id} className="p-2.5 rounded-lg bg-slate-50 border border-slate-200 text-[11px]">
+                          <div className="flex justify-between font-semibold text-slate-900">
                             <span>{com.committeeType.replace(/_/g, ' ')}</span>
-                            <span className="text-blue-400 uppercase font-bold">{com.role}</span>
+                            <span className="text-blue-700 uppercase font-bold">{com.role}</span>
                           </div>
-                          <div className="text-slate-400 text-[10px] mt-0.5">
+                          <div className="text-slate-600 text-[10px] mt-0.5">
                             Periodo: {com.periodStart} al {com.periodEnd} • Representa: {com.representedParty}
                           </div>
                         </div>
@@ -1016,40 +1167,40 @@ export const WorkerDigitalDossierModal: React.FC<WorkerDigitalDossierModalProps>
                 </div>
 
                 {/* Exámenes Médicos Ocupacionales (Privacidad & Aptitud) */}
-                <div className="p-4 rounded-xl bg-slate-950/70 border border-slate-800 space-y-2.5">
-                  <h4 className="font-bold text-white text-xs border-b border-slate-800 pb-2 flex items-center gap-2">
-                    <HeartPulse className="w-4 h-4 text-rose-400" />
+                <div className="p-4 rounded-xl bg-white/80 border border-slate-200 space-y-2.5">
+                  <h4 className="font-bold text-slate-900 text-xs border-b border-slate-200 pb-2 flex items-center gap-2">
+                    <HeartPulse className="w-4 h-4 text-rose-700" />
                     <span>Evaluaciones Médicas Ocupacionales (Control de Confidencialidad)</span>
                   </h4>
 
                   <div className="space-y-2">
                     {worker.occupationalExams.length === 0 ? (
-                      <p className="text-slate-500 text-xs italic">Sin evaluaciones médicas ocupacionales cargadas.</p>
+                      <p className="text-slate-600 text-xs italic">Sin evaluaciones médicas ocupacionales cargadas.</p>
                     ) : (
                       worker.occupationalExams.map(med => (
-                        <div key={med.id} className="p-3 rounded-lg bg-slate-900 border border-slate-800 space-y-1">
+                        <div key={med.id} className="p-3 rounded-lg bg-slate-50 border border-slate-200 space-y-1">
                           <div className="flex items-center justify-between">
-                            <span className="font-semibold text-white">Examen {med.type}</span>
+                            <span className="font-semibold text-slate-900">Examen {med.type}</span>
                             <span
                               className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase ${
                                 med.concept === 'APTO'
-                                  ? 'bg-emerald-950 text-emerald-300 border border-emerald-800'
-                                  : 'bg-amber-950 text-amber-300 border border-amber-800'
+                                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                  : 'bg-amber-50 text-amber-700 border border-amber-200'
                               }`}
                             >
                               {med.concept.replace(/_/g, ' ')}
                             </span>
                           </div>
-                          <div className="text-[11px] text-slate-400">
+                          <div className="text-[11px] text-slate-600">
                             Fecha: {med.date} • IPS: {med.medicalIps}
                           </div>
                           {med.recommendations && (
-                            <p className="text-[11px] text-slate-300 bg-slate-950/50 p-2 rounded border border-slate-800">
+                            <p className="text-[11px] text-slate-700 bg-white/80 p-2 rounded border border-slate-200">
                               🔒 <strong>Recomendaciones Médicas:</strong> {med.recommendations}
                             </p>
                           )}
                           {med.nextExamDate && (
-                            <div className="text-[10px] text-slate-500 text-right">
+                            <div className="text-[10px] text-slate-600 text-right">
                               Próximo examen sugerido: {med.nextExamDate}
                             </div>
                           )}
@@ -1068,31 +1219,31 @@ export const WorkerDigitalDossierModal: React.FC<WorkerDigitalDossierModalProps>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h4 className="font-bold text-white text-xs">Bitácora Inmutable de Auditoría</h4>
-                    <p className="text-[11px] text-slate-400">
+                    <h4 className="font-bold text-slate-900 text-xs">Bitácora Inmutable de Auditoría</h4>
+                    <p className="text-[11px] text-slate-600">
                       Trazabilidad legal de cada modificación realizada en el expediente digital.
                     </p>
                   </div>
-                  <span className="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">
+                  <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600 font-mono">
                     {worker.auditTrail.length} eventos
                   </span>
                 </div>
 
-                <div className="divide-y divide-slate-800 rounded-xl bg-slate-950/70 border border-slate-800 overflow-hidden">
+                <div className="divide-y divide-slate-200 rounded-xl bg-white/80 border border-slate-200 overflow-hidden">
                   {worker.auditTrail.map(audit => (
                     <div key={audit.id} className="p-3 text-[11px] space-y-1">
                       <div className="flex items-center justify-between">
-                        <span className="font-semibold text-white">{audit.action}</span>
-                        <span className="text-[10px] text-slate-500 font-mono">{audit.timestamp}</span>
+                        <span className="font-semibold text-slate-900">{audit.action}</span>
+                        <span className="text-[10px] text-slate-600 font-mono">{audit.timestamp}</span>
                       </div>
-                      <div className="text-slate-400">
-                        Usuario: <span className="text-slate-200">{audit.userName}</span>
+                      <div className="text-slate-600">
+                        Usuario: <span className="text-slate-800">{audit.userName}</span>
                       </div>
                       {audit.reason && (
-                        <div className="text-slate-300 italic">Motivo: {audit.reason}</div>
+                        <div className="text-slate-700 italic">Motivo: {audit.reason}</div>
                       )}
                       {audit.previousValue && (
-                        <div className="text-[10px] text-slate-500">
+                        <div className="text-[10px] text-slate-600">
                           Cambio: de "{audit.previousValue}" ➔ "{audit.newValue}"
                         </div>
                       )}
@@ -1119,7 +1270,11 @@ export const WorkerDigitalDossierModal: React.FC<WorkerDigitalDossierModalProps>
       <DocumentUploadModal
         worker={worker}
         isOpen={isDocModalOpen}
-        onClose={() => setIsDocModalOpen(false)}
+        initialDocType={docModalType}
+        onClose={() => {
+          setIsDocModalOpen(false);
+          setDocModalType(undefined);
+        }}
       />
     </>
   );

@@ -158,7 +158,7 @@ export const SstResponsibleModal: React.FC<SstResponsibleModalProps> = ({ isOpen
                 <span className="text-[10px] font-bold uppercase tracking-wider text-orange-700 bg-orange-50 px-2 py-0.5 rounded border border-orange-200">
                   Estándar 1.1.1 (Res. 0312)
                 </span>
-                <span className="text-[10px] font-semibold text-slate-500">
+                <span className="text-[10px] font-semibold text-slate-600">
                   Decreto 1072 de 2015 Art. 2.2.4.6.8 Par. 1 y Art. 2.2.4.6.35
                 </span>
               </div>
@@ -174,7 +174,7 @@ export const SstResponsibleModal: React.FC<SstResponsibleModalProps> = ({ isOpen
                 type="button"
                 onClick={() => setActiveTab('PROFILE')}
                 className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
-                  activeTab === 'PROFILE' ? 'bg-orange-600 text-white' : 'text-slate-500 hover:text-slate-900'
+                  activeTab === 'PROFILE' ? 'bg-orange-600 text-white' : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
                 Perfil y Documentos
@@ -183,7 +183,7 @@ export const SstResponsibleModal: React.FC<SstResponsibleModalProps> = ({ isOpen
                 type="button"
                 onClick={() => setActiveTab('LETTER')}
                 className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all flex items-center gap-1.5 ${
-                  activeTab === 'LETTER' ? 'bg-orange-600 text-white' : 'text-slate-500 hover:text-slate-900'
+                  activeTab === 'LETTER' ? 'bg-orange-600 text-white' : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
                 <FileText className="w-3.5 h-3.5" />
@@ -196,7 +196,7 @@ export const SstResponsibleModal: React.FC<SstResponsibleModalProps> = ({ isOpen
 
             <button
               onClick={onClose}
-              className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors ml-2"
+              className="p-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors ml-2"
             >
               <X className="w-5 h-5" />
             </button>
@@ -382,13 +382,13 @@ export const SstResponsibleModal: React.FC<SstResponsibleModalProps> = ({ isOpen
                   {/* Hoja de Vida */}
                   <div className="p-3.5 rounded-xl bg-white border border-slate-200 flex flex-col justify-between space-y-3">
                     <div>
-                      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
+                      <span className="text-[10px] font-bold text-slate-600 uppercase tracking-wider block">
                         Hoja de Vida
                       </span>
                       <p className="text-xs font-semibold text-slate-900 mt-1">
                         HV del Responsable
                       </p>
-                      <p className="text-[11px] text-slate-500 mt-0.5">
+                      <p className="text-[11px] text-slate-600 mt-0.5">
                         Con soportes de experiencia y formación académica.
                       </p>
                     </div>
@@ -413,13 +413,13 @@ export const SstResponsibleModal: React.FC<SstResponsibleModalProps> = ({ isOpen
                   {/* Fotocopia Licencia */}
                   <div className="p-3.5 rounded-xl bg-white border border-slate-200 flex flex-col justify-between space-y-3">
                     <div>
-                      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
+                      <span className="text-[10px] font-bold text-slate-600 uppercase tracking-wider block">
                         Licencia SST
                       </span>
                       <p className="text-xs font-semibold text-slate-900 mt-1">
                         Fotocopia de Licencia Vigente
                       </p>
-                      <p className="text-[11px] text-slate-500 mt-0.5">
+                      <p className="text-[11px] text-slate-600 mt-0.5">
                         Resolución emitida por la Seccional de Salud.
                       </p>
                     </div>
@@ -444,13 +444,13 @@ export const SstResponsibleModal: React.FC<SstResponsibleModalProps> = ({ isOpen
                   {/* Certificado Curso 50h */}
                   <div className="p-3.5 rounded-xl bg-white border border-slate-200 flex flex-col justify-between space-y-3">
                     <div>
-                      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
+                      <span className="text-[10px] font-bold text-slate-600 uppercase tracking-wider block">
                         Capacitación Virtual
                       </span>
                       <p className="text-xs font-semibold text-slate-900 mt-1">
                         Certificado 50h / 20h
                       </p>
-                      <p className="text-[11px] text-slate-500 mt-0.5">
+                      <p className="text-[11px] text-slate-600 mt-0.5">
                         Resolución 4927 de 2016 del Ministerio del Trabajo.
                       </p>
                     </div>
@@ -542,7 +542,7 @@ export const SstResponsibleModal: React.FC<SstResponsibleModalProps> = ({ isOpen
               <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-xl bg-white border border-slate-200">
                 <div className="text-xs">
                   <span className="font-bold text-slate-900 block">Documento Legal Vigente:</span>
-                  <span className="text-slate-500 text-[11px]">
+                  <span className="text-slate-600 text-[11px]">
                     {formData.letterSignedAt
                       ? `Firmado digitalmente el ${formData.letterSignedAt}`
                       : 'Borrador generado automáticamente con datos empresariales'}
@@ -598,7 +598,7 @@ export const SstResponsibleModal: React.FC<SstResponsibleModalProps> = ({ isOpen
                     <span className="inline-block px-2.5 py-1 bg-slate-100 text-slate-800 border border-slate-300 rounded font-sans text-[10px] font-bold tracking-wider">
                       CÓDIGO: FT-SST-001
                     </span>
-                    <span className="block text-[10px] font-sans text-slate-500 mt-1">Versión 03 — 2026</span>
+                    <span className="block text-[10px] font-sans text-slate-600 mt-1">Versión 03 — 2026</span>
                   </div>
                 </div>
 
@@ -662,16 +662,16 @@ export const SstResponsibleModal: React.FC<SstResponsibleModalProps> = ({ isOpen
                       {formData.signedByManager ? (
                         <div className="font-mono text-emerald-800 font-bold text-xs">
                           ✓ FIRMADO DIGITALMENTE POR EMPLEADOR<br />
-                          <span className="text-[10px] text-slate-500 font-sans">Huella criptográfica SHA-256 validada</span>
+                          <span className="text-[10px] text-slate-600 font-sans">Huella criptográfica SHA-256 validada</span>
                         </div>
                       ) : (
-                        <div className="h-8 flex items-end text-slate-500 italic">Pendiente de firma</div>
+                        <div className="h-8 flex items-end text-slate-600 italic">Pendiente de firma</div>
                       )}
                     </div>
                     <p className="font-bold text-slate-900 leading-tight">{formData.managerName}</p>
                     <p className="text-[11px] text-slate-600">Representante Legal</p>
-                    <p className="text-[10px] text-slate-500 font-mono">C.C. {formData.managerDocNumber}</p>
-                    <p className="text-[10px] text-slate-500">{organization.name}</p>
+                    <p className="text-[10px] text-slate-600 font-mono">C.C. {formData.managerDocNumber}</p>
+                    <p className="text-[10px] text-slate-600">{organization.name}</p>
                   </div>
 
                   {/* Responsible Signature */}
@@ -680,21 +680,21 @@ export const SstResponsibleModal: React.FC<SstResponsibleModalProps> = ({ isOpen
                       {formData.signedByResponsible ? (
                         <div className="font-mono text-emerald-800 font-bold text-xs">
                           ✓ ACEPTADO Y FIRMADO DIGITALMENTE<br />
-                          <span className="text-[10px] text-slate-500 font-sans">Aceptación de funciones y responsabilidades</span>
+                          <span className="text-[10px] text-slate-600 font-sans">Aceptación de funciones y responsabilidades</span>
                         </div>
                       ) : (
-                        <div className="h-8 flex items-end text-slate-500 italic">Pendiente de aceptación</div>
+                        <div className="h-8 flex items-end text-slate-600 italic">Pendiente de aceptación</div>
                       )}
                     </div>
                     <p className="font-bold text-slate-900 leading-tight">{formData.fullName}</p>
                     <p className="text-[11px] text-slate-600">Responsable Asignado del SG-SST</p>
-                    <p className="text-[10px] text-slate-500 font-mono">{formData.docType} No. {formData.docNumber}</p>
-                    <p className="text-[10px] text-slate-500 font-mono">Licencia SST: {formData.licenseNumber}</p>
+                    <p className="text-[10px] text-slate-600 font-mono">{formData.docType} No. {formData.docNumber}</p>
+                    <p className="text-[10px] text-slate-600 font-mono">Licencia SST: {formData.licenseNumber}</p>
                   </div>
                 </div>
 
                 {/* Footer notes */}
-                <div className="mt-8 pt-3 border-t border-slate-200 text-[10px] text-slate-500 flex justify-between font-sans">
+                <div className="mt-8 pt-3 border-t border-slate-200 text-[10px] text-slate-600 flex justify-between font-sans">
                   <span>Documento soporte de cumplimiento Estándar 1.1.1 Resolución 0312 de 2019</span>
                   <span>Custodia digital: Archivo central 20 años (Dec. 1072 Art. 2.2.4.6.13)</span>
                 </div>

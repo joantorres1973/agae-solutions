@@ -123,7 +123,7 @@ export const AcpmEngine: React.FC = () => {
               Matriz Central ACPM & Motor de Hallazgos
             </h1>
           </div>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-slate-600 mt-1">
             Gestión integral de Acciones Correctivas, Preventivas y de Mejora. Trazabilidad completa desde el origen hasta el cierre verificado con evidencia.
           </p>
         </div>
@@ -133,7 +133,7 @@ export const AcpmEngine: React.FC = () => {
             <button
               onClick={() => setActiveTabSub('ACTIONS')}
               className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
-                activeTabSub === 'ACTIONS' ? 'bg-teal-600 text-white' : 'text-slate-500 hover:text-slate-900'
+                activeTabSub === 'ACTIONS' ? 'bg-teal-600 text-white' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               Matriz ACPM ({acpmActions.length})
@@ -141,7 +141,7 @@ export const AcpmEngine: React.FC = () => {
             <button
               onClick={() => setActiveTabSub('FINDINGS')}
               className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
-                activeTabSub === 'FINDINGS' ? 'bg-teal-600 text-white' : 'text-slate-500 hover:text-slate-900'
+                activeTabSub === 'FINDINGS' ? 'bg-teal-600 text-white' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               Hallazgos Transversales ({findings.length})
@@ -206,7 +206,7 @@ export const AcpmEngine: React.FC = () => {
                     <div className="flex items-center justify-between mb-1.5">
                       <div className="flex items-center gap-2">
                         <span className="font-mono text-xs font-bold text-teal-700">{action.code}</span>
-                        <span className="text-[10px] px-1.5 py-0.2 rounded bg-slate-100 text-slate-500 border border-slate-300">
+                        <span className="text-[10px] px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 border border-slate-300">
                           {action.originModule}
                         </span>
                       </div>
@@ -214,9 +214,9 @@ export const AcpmEngine: React.FC = () => {
                     </div>
 
                     <h2 className="text-xs font-bold text-slate-800 line-clamp-1">{action.title}</h2>
-                    <p className="text-[11px] text-slate-500 mt-1 line-clamp-2">{action.correctiveAction}</p>
+                    <p className="text-[11px] text-slate-600 mt-1 line-clamp-2">{action.correctiveAction}</p>
 
-                    <div className="flex items-center justify-between mt-3 pt-2 border-t border-slate-200 text-[10px] text-slate-500">
+                    <div className="flex items-center justify-between mt-3 pt-2 border-t border-slate-200 text-[10px] text-slate-600">
                       <span>Resp: <strong className="text-slate-700">{action.responsibleName}</strong></span>
                       <span className="flex items-center gap-1 text-amber-700 font-medium">
                         <Clock className="w-3 h-3" /> Vence: {action.dueDate}
@@ -243,7 +243,7 @@ export const AcpmEngine: React.FC = () => {
                       {getStatusBadge(selectedAcpm.status)}
                     </div>
                     <h2 className="text-base font-bold text-slate-900 mt-1">{selectedAcpm.title}</h2>
-                    <p className="text-xs text-slate-500 mt-0.5">
+                    <p className="text-xs text-slate-600 mt-0.5">
                       Requisito: <strong className="text-slate-700">{selectedAcpm.associatedRequirement}</strong>
                     </p>
                   </div>
@@ -266,7 +266,7 @@ export const AcpmEngine: React.FC = () => {
                     <span className="text-xs font-bold text-teal-700 uppercase tracking-wider">
                       Análisis de Causa Raíz ({selectedAcpm.causeAnalysisMethod})
                     </span>
-                    <span className="text-[10px] text-slate-500">Metodología Formal</span>
+                    <span className="text-[10px] text-slate-600">Metodología Formal</span>
                   </div>
                   <ul className="space-y-1 text-xs text-slate-700 list-disc list-inside">
                     {selectedAcpm.rootCauses.map((cause, idx) => (
@@ -313,7 +313,7 @@ export const AcpmEngine: React.FC = () => {
                   </div>
 
                   {selectedAcpm.evidences.length === 0 ? (
-                    <div className="p-3 text-center rounded border border-dashed border-slate-200 text-xs text-slate-500">
+                    <div className="p-3 text-center rounded border border-dashed border-slate-200 text-xs text-slate-600">
                       Sin evidencias vinculadas aún. No es posible cerrar formalmente esta acción sin soporte objetivo.
                     </div>
                   ) : (
@@ -324,7 +324,7 @@ export const AcpmEngine: React.FC = () => {
                             <FileText className="w-4 h-4 text-teal-700" />
                             <div>
                               <div className="font-semibold text-slate-800">{evi.title}</div>
-                              <div className="text-[10px] text-slate-500">{evi.fileName} • {evi.fileSize}</div>
+                              <div className="text-[10px] text-slate-600">{evi.fileName} • {evi.fileSize}</div>
                             </div>
                           </div>
                           <span className="text-[10px] text-emerald-700 font-semibold">Validado</span>
@@ -366,16 +366,16 @@ export const AcpmEngine: React.FC = () => {
                       <div key={hist.id} className="p-2 rounded bg-slate-50 border border-slate-200 text-[11px] text-slate-700 flex items-start justify-between gap-2">
                         <div>
                           <strong className="text-slate-900">{hist.userName}</strong>: {hist.action}
-                          {hist.comment && <div className="text-slate-500 text-[10px] mt-0.5 italic">"{hist.comment}"</div>}
+                          {hist.comment && <div className="text-slate-600 text-[10px] mt-0.5 italic">"{hist.comment}"</div>}
                         </div>
-                        <span className="text-[9px] text-slate-500 shrink-0">{hist.timestamp}</span>
+                        <span className="text-[9px] text-slate-600 shrink-0">{hist.timestamp}</span>
                       </div>
                     ))}
                   </div>
                 </div>
               </div>
             ) : (
-              <div className="glass-card rounded-xl p-10 text-center text-slate-500 text-xs">
+              <div className="glass-card rounded-xl p-10 text-center text-slate-600 text-xs">
                 Seleccione una acción ACPM para ver su trazabilidad
               </div>
             )}
@@ -400,7 +400,7 @@ export const AcpmEngine: React.FC = () => {
                   </div>
 
                   <h3 className="text-xs font-bold text-slate-900 mb-1">{f.title}</h3>
-                  <p className="text-[11px] text-slate-500 mb-2">{f.description}</p>
+                  <p className="text-[11px] text-slate-600 mb-2">{f.description}</p>
                   
                   {f.sharedAssetName && (
                     <div className="text-[10px] text-teal-700 bg-teal-50 px-2 py-1 rounded border border-teal-200 mb-2">
@@ -408,14 +408,14 @@ export const AcpmEngine: React.FC = () => {
                     </div>
                   )}
 
-                  <div className="text-[10px] text-slate-500">
+                  <div className="text-[10px] text-slate-600">
                     <div>Origen: <strong>{f.originType}</strong> ({f.originDetail})</div>
                     <div>Criterio: {f.legalCriterion}</div>
                   </div>
                 </div>
 
                 <div className="mt-4 pt-2 border-t border-slate-200 flex items-center justify-between text-[11px]">
-                  <span className="text-slate-500">{f.createdAt}</span>
+                  <span className="text-slate-600">{f.createdAt}</span>
                   <span className="text-emerald-700 font-semibold">{f.status}</span>
                 </div>
               </div>
@@ -433,7 +433,7 @@ export const AcpmEngine: React.FC = () => {
                 <CheckCircle2 className="w-4 h-4 text-emerald-700" />
                 Verificación de Eficacia — {selectedAcpm.code}
               </h2>
-              <button onClick={() => setShowVerifyModal(false)} className="text-slate-500 hover:text-slate-900">
+              <button onClick={() => setShowVerifyModal(false)} className="text-slate-600 hover:text-slate-900">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -451,7 +451,7 @@ export const AcpmEngine: React.FC = () => {
                   className={`p-3 rounded-lg border text-xs font-bold text-center transition-all ${
                     verifyResult === 'EFICAZ'
                       ? 'bg-emerald-50 border-emerald-500 text-emerald-700'
-                      : 'bg-slate-100 border-slate-300 text-slate-500'
+                      : 'bg-slate-100 border-slate-300 text-slate-600'
                   }`}
                 >
                   ✓ EFICAZ (Cerrar Acción)
@@ -463,7 +463,7 @@ export const AcpmEngine: React.FC = () => {
                   className={`p-3 rounded-lg border text-xs font-bold text-center transition-all ${
                     verifyResult === 'NO_EFICAZ'
                       ? 'bg-rose-50 border-rose-500 text-rose-700'
-                      : 'bg-slate-100 border-slate-300 text-slate-500'
+                      : 'bg-slate-100 border-slate-300 text-slate-600'
                   }`}
                 >
                   ✗ NO EFICAZ (Reabrir Acción)
@@ -514,7 +514,7 @@ export const AcpmEngine: React.FC = () => {
           <form onSubmit={handleCreateAction} className="bg-slate-50 border border-slate-300 rounded-2xl max-w-xl w-full p-5 space-y-4 shadow-2xl">
             <div className="flex items-center justify-between border-b border-slate-200 pb-3">
               <h2 className="text-sm font-bold text-slate-900">Nueva Acción ACPM</h2>
-              <button type="button" onClick={() => setShowNewModal(false)} className="text-slate-500 hover:text-slate-900">
+              <button type="button" onClick={() => setShowNewModal(false)} className="text-slate-600 hover:text-slate-900">
                 <X className="w-4 h-4" />
               </button>
             </div>

@@ -71,7 +71,7 @@ export const PendingTasksEngine: React.FC = () => {
               ¿Qué tengo pendiente? — Centro Único de Tareas y Vencimientos
             </h1>
           </div>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-slate-600 mt-1">
             Consolidación unificada de actividades, inspecciones, auditorías, acciones ACPM y vencimientos legales de todos los módulos.
           </p>
         </div>
@@ -89,7 +89,7 @@ export const PendingTasksEngine: React.FC = () => {
       <div className="flex flex-wrap items-center justify-between gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs">
         <div className="flex items-center gap-2">
           <Filter className="w-4 h-4 text-teal-700" />
-          <span className="text-slate-500 font-semibold">Filtrar por:</span>
+          <span className="text-slate-600 font-semibold">Filtrar por:</span>
 
           <select
             value={filterModule}
@@ -114,7 +114,7 @@ export const PendingTasksEngine: React.FC = () => {
           </select>
         </div>
 
-        <span className="text-slate-500 text-[11px]">
+        <span className="text-slate-600 text-[11px]">
           Mostrando {filteredTasks.length} de {tasks.length} actividades programadas
         </span>
       </div>
@@ -122,7 +122,7 @@ export const PendingTasksEngine: React.FC = () => {
       {/* Tasks List */}
       <div className="space-y-3">
         {filteredTasks.length === 0 ? (
-          <div className="glass-card rounded-xl p-12 text-center text-slate-500 text-xs">
+          <div className="glass-card rounded-xl p-12 text-center text-slate-600 text-xs">
             No hay actividades pendientes con los filtros seleccionados.
           </div>
         ) : (
@@ -156,7 +156,7 @@ export const PendingTasksEngine: React.FC = () => {
                       <span className="font-bold text-[10px] px-1.5 py-0.2 rounded bg-slate-100 text-slate-700 border border-slate-300">
                         {task.module}
                       </span>
-                      <span className="text-[10px] text-slate-500 font-semibold uppercase">
+                      <span className="text-[10px] text-slate-600 font-semibold uppercase">
                         {task.type}
                       </span>
                       <span className={`px-2 py-0.2 text-[9px] font-bold rounded ${
@@ -168,17 +168,17 @@ export const PendingTasksEngine: React.FC = () => {
                       </span>
                     </div>
 
-                    <h2 className={`text-xs font-bold leading-snug ${isCompleted ? 'line-through text-slate-500' : 'text-slate-800'}`}>
+                    <h2 className={`text-xs font-bold leading-snug ${isCompleted ? 'line-through text-slate-600' : 'text-slate-800'}`}>
                       {task.title}
                     </h2>
 
-                    <div className="flex flex-wrap items-center gap-3 text-[11px] text-slate-500 mt-2">
+                    <div className="flex flex-wrap items-center gap-3 text-[11px] text-slate-600 mt-2">
                       <span className="flex items-center gap-1">
                         <User className="w-3 h-3 text-teal-700" />
                         {task.responsible}
                       </span>
                       <span className="flex items-center gap-1">
-                        <Building className="w-3 h-3 text-slate-500" />
+                        <Building className="w-3 h-3 text-slate-600" />
                         {task.siteName}
                       </span>
                       <span className="flex items-center gap-1 text-amber-700 font-semibold">
@@ -200,7 +200,7 @@ export const PendingTasksEngine: React.FC = () => {
                   )}
                   <button
                     onClick={() => toggleTaskStatus(task.id)}
-                    className="text-xs text-slate-500 hover:text-slate-900"
+                    className="text-xs text-slate-600 hover:text-slate-900"
                   >
                     {isCompleted ? 'Reabrir' : 'Completar'}
                   </button>
@@ -217,7 +217,7 @@ export const PendingTasksEngine: React.FC = () => {
           <form onSubmit={handleCreateTask} className="bg-slate-50 border border-slate-300 rounded-2xl max-w-lg w-full p-5 space-y-4 shadow-2xl">
             <div className="flex items-center justify-between border-b border-slate-200 pb-3">
               <h2 className="text-sm font-bold text-slate-900">Programar Nueva Actividad / Tarea</h2>
-              <button type="button" onClick={() => setShowNewTaskModal(false)} className="text-slate-500 hover:text-slate-900">✕</button>
+              <button type="button" onClick={() => setShowNewTaskModal(false)} className="text-slate-600 hover:text-slate-900">✕</button>
             </div>
 
             <div className="space-y-3 text-xs">

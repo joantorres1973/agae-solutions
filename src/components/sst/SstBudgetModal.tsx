@@ -406,7 +406,7 @@ export const SstBudgetModal: React.FC<SstBudgetModalProps> = ({ isOpen, onClose 
                 <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
                   Estándar 1.1.3 (Res. 0312)
                 </span>
-                <span className="text-[10px] font-semibold text-slate-500">
+                <span className="text-[10px] font-semibold text-slate-600">
                   Decreto 1072 Art. 2.2.4.6.8 Num. 4 {isPesvActive ? '• PESV Res. 40595' : ''}
                 </span>
               </div>
@@ -440,7 +440,7 @@ export const SstBudgetModal: React.FC<SstBudgetModalProps> = ({ isOpen, onClose 
 
             {/* Simulated Role Selector */}
             <div className="flex items-center gap-1.5 bg-white px-2.5 py-1 rounded-lg border border-slate-200 text-xs">
-              <span className="text-[10px] text-slate-500 font-semibold uppercase hidden sm:inline">Rol:</span>
+              <span className="text-[10px] text-slate-600 font-semibold uppercase hidden sm:inline">Rol:</span>
               <select
                 value={currentSimulatedRole}
                 onChange={(e) => setCurrentSimulatedRole(e.target.value as SimulatedRole)}
@@ -455,7 +455,7 @@ export const SstBudgetModal: React.FC<SstBudgetModalProps> = ({ isOpen, onClose 
 
             <button
               onClick={onClose}
-              className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors ml-1"
+              className="p-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors ml-1"
             >
               <X className="w-5 h-5" />
             </button>
@@ -468,7 +468,7 @@ export const SstBudgetModal: React.FC<SstBudgetModalProps> = ({ isOpen, onClose 
             <button
               onClick={() => setModalTab('ITEMS')}
               className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
-                modalTab === 'ITEMS' ? 'bg-orange-600 text-white shadow' : 'text-slate-500 hover:text-slate-900'
+                modalTab === 'ITEMS' ? 'bg-orange-600 text-white shadow' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               <DollarSign className="w-3.5 h-3.5" />
@@ -483,7 +483,7 @@ export const SstBudgetModal: React.FC<SstBudgetModalProps> = ({ isOpen, onClose 
             <button
               onClick={() => setModalTab('SIGNATURES')}
               className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
-                modalTab === 'SIGNATURES' ? 'bg-orange-600 text-white shadow' : 'text-slate-500 hover:text-slate-900'
+                modalTab === 'SIGNATURES' ? 'bg-orange-600 text-white shadow' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               <FileCheck2 className="w-3.5 h-3.5" />
@@ -496,7 +496,7 @@ export const SstBudgetModal: React.FC<SstBudgetModalProps> = ({ isOpen, onClose 
             <button
               onClick={() => setModalTab('COPASST')}
               className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
-                modalTab === 'COPASST' ? 'bg-orange-600 text-white shadow' : 'text-slate-500 hover:text-slate-900'
+                modalTab === 'COPASST' ? 'bg-orange-600 text-white shadow' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               <Users className="w-3.5 h-3.5" />
@@ -506,7 +506,7 @@ export const SstBudgetModal: React.FC<SstBudgetModalProps> = ({ isOpen, onClose 
             <button
               onClick={() => setModalTab('REPORT')}
               className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
-                modalTab === 'REPORT' ? 'bg-orange-600 text-white shadow' : 'text-slate-500 hover:text-slate-900'
+                modalTab === 'REPORT' ? 'bg-orange-600 text-white shadow' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               <FileText className="w-3.5 h-3.5" />
@@ -518,7 +518,7 @@ export const SstBudgetModal: React.FC<SstBudgetModalProps> = ({ isOpen, onClose 
           <button
             type="button"
             onClick={() => setShowFinConfig(!showFinConfig)}
-            className="flex items-center gap-1 text-[11px] text-slate-500 hover:text-teal-700 transition-colors"
+            className="flex items-center gap-1 text-[11px] text-slate-600 hover:text-teal-700 transition-colors"
             title="Configurar denominación del cargo financiero (Director Financiero / Contador Público)"
           >
             <Settings className="w-3.5 h-3.5" />
@@ -537,7 +537,7 @@ export const SstBudgetModal: React.FC<SstBudgetModalProps> = ({ isOpen, onClose 
                   <Settings className="w-3.5 h-3.5" />
                   Configuración del Cargo Financiero (Adaptable a la Empresa)
                 </span>
-                <button type="button" onClick={() => setShowFinConfig(false)} className="text-slate-500 hover:text-slate-900">✕</button>
+                <button type="button" onClick={() => setShowFinConfig(false)} className="text-slate-600 hover:text-slate-900">✕</button>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
@@ -621,11 +621,11 @@ export const SstBudgetModal: React.FC<SstBudgetModalProps> = ({ isOpen, onClose 
               {/* Financial KPI Summary Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 <div className="glass-card p-3.5 rounded-xl border border-slate-300">
-                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
+                  <span className="text-[10px] font-bold text-slate-600 uppercase tracking-wider block">
                     Presupuesto Asignado
                   </span>
                   <div className="text-lg font-black text-slate-900 mt-0.5 font-mono">
-                    ${totalPlanned.toLocaleString('es-CO')} <span className="text-xs font-normal text-slate-500">COP</span>
+                    ${totalPlanned.toLocaleString('es-CO')} <span className="text-xs font-normal text-slate-600">COP</span>
                   </div>
                   <span className="text-[10px] text-emerald-700 font-medium block mt-1">
                     {filteredItems.length} rubros presupuestados
@@ -637,7 +637,7 @@ export const SstBudgetModal: React.FC<SstBudgetModalProps> = ({ isOpen, onClose 
                     Recursos Comprometidos
                   </span>
                   <div className="text-lg font-black text-slate-900 mt-0.5 font-mono">
-                    ${totalCommitted.toLocaleString('es-CO')} <span className="text-xs font-normal text-slate-500">COP</span>
+                    ${totalCommitted.toLocaleString('es-CO')} <span className="text-xs font-normal text-slate-600">COP</span>
                   </div>
                   <span className="text-[10px] text-amber-700 font-medium block mt-1">
                     {((totalCommitted / (totalPlanned || 1)) * 100).toFixed(1)}% reservado en contratos
@@ -649,7 +649,7 @@ export const SstBudgetModal: React.FC<SstBudgetModalProps> = ({ isOpen, onClose 
                     Recursos Ejecutados
                   </span>
                   <div className="text-lg font-black text-slate-900 mt-0.5 font-mono">
-                    ${totalExecuted.toLocaleString('es-CO')} <span className="text-xs font-normal text-slate-500">COP</span>
+                    ${totalExecuted.toLocaleString('es-CO')} <span className="text-xs font-normal text-slate-600">COP</span>
                   </div>
                   <span className="text-[10px] text-teal-700 font-medium block mt-1">
                     {executionPercentage.toFixed(1)}% ejecutado
@@ -690,7 +690,7 @@ export const SstBudgetModal: React.FC<SstBudgetModalProps> = ({ isOpen, onClose 
                   {/* Status description and active role context */}
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-slate-600">
                         Flujo de Aprobación Institucional:
                       </span>
                       <span className={`px-2 py-0.5 rounded text-xs font-bold border ${
@@ -891,7 +891,7 @@ export const SstBudgetModal: React.FC<SstBudgetModalProps> = ({ isOpen, onClose 
                       <button
                         type="button"
                         onClick={() => setGeneralDevolucionOpen(false)}
-                        className="px-2 py-2 rounded-lg bg-slate-100 text-slate-500 hover:text-slate-900 text-xs"
+                        className="px-2 py-2 rounded-lg bg-slate-100 text-slate-600 hover:text-slate-900 text-xs"
                       >
                         Cancelar
                       </button>
@@ -907,7 +907,7 @@ export const SstBudgetModal: React.FC<SstBudgetModalProps> = ({ isOpen, onClose 
                     type="button"
                     onClick={() => setSelectedSystemFilter('ALL')}
                     className={`px-3 py-1.5 rounded-md transition-all ${
-                      selectedSystemFilter === 'ALL' ? 'bg-emerald-600 text-white' : 'text-slate-500 hover:text-slate-900'
+                      selectedSystemFilter === 'ALL' ? 'bg-emerald-600 text-white' : 'text-slate-600 hover:text-slate-900'
                     }`}
                   >
                     Todos ({sstBudgetItems.length})
@@ -916,7 +916,7 @@ export const SstBudgetModal: React.FC<SstBudgetModalProps> = ({ isOpen, onClose 
                     type="button"
                     onClick={() => setSelectedSystemFilter('SST')}
                     className={`px-3 py-1.5 rounded-md transition-all flex items-center gap-1.5 ${
-                      selectedSystemFilter === 'SST' ? 'bg-orange-600 text-white' : 'text-slate-500 hover:text-slate-900'
+                      selectedSystemFilter === 'SST' ? 'bg-orange-600 text-white' : 'text-slate-600 hover:text-slate-900'
                     }`}
                   >
                     <HardHat className="w-3.5 h-3.5" />
@@ -928,7 +928,7 @@ export const SstBudgetModal: React.FC<SstBudgetModalProps> = ({ isOpen, onClose 
                       type="button"
                       onClick={() => setSelectedSystemFilter('PESV')}
                       className={`px-3 py-1.5 rounded-md transition-all flex items-center gap-1.5 ${
-                        selectedSystemFilter === 'PESV' ? 'bg-teal-600 text-white' : 'text-slate-500 hover:text-slate-900'
+                        selectedSystemFilter === 'PESV' ? 'bg-teal-600 text-white' : 'text-slate-600 hover:text-slate-900'
                       }`}
                     >
                       <Car className="w-3.5 h-3.5" />
@@ -940,7 +940,7 @@ export const SstBudgetModal: React.FC<SstBudgetModalProps> = ({ isOpen, onClose 
                     type="button"
                     onClick={() => setSelectedSystemFilter('TRANSVERSAL')}
                     className={`px-3 py-1.5 rounded-md transition-all flex items-center gap-1.5 ${
-                      selectedSystemFilter === 'TRANSVERSAL' ? 'bg-purple-600 text-white' : 'text-slate-500 hover:text-slate-900'
+                      selectedSystemFilter === 'TRANSVERSAL' ? 'bg-purple-600 text-white' : 'text-slate-600 hover:text-slate-900'
                     }`}
                   >
                     <Layers className="w-3.5 h-3.5" />
@@ -978,7 +978,7 @@ export const SstBudgetModal: React.FC<SstBudgetModalProps> = ({ isOpen, onClose 
                         setShowAddForm(false);
                         setEditingItem(null);
                       }}
-                      className="text-slate-500 hover:text-slate-900"
+                      className="text-slate-600 hover:text-slate-900"
                     >
                       ✕
                     </button>
@@ -1118,7 +1118,7 @@ export const SstBudgetModal: React.FC<SstBudgetModalProps> = ({ isOpen, onClose 
               <div className="glass-card rounded-xl border border-slate-300 overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs text-slate-700">
-                    <thead className="bg-white text-[10px] uppercase font-bold text-slate-500 border-b border-slate-200">
+                    <thead className="bg-white text-[10px] uppercase font-bold text-slate-600 border-b border-slate-200">
                       <tr>
                         <th className="p-3">Sistema / Categoría</th>
                         <th className="p-3">Concepto & Marco Legal</th>
@@ -1157,15 +1157,15 @@ export const SstBudgetModal: React.FC<SstBudgetModalProps> = ({ isOpen, onClose 
                               }`}>
                                 {item.isAllSystems ? 'TRANSVERSAL' : item.system} • {item.category}
                               </span>
-                              <span className="block text-[10px] text-slate-500 mt-1 font-mono">
+                              <span className="block text-[10px] text-slate-600 mt-1 font-mono">
                                 {item.quarter}
                               </span>
                             </td>
 
                             <td className="p-3 align-top max-w-sm">
                               <div className="font-semibold text-slate-900">{item.concept}</div>
-                              <div className="text-[11px] text-slate-500 mt-0.5 line-clamp-2">{item.description}</div>
-                              <div className="text-[10px] text-slate-500 font-mono mt-1">
+                              <div className="text-[11px] text-slate-600 mt-0.5 line-clamp-2">{item.description}</div>
+                              <div className="text-[10px] text-slate-600 font-mono mt-1">
                                 {item.decreto1072Rel}
                                 {item.pesvRel && <span> • {item.pesvRel}</span>}
                               </div>
@@ -1233,7 +1233,7 @@ export const SstBudgetModal: React.FC<SstBudgetModalProps> = ({ isOpen, onClose 
                               <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
                                 item.status === 'EJECUTADO' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
                                 item.status === 'EN_EJECUCION' ? 'bg-teal-50 text-teal-700 border border-teal-200' :
-                                'bg-slate-100 text-slate-500'
+                                'bg-slate-100 text-slate-600'
                               }`}>
                                 {item.status}
                               </span>
@@ -1330,7 +1330,7 @@ export const SstBudgetModal: React.FC<SstBudgetModalProps> = ({ isOpen, onClose 
                     <ShieldCheck className="w-4 h-4 text-emerald-700" />
                     Formalización y Legalización Digital del Presupuesto
                   </h3>
-                  <span className="text-[11px] text-slate-500 font-mono">
+                  <span className="text-[11px] text-slate-600 font-mono">
                     Decreto 1072 de 2015 Art. 2.2.4.6.8 Numeral 4
                   </span>
                 </div>
@@ -1363,16 +1363,16 @@ export const SstBudgetModal: React.FC<SstBudgetModalProps> = ({ isOpen, onClose 
                     <div className="text-xs text-slate-700 mt-0.5">
                       {sstBudgetState.signatures.manager?.name || 'Lic. Fernando Ortiz Salazar'}
                     </div>
-                    <p className="text-[10px] text-slate-500 mt-1">
+                    <p className="text-[10px] text-slate-600 mt-1">
                       Representante Legal • C.C. {sstBudgetState.signatures.manager?.docNumber || '79.845.120'}
                     </p>
                   </div>
 
                   {sstBudgetState.signatures.manager ? (
-                    <div className="p-2.5 rounded bg-white border border-slate-200 font-mono text-[10px] text-slate-500 space-y-0.5">
+                    <div className="p-2.5 rounded bg-white border border-slate-200 font-mono text-[10px] text-slate-600 space-y-0.5">
                       <div className="text-emerald-700 font-bold">Firma Digital Estampada</div>
                       <div>Fecha: {sstBudgetState.signatures.manager.signedAt}</div>
-                      <div className="truncate text-slate-500">Token: {sstBudgetState.signatures.manager.token}</div>
+                      <div className="truncate text-slate-600">Token: {sstBudgetState.signatures.manager.token}</div>
                     </div>
                   ) : (
                     <button
@@ -1407,16 +1407,16 @@ export const SstBudgetModal: React.FC<SstBudgetModalProps> = ({ isOpen, onClose 
                     <div className="text-xs text-slate-700 mt-0.5">
                       {sstBudgetState.financialOfficerName}
                     </div>
-                    <p className="text-[10px] text-slate-500 mt-1">
+                    <p className="text-[10px] text-slate-600 mt-1">
                       Doc: {sstBudgetState.financialOfficerDoc}
                     </p>
                   </div>
 
                   {sstBudgetState.signatures.financial ? (
-                    <div className="p-2.5 rounded bg-white border border-slate-200 font-mono text-[10px] text-slate-500 space-y-0.5">
+                    <div className="p-2.5 rounded bg-white border border-slate-200 font-mono text-[10px] text-slate-600 space-y-0.5">
                       <div className="text-emerald-700 font-bold">Firma Digital Estampada</div>
                       <div>Fecha: {sstBudgetState.signatures.financial.signedAt}</div>
-                      <div className="truncate text-slate-500">Token: {sstBudgetState.signatures.financial.token}</div>
+                      <div className="truncate text-slate-600">Token: {sstBudgetState.signatures.financial.token}</div>
                     </div>
                   ) : (
                     <button
@@ -1451,16 +1451,16 @@ export const SstBudgetModal: React.FC<SstBudgetModalProps> = ({ isOpen, onClose 
                     <div className="text-xs text-slate-700 mt-0.5">
                       {sstBudgetState.signatures.sstLeader?.name || 'Ing. Marcela Rincón Ortiz'}
                     </div>
-                    <p className="text-[10px] text-slate-500 mt-1 font-mono">
+                    <p className="text-[10px] text-slate-600 mt-1 font-mono">
                       Licencia: {sstBudgetState.signatures.sstLeader?.licenseNumber || 'LIC-SST-2023-08941'}
                     </p>
                   </div>
 
                   {sstBudgetState.signatures.sstLeader ? (
-                    <div className="p-2.5 rounded bg-white border border-slate-200 font-mono text-[10px] text-slate-500 space-y-0.5">
+                    <div className="p-2.5 rounded bg-white border border-slate-200 font-mono text-[10px] text-slate-600 space-y-0.5">
                       <div className="text-emerald-700 font-bold">Firma Digital Estampada</div>
                       <div>Fecha: {sstBudgetState.signatures.sstLeader.signedAt}</div>
-                      <div className="truncate text-slate-500">Token: {sstBudgetState.signatures.sstLeader.token}</div>
+                      <div className="truncate text-slate-600">Token: {sstBudgetState.signatures.sstLeader.token}</div>
                     </div>
                   ) : (
                     <button
@@ -1586,7 +1586,7 @@ export const SstBudgetModal: React.FC<SstBudgetModalProps> = ({ isOpen, onClose 
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <span className="font-mono text-teal-700 font-bold">{rev.actaNumber}</span>
-                        <span className="text-slate-500">• Fecha: {rev.meetingDate}</span>
+                        <span className="text-slate-600">• Fecha: {rev.meetingDate}</span>
                         <span className="text-slate-700 font-medium">({rev.reviewedBy})</span>
                       </div>
                       <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
@@ -1642,7 +1642,7 @@ export const SstBudgetModal: React.FC<SstBudgetModalProps> = ({ isOpen, onClose 
                     <span className="inline-block px-2.5 py-1 bg-slate-100 text-slate-900 border border-slate-300 rounded font-mono text-[10px] font-bold">
                       FORMATO: FT-SST-003
                     </span>
-                    <span className="block text-[10px] text-slate-500 mt-1">Presupuesto Anual Integrado 2026</span>
+                    <span className="block text-[10px] text-slate-600 mt-1">Presupuesto Anual Integrado 2026</span>
                   </div>
                 </div>
 
@@ -1716,11 +1716,11 @@ export const SstBudgetModal: React.FC<SstBudgetModalProps> = ({ isOpen, onClose 
                       {sstBudgetState.signatures.manager?.name || 'Lic. Fernando Ortiz Salazar'}
                     </p>
                     <p className="text-slate-600">Representante Legal / Gerente General</p>
-                    <p className="text-slate-500 font-mono">C.C. {sstBudgetState.signatures.manager?.docNumber || '79.845.120'}</p>
+                    <p className="text-slate-600 font-mono">C.C. {sstBudgetState.signatures.manager?.docNumber || '79.845.120'}</p>
                     {sstBudgetState.signatures.manager && (
                       <p className="text-emerald-700 font-mono font-bold">
                         ✓ Firmado: {sstBudgetState.signatures.manager.signedAt}<br />
-                        <span className="text-[9px] text-slate-500">{sstBudgetState.signatures.manager.token}</span>
+                        <span className="text-[9px] text-slate-600">{sstBudgetState.signatures.manager.token}</span>
                       </p>
                     )}
                   </div>
@@ -1731,11 +1731,11 @@ export const SstBudgetModal: React.FC<SstBudgetModalProps> = ({ isOpen, onClose 
                       {sstBudgetState.financialOfficerName}
                     </p>
                     <p className="text-slate-600">{sstBudgetState.financialRoleTitle}</p>
-                    <p className="text-slate-500 font-mono">Doc: {sstBudgetState.financialOfficerDoc}</p>
+                    <p className="text-slate-600 font-mono">Doc: {sstBudgetState.financialOfficerDoc}</p>
                     {sstBudgetState.signatures.financial && (
                       <p className="text-emerald-700 font-mono font-bold">
                         ✓ Firmado: {sstBudgetState.signatures.financial.signedAt}<br />
-                        <span className="text-[9px] text-slate-500">{sstBudgetState.signatures.financial.token}</span>
+                        <span className="text-[9px] text-slate-600">{sstBudgetState.signatures.financial.token}</span>
                       </p>
                     )}
                   </div>
@@ -1746,11 +1746,11 @@ export const SstBudgetModal: React.FC<SstBudgetModalProps> = ({ isOpen, onClose 
                       {sstBudgetState.signatures.sstLeader?.name || 'Ing. Marcela Rincón Ortiz'}
                     </p>
                     <p className="text-slate-600">Líder del SG-SST</p>
-                    <p className="text-slate-500 font-mono">Licencia: {sstBudgetState.signatures.sstLeader?.licenseNumber || 'LIC-SST-2023-08941'}</p>
+                    <p className="text-slate-600 font-mono">Licencia: {sstBudgetState.signatures.sstLeader?.licenseNumber || 'LIC-SST-2023-08941'}</p>
                     {sstBudgetState.signatures.sstLeader && (
                       <p className="text-emerald-700 font-mono font-bold">
                         ✓ Firmado: {sstBudgetState.signatures.sstLeader.signedAt}<br />
-                        <span className="text-[9px] text-slate-500">{sstBudgetState.signatures.sstLeader.token}</span>
+                        <span className="text-[9px] text-slate-600">{sstBudgetState.signatures.sstLeader.token}</span>
                       </p>
                     )}
                   </div>

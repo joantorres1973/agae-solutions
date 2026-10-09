@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { MasterWorker, WorkerDocType, WorkerStatus, WorkerContractType, WorkerWorkModality, WorkerWorkShift, WorkerEducationLevel } from '@/types/worker';
 import { useApp } from '@/lib/store';
-import { X, User, Briefcase, GraduationCap, MapPin, Phone, Mail, Building, AlertCircle } from 'lucide-react';
+import { X, User, Briefcase, GraduationCap, MapPin, Phone, Mail, Building, AlertCircle, Camera, Trash2 } from 'lucide-react';
 
 interface WorkerFormModalProps {
   isOpen: boolean;
@@ -203,36 +203,36 @@ export const WorkerFormModal: React.FC<WorkerFormModalProps> = ({ isOpen, worker
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-slate-900 border border-slate-700 w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+      <div className="bg-slate-50 border border-slate-300 w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
         {/* Header */}
-        <div className="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/70">
+        <div className="p-4 border-b border-slate-200 flex items-center justify-between bg-white/80">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+            <div className="w-10 h-10 rounded-xl bg-emerald-100 border border-emerald-200 flex items-center justify-center text-emerald-700">
               <User className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-white">
+              <h3 className="text-base font-bold text-slate-900">
                 {worker ? 'Editar Perfil del Trabajador' : 'Registrar Nuevo Trabajador en la Base Maestra'}
               </h3>
-              <p className="text-xs text-slate-400">
-                Principio AGAE: <span className="text-emerald-400 font-semibold">UN TRABAJADOR = UN PERFIL ÚNICO</span> • Fuente central para todos los módulos
+              <p className="text-xs text-slate-600">
+                Principio AGAE: <span className="text-emerald-700 font-semibold">UN TRABAJADOR = UN PERFIL ÚNICO</span> • Fuente central para todos los módulos
               </p>
             </div>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-white p-1.5 rounded-lg transition-colors">
+          <button onClick={onClose} className="text-slate-600 hover:text-slate-900 p-1.5 rounded-lg transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Tab switcher */}
-        <div className="flex border-b border-slate-800 bg-slate-950/40 px-4 text-xs font-semibold">
+        <div className="flex border-b border-slate-200 bg-white/80 px-4 text-xs font-semibold">
           <button
             type="button"
             onClick={() => setActiveTab('ID')}
             className={`py-2.5 px-3 border-b-2 flex items-center gap-2 transition-colors ${
               activeTab === 'ID'
-                ? 'border-emerald-500 text-emerald-400 bg-emerald-950/20'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                ? 'border-emerald-500 text-emerald-700 bg-emerald-50'
+                : 'border-transparent text-slate-600 hover:text-slate-800'
             }`}
           >
             <User className="w-3.5 h-3.5" />
@@ -243,8 +243,8 @@ export const WorkerFormModal: React.FC<WorkerFormModalProps> = ({ isOpen, worker
             onClick={() => setActiveTab('LABOR')}
             className={`py-2.5 px-3 border-b-2 flex items-center gap-2 transition-colors ${
               activeTab === 'LABOR'
-                ? 'border-emerald-500 text-emerald-400 bg-emerald-950/20'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                ? 'border-emerald-500 text-emerald-700 bg-emerald-50'
+                : 'border-transparent text-slate-600 hover:text-slate-800'
             }`}
           >
             <Briefcase className="w-3.5 h-3.5" />
@@ -255,8 +255,8 @@ export const WorkerFormModal: React.FC<WorkerFormModalProps> = ({ isOpen, worker
             onClick={() => setActiveTab('ACADEMIC')}
             className={`py-2.5 px-3 border-b-2 flex items-center gap-2 transition-colors ${
               activeTab === 'ACADEMIC'
-                ? 'border-emerald-500 text-emerald-400 bg-emerald-950/20'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                ? 'border-emerald-500 text-emerald-700 bg-emerald-50'
+                : 'border-transparent text-slate-600 hover:text-slate-800'
             }`}
           >
             <GraduationCap className="w-3.5 h-3.5" />
@@ -270,36 +270,36 @@ export const WorkerFormModal: React.FC<WorkerFormModalProps> = ({ isOpen, worker
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
                 <div>
-                  <label className="block text-slate-300 font-medium mb-1">Nombres *</label>
+                  <label className="block text-slate-700 font-medium mb-1">Nombres *</label>
                   <input
                     type="text"
                     required
                     placeholder="Ej. Carlos Mario"
                     value={firstName}
                     onChange={e => setFirstName(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-emerald-500"
+                    className="w-full px-3 py-2 rounded-lg bg-white border border-slate-300 text-slate-900 focus:outline-none focus:border-emerald-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-300 font-medium mb-1">Apellidos *</label>
+                  <label className="block text-slate-700 font-medium mb-1">Apellidos *</label>
                   <input
                     type="text"
                     required
                     placeholder="Ej. Mendoza Beltrán"
                     value={lastName}
                     onChange={e => setLastName(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-emerald-500"
+                    className="w-full px-3 py-2 rounded-lg bg-white border border-slate-300 text-slate-900 focus:outline-none focus:border-emerald-500"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-3 gap-3.5">
                 <div>
-                  <label className="block text-slate-300 font-medium mb-1">Tipo de Documento *</label>
+                  <label className="block text-slate-700 font-medium mb-1">Tipo de Documento *</label>
                   <select
                     value={docType}
                     onChange={e => setDocType(e.target.value as any)}
-                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-emerald-500"
+                    className="w-full px-3 py-2 rounded-lg bg-white border border-slate-300 text-slate-900 focus:outline-none focus:border-emerald-500"
                   >
                     <option value="CC">Cédula de Ciudadanía (CC)</option>
                     <option value="CE">Cédula de Extranjería (CE)</option>
@@ -309,7 +309,7 @@ export const WorkerFormModal: React.FC<WorkerFormModalProps> = ({ isOpen, worker
                   </select>
                 </div>
                 <div className="col-span-2">
-                  <label className="block text-slate-300 font-medium mb-1">Número de Documento (Único) *</label>
+                  <label className="block text-slate-700 font-medium mb-1">Número de Documento (Único) *</label>
                   <input
                     type="text"
                     required
@@ -317,27 +317,27 @@ export const WorkerFormModal: React.FC<WorkerFormModalProps> = ({ isOpen, worker
                     placeholder="Ej. 1.020.784.952"
                     value={docNumber}
                     onChange={e => setDocNumber(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-emerald-500 disabled:opacity-60"
+                    className="w-full px-3 py-2 rounded-lg bg-white border border-slate-300 text-slate-900 focus:outline-none focus:border-emerald-500 disabled:opacity-60"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-3 gap-3.5">
                 <div>
-                  <label className="block text-slate-300 font-medium mb-1">Fecha de Nacimiento</label>
+                  <label className="block text-slate-700 font-medium mb-1">Fecha de Nacimiento</label>
                   <input
                     type="date"
                     value={birthDate}
                     onChange={e => setBirthDate(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-emerald-500"
+                    className="w-full px-3 py-2 rounded-lg bg-white border border-slate-300 text-slate-900 focus:outline-none focus:border-emerald-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-300 font-medium mb-1">Estado en la Plataforma *</label>
+                  <label className="block text-slate-700 font-medium mb-1">Estado en la Plataforma *</label>
                   <select
                     value={status}
                     onChange={e => setStatus(e.target.value as any)}
-                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-emerald-500"
+                    className="w-full px-3 py-2 rounded-lg bg-white border border-slate-300 text-slate-900 focus:outline-none focus:border-emerald-500"
                   >
                     <option value="ACTIVO">Activo</option>
                     <option value="INACTIVO">Inactivo / Retirado</option>
@@ -347,77 +347,133 @@ export const WorkerFormModal: React.FC<WorkerFormModalProps> = ({ isOpen, worker
                   </select>
                 </div>
                 <div>
-                  <label className="block text-slate-300 font-medium mb-1">Fecha de Ingreso *</label>
+                  <label className="block text-slate-700 font-medium mb-1">Fecha de Ingreso *</label>
                   <input
                     type="date"
                     required
                     value={hireDate}
                     onChange={e => setHireDate(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-emerald-500"
+                    className="w-full px-3 py-2 rounded-lg bg-white border border-slate-300 text-slate-900 focus:outline-none focus:border-emerald-500"
                   />
                 </div>
               </div>
 
-              <div className="pt-2 border-t border-slate-800">
-                <h4 className="text-xs font-semibold text-slate-300 mb-2 flex items-center gap-1.5">
-                  <Phone className="w-3.5 h-3.5 text-emerald-400" />
+              <div className="pt-2 border-t border-slate-200">
+                <h4 className="text-xs font-semibold text-slate-700 mb-2 flex items-center gap-1.5">
+                  <Phone className="w-3.5 h-3.5 text-emerald-700" />
                   <span>Datos de Contacto y Ubicación</span>
                 </h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
                   <div>
-                    <label className="block text-slate-400 font-medium mb-1">Correo Electrónico *</label>
+                    <label className="block text-slate-600 font-medium mb-1">Correo Electrónico *</label>
                     <input
                       type="email"
                       required
                       placeholder="correo@empresa.com"
                       value={email}
                       onChange={e => setEmail(e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-emerald-500"
+                      className="w-full px-3 py-2 rounded-lg bg-white border border-slate-300 text-slate-900 focus:outline-none focus:border-emerald-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-slate-400 font-medium mb-1">Teléfono / Celular *</label>
+                    <label className="block text-slate-600 font-medium mb-1">Teléfono / Celular *</label>
                     <input
                       type="tel"
                       required
                       placeholder="+57 310 000 0000"
                       value={phone}
                       onChange={e => setPhone(e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-emerald-500"
+                      className="w-full px-3 py-2 rounded-lg bg-white border border-slate-300 text-slate-900 focus:outline-none focus:border-emerald-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-slate-400 font-medium mb-1">Dirección de Residencia</label>
+                    <label className="block text-slate-600 font-medium mb-1">Dirección de Residencia</label>
                     <input
                       type="text"
                       placeholder="Calle 123 # 45-67"
                       value={address}
                       onChange={e => setAddress(e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-emerald-500"
+                      className="w-full px-3 py-2 rounded-lg bg-white border border-slate-300 text-slate-900 focus:outline-none focus:border-emerald-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-slate-400 font-medium mb-1">Ciudad / Municipio</label>
+                    <label className="block text-slate-600 font-medium mb-1">Ciudad / Municipio</label>
                     <input
                       type="text"
                       placeholder="Bogotá D.C., Medellín..."
                       value={city}
                       onChange={e => setCity(e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-emerald-500"
+                      className="w-full px-3 py-2 rounded-lg bg-white border border-slate-300 text-slate-900 focus:outline-none focus:border-emerald-500"
                     />
                   </div>
                 </div>
               </div>
 
-              <div>
-                <label className="block text-slate-400 font-medium mb-1">URL de Fotografía / Avatar</label>
-                <input
-                  type="url"
-                  placeholder="https://images.unsplash.com/... (opcional, o déjelo en blanco para avatar automático)"
-                  value={photoUrl}
-                  onChange={e => setPhotoUrl(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-emerald-500"
-                />
+              <div className="pt-2 border-t border-slate-200">
+                <label className="block text-slate-700 font-semibold mb-1.5 flex items-center justify-between">
+                  <span>Fotografía del Trabajador (Avatar Oficial)</span>
+                  <span className="text-[10px] text-slate-500">JPG, PNG o URL web</span>
+                </label>
+                <div className="flex items-center gap-3">
+                  {photoUrl ? (
+                    <div className="relative group shrink-0">
+                      <img
+                        src={photoUrl}
+                        alt="Foto trabajador"
+                        className="w-14 h-14 rounded-xl object-cover border-2 border-emerald-500 shadow-sm"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setPhotoUrl('')}
+                        className="absolute -top-1.5 -right-1.5 p-1 rounded-full bg-rose-600 text-white shadow hover:bg-rose-700 transition-colors"
+                        title="Quitar foto"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="w-14 h-14 rounded-xl bg-slate-100 border-2 border-dashed border-slate-300 flex items-center justify-center text-slate-400 shrink-0">
+                      <Camera className="w-6 h-6" />
+                    </div>
+                  )}
+
+                  <div className="flex-1 space-y-1.5 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <input
+                        type="file"
+                        id="workerPhotoUpload"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={e => {
+                          if (e.target.files && e.target.files[0]) {
+                            const reader = new FileReader();
+                            reader.onload = () => {
+                              if (typeof reader.result === 'string') {
+                                setPhotoUrl(reader.result);
+                              }
+                            };
+                            reader.readAsDataURL(e.target.files[0]);
+                          }
+                        }}
+                      />
+                      <label
+                        htmlFor="workerPhotoUpload"
+                        className="px-3 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 text-xs font-semibold cursor-pointer inline-flex items-center gap-1.5 transition-colors"
+                      >
+                        <Camera className="w-3.5 h-3.5" />
+                        <span>Subir Foto desde tu Equipo</span>
+                      </label>
+                      <span className="text-[10px] text-slate-400">o ingresa enlace web:</span>
+                    </div>
+                    <input
+                      type="url"
+                      placeholder="https://... (opcional)"
+                      value={photoUrl.startsWith('data:') ? '' : photoUrl}
+                      onChange={e => setPhotoUrl(e.target.value)}
+                      className="w-full px-2.5 py-1.5 rounded-lg bg-white border border-slate-300 text-slate-900 focus:outline-none focus:border-emerald-500 text-xs"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           )}
@@ -426,36 +482,36 @@ export const WorkerFormModal: React.FC<WorkerFormModalProps> = ({ isOpen, worker
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-3.5">
                 <div>
-                  <label className="block text-slate-300 font-medium mb-1">Cargo Actual *</label>
+                  <label className="block text-slate-700 font-medium mb-1">Cargo Actual *</label>
                   <input
                     type="text"
                     required
                     placeholder="Ej. Coordinador SG-SST, Conductor Carga..."
                     value={position}
                     onChange={e => setPosition(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-emerald-500"
+                    className="w-full px-3 py-2 rounded-lg bg-white border border-slate-300 text-slate-900 focus:outline-none focus:border-emerald-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-300 font-medium mb-1">Área o Departamento *</label>
+                  <label className="block text-slate-700 font-medium mb-1">Área o Departamento *</label>
                   <input
                     type="text"
                     required
                     placeholder="Ej. Operaciones, HSEQ, Mantenimiento..."
                     value={area}
                     onChange={e => setArea(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-emerald-500"
+                    className="w-full px-3 py-2 rounded-lg bg-white border border-slate-300 text-slate-900 focus:outline-none focus:border-emerald-500"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3.5">
                 <div>
-                  <label className="block text-slate-300 font-medium mb-1">Sede / Centro de Trabajo *</label>
+                  <label className="block text-slate-700 font-medium mb-1">Sede / Centro de Trabajo *</label>
                   <select
                     value={siteId}
                     onChange={e => setSiteId(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-emerald-500"
+                    className="w-full px-3 py-2 rounded-lg bg-white border border-slate-300 text-slate-900 focus:outline-none focus:border-emerald-500"
                   >
                     {organization.sites.map(s => (
                       <option key={s.id} value={s.id}>
@@ -465,11 +521,11 @@ export const WorkerFormModal: React.FC<WorkerFormModalProps> = ({ isOpen, worker
                   </select>
                 </div>
                 <div>
-                  <label className="block text-slate-300 font-medium mb-1">Proceso Vinculado *</label>
+                  <label className="block text-slate-700 font-medium mb-1">Proceso Vinculado *</label>
                   <select
                     value={processId}
                     onChange={e => setProcessId(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-emerald-500"
+                    className="w-full px-3 py-2 rounded-lg bg-white border border-slate-300 text-slate-900 focus:outline-none focus:border-emerald-500"
                   >
                     {organization.processes.map(p => (
                       <option key={p.id} value={p.id}>
@@ -482,11 +538,11 @@ export const WorkerFormModal: React.FC<WorkerFormModalProps> = ({ isOpen, worker
 
               <div className="grid grid-cols-3 gap-3.5">
                 <div>
-                  <label className="block text-slate-300 font-medium mb-1">Tipo de Vinculación *</label>
+                  <label className="block text-slate-700 font-medium mb-1">Tipo de Vinculación *</label>
                   <select
                     value={contractType}
                     onChange={e => setContractType(e.target.value as any)}
-                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-emerald-500"
+                    className="w-full px-3 py-2 rounded-lg bg-white border border-slate-300 text-slate-900 focus:outline-none focus:border-emerald-500"
                   >
                     <option value="TERMINO_INDEFINIDO">Término Indefinido</option>
                     <option value="TERMINO_FIJO">Término Fijo</option>
@@ -497,11 +553,11 @@ export const WorkerFormModal: React.FC<WorkerFormModalProps> = ({ isOpen, worker
                   </select>
                 </div>
                 <div>
-                  <label className="block text-slate-300 font-medium mb-1">Modalidad de Trabajo *</label>
+                  <label className="block text-slate-700 font-medium mb-1">Modalidad de Trabajo *</label>
                   <select
                     value={workModality}
                     onChange={e => setWorkModality(e.target.value as any)}
-                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-emerald-500"
+                    className="w-full px-3 py-2 rounded-lg bg-white border border-slate-300 text-slate-900 focus:outline-none focus:border-emerald-500"
                   >
                     <option value="PRESENCIAL">Presencial</option>
                     <option value="HIBRIDO">Híbrido</option>
@@ -510,11 +566,11 @@ export const WorkerFormModal: React.FC<WorkerFormModalProps> = ({ isOpen, worker
                   </select>
                 </div>
                 <div>
-                  <label className="block text-slate-300 font-medium mb-1">Jornada Laboral *</label>
+                  <label className="block text-slate-700 font-medium mb-1">Jornada Laboral *</label>
                   <select
                     value={workShift}
                     onChange={e => setWorkShift(e.target.value as any)}
-                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-emerald-500"
+                    className="w-full px-3 py-2 rounded-lg bg-white border border-slate-300 text-slate-900 focus:outline-none focus:border-emerald-500"
                   >
                     <option value="COMPLETA">Completa Ordinaria</option>
                     <option value="MEDIO_TIEMPO">Medio Tiempo</option>
@@ -525,25 +581,25 @@ export const WorkerFormModal: React.FC<WorkerFormModalProps> = ({ isOpen, worker
               </div>
 
               <div>
-                <label className="block text-slate-300 font-medium mb-1">Jefe Inmediato</label>
+                <label className="block text-slate-700 font-medium mb-1">Jefe Inmediato</label>
                 <input
                   type="text"
                   placeholder="Ej. Ing. Carlos Mendoza, Lic. Fernando Ortiz..."
                   value={immediateBoss}
                   onChange={e => setImmediateBoss(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-emerald-500"
+                  className="w-full px-3 py-2 rounded-lg bg-white border border-slate-300 text-slate-900 focus:outline-none focus:border-emerald-500"
                 />
               </div>
 
               {!worker && (
                 <div>
-                  <label className="block text-slate-400 font-medium mb-1">Notas Iniciales de Contratación</label>
+                  <label className="block text-slate-600 font-medium mb-1">Notas Iniciales de Contratación</label>
                   <textarea
                     rows={2}
                     placeholder="Detalles del cargo de ingreso..."
                     value={initialLaborNotes}
                     onChange={e => setInitialLaborNotes(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-emerald-500 resize-none"
+                    className="w-full px-3 py-2 rounded-lg bg-white border border-slate-300 text-slate-900 focus:outline-none focus:border-emerald-500 resize-none"
                   />
                 </div>
               )}
@@ -553,11 +609,11 @@ export const WorkerFormModal: React.FC<WorkerFormModalProps> = ({ isOpen, worker
           {activeTab === 'ACADEMIC' && (
             <div className="space-y-4">
               <div>
-                <label className="block text-slate-300 font-medium mb-1">Máximo Nivel Educativo Alcanzado *</label>
+                <label className="block text-slate-700 font-medium mb-1">Máximo Nivel Educativo Alcanzado *</label>
                 <select
                   value={educationLevel}
                   onChange={e => setEducationLevel(e.target.value as any)}
-                  className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-emerald-500"
+                  className="w-full px-3 py-2 rounded-lg bg-white border border-slate-300 text-slate-900 focus:outline-none focus:border-emerald-500"
                 >
                   <option value="PRIMARIA">Básica Primaria</option>
                   <option value="BACHILLERATO">Bachillerato</option>
@@ -572,46 +628,46 @@ export const WorkerFormModal: React.FC<WorkerFormModalProps> = ({ isOpen, worker
 
               <div className="grid grid-cols-2 gap-3.5">
                 <div>
-                  <label className="block text-slate-300 font-medium mb-1">Título Obtenido / Carrera</label>
+                  <label className="block text-slate-700 font-medium mb-1">Título Obtenido / Carrera</label>
                   <input
                     type="text"
                     placeholder="Ej. Ingeniería Industrial, Bachiller..."
                     value={initialDegreeTitle}
                     onChange={e => setInitialDegreeTitle(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-emerald-500"
+                    className="w-full px-3 py-2 rounded-lg bg-white border border-slate-300 text-slate-900 focus:outline-none focus:border-emerald-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-300 font-medium mb-1">Institución Educativa</label>
+                  <label className="block text-slate-700 font-medium mb-1">Institución Educativa</label>
                   <input
                     type="text"
                     placeholder="Ej. SENA, Universidad Nacional..."
                     value={initialInstitution}
                     onChange={e => setInitialInstitution(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-emerald-500"
+                    className="w-full px-3 py-2 rounded-lg bg-white border border-slate-300 text-slate-900 focus:outline-none focus:border-emerald-500"
                   />
                 </div>
               </div>
 
-              <div className="p-3 rounded-lg bg-slate-950/70 border border-slate-800 text-slate-400 space-y-1">
-                <p className="font-semibold text-slate-300">ℹ️ Licencias y Certificaciones Especializadas:</p>
+              <div className="p-3 rounded-lg bg-white/80 border border-slate-200 text-slate-600 space-y-1">
+                <p className="font-semibold text-slate-700">ℹ️ Licencias y Certificaciones Especializadas:</p>
                 <p>
                   Podrás adjuntar y configurar en detalle las certificaciones de Alturas, Espacios Confinados,
                   Licencias de SST con número de resolución y fechas de vencimiento directamente desde el{' '}
-                  <strong className="text-emerald-400">Expediente Digital 360°</strong> una vez creado el perfil.
+                  <strong className="text-emerald-700">Expediente Digital 360°</strong> una vez creado el perfil.
                 </p>
               </div>
             </div>
           )}
 
           {/* Footer */}
-          <div className="flex items-center justify-between pt-4 border-t border-slate-800">
+          <div className="flex items-center justify-between pt-4 border-t border-slate-200">
             <div className="flex gap-2">
               {activeTab !== 'ID' && (
                 <button
                   type="button"
                   onClick={() => setActiveTab(activeTab === 'ACADEMIC' ? 'LABOR' : 'ID')}
-                  className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium"
+                  className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium"
                 >
                   Anterior
                 </button>
@@ -620,7 +676,7 @@ export const WorkerFormModal: React.FC<WorkerFormModalProps> = ({ isOpen, worker
                 <button
                   type="button"
                   onClick={() => setActiveTab(activeTab === 'ID' ? 'LABOR' : 'ACADEMIC')}
-                  className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-emerald-400 text-xs font-semibold"
+                  className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-emerald-700 text-xs font-semibold"
                 >
                   Siguiente paso
                 </button>
@@ -631,13 +687,13 @@ export const WorkerFormModal: React.FC<WorkerFormModalProps> = ({ isOpen, worker
               <button
                 type="button"
                 onClick={onClose}
-                className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium"
+                className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
-                className="px-4 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-md shadow-emerald-950"
+                className="px-4 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-md shadow-slate-900/5"
               >
                 {worker ? 'Guardar Cambios' : 'Crear Expediente Digital'}
               </button>

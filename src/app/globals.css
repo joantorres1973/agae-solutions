@@ -1,54 +1,54 @@
 @import "tailwindcss";
 
 :root {
-  --background: #06140f;
-  --foreground: #ecfdf5;
-  --card: #0c261e;
-  --card-foreground: #f0fdf4;
+  --background: #f4f8f6;
+  --foreground: #16245c;
+  --card: #ffffff;
+  --card-foreground: #16245c;
   --primary: #059669;
   --primary-foreground: #ffffff;
-  --accent: #10b981;
+  --accent: #7cb342;
   --accent-foreground: #ffffff;
-  --border: #133e31;
+  --border: #dcefe4;
   --ring: #34d399;
 }
 
 body {
-  background-color: #06140f;
-  color: #ecfdf5;
+  background-color: #f4f8f6;
+  color: #1f2a44;
   font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
   overflow-x: hidden;
 }
 
-/* Custom scrollbars in emerald forest theme */
+/* Scrollbars: soft corporate green */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #040d0a;
+  background: #eef5f1;
 }
 ::-webkit-scrollbar-thumb {
-  background: #123d30;
+  background: #b9dcc8;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #1b5342;
+  background: #8fc7a8;
 }
 
-/* Glassmorphism helpers - Emerald/Green scale */
+/* Panels: white with soft green-tinted shadows (corporate light theme) */
 .glass-panel {
-  background: rgba(9, 29, 22, 0.78);
+  background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(52, 211, 153, 0.12);
+  border: 1px solid #e3f1e8;
+  box-shadow: 0 6px 24px -14px rgba(15, 90, 60, 0.25);
 }
 
 .glass-card {
-  background: rgba(12, 38, 29, 0.65);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(52, 211, 153, 0.1);
+  background: #ffffff;
+  border: 1px solid #e3f1e8;
+  box-shadow: 0 10px 32px -18px rgba(15, 90, 60, 0.28), 0 2px 6px -3px rgba(15, 40, 90, 0.06);
 }
 
 .glass-card-hover {
@@ -56,8 +56,8 @@ body {
 }
 .glass-card-hover:hover {
   transform: translateY(-2px);
-  border-color: rgba(52, 211, 153, 0.35);
-  box-shadow: 0 12px 24px -10px rgba(5, 150, 105, 0.3);
+  border-color: #a7dcbc;
+  box-shadow: 0 18px 40px -18px rgba(5, 150, 105, 0.35);
 }
 
 /* Status Glows */

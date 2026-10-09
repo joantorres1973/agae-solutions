@@ -120,6 +120,7 @@ export interface WorkerDigitalDocument {
   expiryDate?: string;
   status: 'VIGENTE' | 'POR_VENCER' | 'VENCIDO' | 'NO_EXPIRA';
   url?: string;
+  fileBase64?: string;
   uploadedBy: string;
   notes?: string;
 }

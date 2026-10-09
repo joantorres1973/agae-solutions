@@ -86,10 +86,10 @@ export const DemoUpsellModal: React.FC = () => {
           >
             <Rocket className="w-4 h-4" /> Quiero contratar AGAE <ArrowRight className="w-4 h-4" />
           </button>
-          <button onClick={closeUpsell} className="mt-3 w-full py-2.5 text-sm text-slate-500 hover:text-[#16245c]">
+          <button onClick={closeUpsell} className="mt-3 w-full py-2.5 text-sm text-slate-600 hover:text-[#16245c]">
             Seguir explorando el demo
           </button>
-          <p className="mt-2 text-center text-[11px] text-slate-500">*Sujeto a las condiciones del programa de lanzamiento.</p>
+          <p className="mt-2 text-center text-[11px] text-slate-600">*Sujeto a las condiciones del programa de lanzamiento.</p>
         </div>
       </div>
     </div>
