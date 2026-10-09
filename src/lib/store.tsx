@@ -87,7 +87,12 @@ import {
   DocumentControlProcedure,
   ControlledDocument,
   DocumentTypeCatalogItem,
-  DocumentProcessCatalogItem
+  DocumentProcessCatalogItem,
+  AccountabilityState,
+  AccountabilityReport,
+  AccountabilityConsolidatedReport,
+  AnnualPlanActivity,
+  WorkerPatMetrics
 } from '@/types';
 import { initialPilaRecords } from './mock-pila-data';
 import { initialCopasstGlobalState } from './copasst-mock-data';
@@ -101,6 +106,11 @@ import {
   calculateDocumentMetrics,
   DEFAULT_CONTROL_PROCEDURE
 } from './document-management-mock';
+import {
+  INITIAL_ACCOUNTABILITY_STATE,
+  calculateWorkerPatMetrics,
+  generateAccountabilityDocCode
+} from './accountability-mock';
 import { initialMasterWorkers } from './worker-mock-data';
 import {
   initialOrganization,
@@ -437,6 +447,21 @@ interface AppContextType {
   updateDocumentTypeCatalog: (id: string, updates: Partial<DocumentTypeCatalogItem>) => void;
   updateDocumentProcessCatalog: (id: string, updates: Partial<DocumentProcessCatalogItem>) => void;
 
+  // Rendición de Cuentas sobre el Desempeño en SST (Estándar 2.3.1, Dec. 1072 Art. 2.2.4.6.8 Num. 3)
+  accountabilityState: AccountabilityState;
+  setCurrentAccountabilityPeriod: (period: string) => void;
+  updateAccountabilityReport: (reportId: string, updates: Partial<AccountabilityReport>) => void;
+  submitAccountabilityForReview: (reportId: string) => void;
+  reviewAndFinalizeAccountability: (reportId: string, reviewData: {
+    reviewerObservations: string;
+    approved: boolean;
+    reviewerId?: string;
+    reviewerName: string;
+    reviewerPosition: string;
+  }) => void;
+  generateConsolidatedAccountabilityReport: (period: string, managerName?: string) => AccountabilityConsolidatedReport;
+  registerAccountabilityReportInRepository: (reportId: string) => void;
+
   // Global search & filters
   searchQuery: string;
   setSearchQuery: (q: string) => void;
@@ -507,6 +532,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   // Archivo y Retención Documental (Decreto 1072/2015 Art. 2.2.4.6.12 y 2.2.4.6.13, Estándar 2.2.1)
   const [documentManagementState, setDocumentManagementState] = useState<DocumentManagementState>(INITIAL_DOCUMENT_MANAGEMENT_STATE);
+
+  // Rendición de Cuentas sobre el Desempeño en SST (Estándar 2.3.1, Dec. 1072 Art. 2.2.4.6.8 Num. 3)
+  const [accountabilityState, setAccountabilityState] = useState<AccountabilityState>(INITIAL_ACCOUNTABILITY_STATE);
   // Caracterización Inteligente & Motor de Aplicabilidad
   // Saved draft (browser only). The public landing does not render characterization data, so there is no hydration mismatch.
   const [initialDraft] = useState(() => (typeof window === 'undefined' ? null : loadDraft()));
@@ -4383,6 +4411,354 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     showNotification('Catálogo de procesos actualizado', 'info');
   };
 
+  // -------------------------------------------------------------------------
+  // Rendición de Cuentas sobre el Desempeño en SST (Estándar 2.3.1, Dec. 1072 Art. 2.2.4.6.8 Num. 3)
+  // -------------------------------------------------------------------------
+  const setCurrentAccountabilityPeriod = (period: string) => {
+    setAccountabilityState(prev => ({
+      ...prev,
+      currentPeriod: period
+    }));
+    showNotification(`Periodo de Rendición de Cuentas cambiado a: ${period}`, 'info');
+  };
+
+  const updateAccountabilityReport = (reportId: string, updates: Partial<AccountabilityReport>) => {
+    setAccountabilityState(prev => {
+      const updatedReports = prev.reports.map(r => {
+        if (r.id !== reportId) return r;
+        const newStatus = (r.status === 'PENDIENTE' && (updates.managementDescription || updates.achievedResults))
+          ? ('EN_ELABORACION' as const)
+          : (updates.status || r.status);
+        return {
+          ...r,
+          ...updates,
+          status: newStatus
+        };
+      });
+      return {
+        ...prev,
+        reports: updatedReports
+      };
+    });
+  };
+
+  const submitAccountabilityForReview = (reportId: string) => {
+    const now = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    const token = `SIG-WRK-${Date.now().toString(36).toUpperCase()}`;
+
+    setAccountabilityState(prev => {
+      const updatedReports = prev.reports.map(r => {
+        if (r.id !== reportId) return r;
+        const newHistory = [
+          ...r.historyLog,
+          {
+            id: `h-${Date.now()}`,
+            timestamp: now,
+            action: 'Rendición de cuentas completada y enviada para revisión jerárquica',
+            author: r.workerName,
+            note: 'Firma electrónica registrada por el responsable'
+          }
+        ];
+        return {
+          ...r,
+          status: 'PENDIENTE_REVISION' as const,
+          completedAt: now,
+          workerSignedAt: now,
+          workerSignatureToken: token,
+          historyLog: newHistory
+        };
+      });
+      return {
+        ...prev,
+        reports: updatedReports
+      };
+    });
+
+    showNotification('Rendición de cuentas enviada a revisión exitosamente', 'success');
+  };
+
+  const reviewAndFinalizeAccountability = (
+    reportId: string,
+    reviewData: {
+      reviewerObservations: string;
+      approved: boolean;
+      reviewerId?: string;
+      reviewerName: string;
+      reviewerPosition: string;
+    }
+  ) => {
+    const now = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    const token = `SIG-REV-${Date.now().toString(36).toUpperCase()}`;
+
+    let reportTarget: AccountabilityReport | undefined;
+
+    setAccountabilityState(prev => {
+      const updatedReports = prev.reports.map(r => {
+        if (r.id !== reportId) return r;
+        reportTarget = r;
+        const newStatus = reviewData.approved ? ('FINALIZADA' as const) : ('EN_ELABORACION' as const);
+        const newHistory = [
+          ...r.historyLog,
+          {
+            id: `h-${Date.now()}`,
+            timestamp: now,
+            action: reviewData.approved
+              ? `Revisión técnica aprobada por ${reviewData.reviewerName}`
+              : `Rendición devuelta con observaciones por ${reviewData.reviewerName}`,
+            author: reviewData.reviewerName,
+            note: reviewData.reviewerObservations
+          }
+        ];
+        return {
+          ...r,
+          status: newStatus,
+          reviewedAt: now,
+          reviewerId: reviewData.reviewerId,
+          reviewerName: reviewData.reviewerName,
+          reviewerPosition: reviewData.reviewerPosition,
+          reviewerObservations: reviewData.reviewerObservations,
+          reviewerApproved: reviewData.approved,
+          reviewerSignedAt: reviewData.approved ? now : undefined,
+          reviewerSignatureToken: reviewData.approved ? token : undefined,
+          registeredInRepository: reviewData.approved ? true : r.registeredInRepository,
+          historyLog: newHistory
+        };
+      });
+      return {
+        ...prev,
+        reports: updatedReports
+      };
+    });
+
+    if (reviewData.approved && reportTarget) {
+      // 1. Integración automática con el Repositorio Documental Centralizado (2.2.1)
+      const docCode = reportTarget.code || generateNextDocumentCode('IF', 'SGSST', 'GEN', documentManagementState.documents);
+      const nowIso = new Date().toISOString().replace('T', ' ').substring(0, 16);
+      
+      const existsInDocs = documentManagementState.documents.some(d => d.code === docCode || d.title.includes(reportTarget?.workerName || ''));
+      if (!existsInDocs) {
+        const autoDoc: ControlledDocument = {
+          id: `doc-acc-${Date.now()}`,
+          code: docCode,
+          title: `Informe Individual de Rendición de Cuentas SST - ${reportTarget.workerName} (${reportTarget.period})`,
+          description: `Informe formal de cumplimiento de responsabilidades en SST conforme al Decreto 1072 de 2015 Art. 2.2.4.6.8 Numeral 3. Cargo: ${reportTarget.workerPosition}.`,
+          system: 'SGSST',
+          processCode: 'GEN',
+          processId: 'GEN',
+          processName: 'Gestión Integral HSEQ',
+          typeCode: 'IF',
+          documentTypeId: 'IF',
+          typeName: 'Informe',
+          originModule: 'SST',
+          isControlledDocument: true,
+          responsibleRole: reportTarget.workerPosition,
+          responsible: reportTarget.workerName,
+          authorName: reportTarget.workerName,
+          status: 'VIGENTE',
+          storageSupport: 'DIGITAL_CLOUD',
+          currentVersion: '001',
+          versionHistory: [],
+          retentionYears: 5,
+          retentionLegalBasis: 'Decreto 1072 de 2015 Art. 2.2.4.6.8 Numeral 3 y Art. 2.2.4.6.12',
+          retentionBasis: 'Decreto 1072 de 2015 Art. 2.2.4.6.8 Numeral 3 y Art. 2.2.4.6.12',
+          retentionStartEvent: 'FECHA_EMISION',
+          isMandatory20Years: false,
+          confidentiality: 'INTERNO',
+          physicalLocation: 'Repositorio Documental Central AGAE SOLUTIONS',
+          approvedDate: nowIso,
+          approvedAt: nowIso,
+          approvedBy: reviewData.reviewerName,
+          createdDate: nowIso,
+          createdAt: nowIso,
+          lastUpdatedDate: nowIso,
+          updatedAt: nowIso
+        };
+
+        setDocumentManagementState(prev => {
+          const updated = [autoDoc, ...prev.documents];
+          return {
+            ...prev,
+            documents: updated,
+            metrics: calculateDocumentMetrics(updated)
+          };
+        });
+      }
+
+      // 2. Actualizar Estándar 2.3.1 a CUMPLE
+      updateStandardStatus(
+        'std-2.3.1',
+        'CUMPLE',
+        `Rendición de cuentas anual formalmente finalizada y suscrita por la alta dirección y responsables de procesos para la vigencia ${reportTarget.period}.`
+      );
+
+      showNotification(`Rendición de cuentas de ${reportTarget.workerName} finalizada y archivada en el Repositorio Documental`, 'success');
+    } else {
+      showNotification('Rendición de cuentas devuelta al responsable con observaciones', 'info');
+    }
+  };
+
+  const generateConsolidatedAccountabilityReport = (
+    period: string,
+    managerName: string = 'Lic. Fernando Ortiz Salazar'
+  ): AccountabilityConsolidatedReport => {
+    const periodReports = accountabilityState.reports.filter(r => r.period === period);
+    const totalEligibleWorkers = periodReports.length || 6;
+    const completedCount = periodReports.filter(r => r.status === 'FINALIZADA').length;
+    const inReviewCount = periodReports.filter(r => r.status === 'PENDIENTE_REVISION').length;
+    const inProgressCount = periodReports.filter(r => r.status === 'EN_ELABORACION').length;
+    const pendingCount = periodReports.filter(r => r.status === 'PENDIENTE').length;
+
+    const globalComplianceRate = totalEligibleWorkers > 0
+      ? Math.round((completedCount / totalEligibleWorkers) * 1000) / 10
+      : 0;
+
+    const now = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    const code = `IF-SGSST-GEN-${String(accountabilityState.consolidatedReports.length + 4).padStart(3, '0')}`;
+
+    const newConsolidated: AccountabilityConsolidatedReport = {
+      id: `cons-${Date.now()}`,
+      code,
+      period,
+      generatedAt: now,
+      totalEligibleWorkers,
+      completedCount,
+      inReviewCount,
+      inProgressCount,
+      pendingCount,
+      globalComplianceRate,
+      keyGapsIdentified: [
+        'Demoras en la entrega de diagnósticos analíticos de salud ocupacional por parte de IPS externas.',
+        'Necesidad de reforzar la señalización y espejos de seguridad en cruces ciegos del almacén central.',
+        'Fortalecimiento de la dotación ignífuga y linternas intrínsecas para la brigada en horarios nocturnos.'
+      ],
+      strategicCommitments: [
+        'Garantizar la culminación de mediciones higiénicas y su articulación con el sistema de vigilancia epidemiológica.',
+        'Desarrollar el Simulacro de Evacuación en octubre con articulación distrital y reporte al IDIGER.',
+        'Efectuar la sesión formal de Revisión por la Dirección en noviembre con presencia del Representante Legal.'
+      ],
+      approvedByManager: true,
+      managerName,
+      managerSignedAt: now,
+      documentMasterCode: code
+    };
+
+    setAccountabilityState(prev => ({
+      ...prev,
+      consolidatedReports: [newConsolidated, ...prev.consolidatedReports]
+    }));
+
+    // Registrar en el repositorio documental central (2.2.1)
+    const autoDoc: ControlledDocument = {
+      id: `doc-cons-${Date.now()}`,
+      code,
+      title: `Informe Consolidado Anual de Rendición de Cuentas SST - Periodo ${period}`,
+      description: `Consolidado corporativo del cumplimiento de responsabilidades en SST en todos los niveles organizacionales (Decreto 1072 Art. 2.2.4.6.8 Numeral 3).`,
+      system: 'SGSST',
+      processCode: 'GEN',
+      processId: 'GEN',
+      processName: 'Gestión Integral HSEQ',
+      typeCode: 'IF',
+      documentTypeId: 'IF',
+      typeName: 'Informe',
+      originModule: 'SST',
+      isControlledDocument: true,
+      responsibleRole: 'Gerencia General',
+      responsible: managerName,
+      authorName: 'Coordinación SG-SST',
+      status: 'VIGENTE',
+      storageSupport: 'DIGITAL_CLOUD',
+      currentVersion: '001',
+      versionHistory: [],
+      retentionYears: 5,
+      retentionLegalBasis: 'Decreto 1072 de 2015 Art. 2.2.4.6.8 Numeral 3 y Art. 2.2.4.6.12',
+      retentionBasis: 'Decreto 1072 de 2015 Art. 2.2.4.6.8 Numeral 3 y Art. 2.2.4.6.12',
+      retentionStartEvent: 'FECHA_EMISION',
+      isMandatory20Years: false,
+      confidentiality: 'INTERNO',
+      physicalLocation: 'Repositorio Documental Central AGAE SOLUTIONS',
+      approvedDate: now,
+      approvedAt: now,
+      approvedBy: managerName,
+      createdDate: now,
+      createdAt: now,
+      lastUpdatedDate: now,
+      updatedAt: now
+    };
+
+    setDocumentManagementState(prev => {
+      const updated = [autoDoc, ...prev.documents];
+      return {
+        ...prev,
+        documents: updated,
+        metrics: calculateDocumentMetrics(updated)
+      };
+    });
+
+    showNotification(`Informe Consolidado ${code} generado y radicado en el Repositorio Documental`, 'success');
+    return newConsolidated;
+  };
+
+  const registerAccountabilityReportInRepository = (reportId: string) => {
+    const report = accountabilityState.reports.find(r => r.id === reportId);
+    if (!report) return;
+
+    const docCode = report.code || generateNextDocumentCode('IF', 'SGSST', 'GEN', documentManagementState.documents);
+    const nowIso = new Date().toISOString().replace('T', ' ').substring(0, 16);
+
+    const autoDoc: ControlledDocument = {
+      id: `doc-acc-${Date.now()}`,
+      code: docCode,
+      title: `Informe Individual de Rendición de Cuentas SST - ${report.workerName} (${report.period})`,
+      description: `Informe formal de cumplimiento de responsabilidades en SST conforme al Decreto 1072 de 2015 Art. 2.2.4.6.8 Numeral 3. Cargo: ${report.workerPosition}.`,
+      system: 'SGSST',
+      processCode: 'GEN',
+      processId: 'GEN',
+      processName: 'Gestión Integral HSEQ',
+      typeCode: 'IF',
+      documentTypeId: 'IF',
+      typeName: 'Informe',
+      originModule: 'SST',
+      isControlledDocument: true,
+      responsibleRole: report.workerPosition,
+      responsible: report.workerName,
+      authorName: report.workerName,
+      status: 'VIGENTE',
+      storageSupport: 'DIGITAL_CLOUD',
+      currentVersion: '001',
+      versionHistory: [],
+      retentionYears: 5,
+      retentionLegalBasis: 'Decreto 1072 de 2015 Art. 2.2.4.6.8 Numeral 3 y Art. 2.2.4.6.12',
+      retentionBasis: 'Decreto 1072 de 2015 Art. 2.2.4.6.8 Numeral 3 y Art. 2.2.4.6.12',
+      retentionStartEvent: 'FECHA_EMISION',
+      isMandatory20Years: false,
+      confidentiality: 'INTERNO',
+      physicalLocation: 'Repositorio Documental Central AGAE SOLUTIONS',
+      approvedDate: report.reviewedAt || nowIso,
+      approvedAt: report.reviewedAt || nowIso,
+      approvedBy: report.reviewerName || 'Gerencia General',
+      createdDate: report.completedAt || nowIso,
+      createdAt: report.completedAt || nowIso,
+      lastUpdatedDate: nowIso,
+      updatedAt: nowIso
+    };
+
+    setDocumentManagementState(prev => {
+      const updated = [autoDoc, ...prev.documents];
+      return {
+        ...prev,
+        documents: updated,
+        metrics: calculateDocumentMetrics(updated)
+      };
+    });
+
+    setAccountabilityState(prev => ({
+      ...prev,
+      reports: prev.reports.map(r => r.id === reportId ? { ...r, registeredInRepository: true, documentMasterCode: docCode } : r)
+    }));
+
+    showNotification(`Documento ${docCode} registrado exitosamente en el Repositorio Central`, 'success');
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -4584,6 +4960,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         addDocumentProcessCatalog,
         updateDocumentTypeCatalog,
         updateDocumentProcessCatalog,
+
+        // Rendición de Cuentas sobre el Desempeño en SST (Estándar 2.3.1, Dec. 1072 Art. 2.2.4.6.8 Num. 3)
+        accountabilityState,
+        setCurrentAccountabilityPeriod,
+        updateAccountabilityReport,
+        submitAccountabilityForReview,
+        reviewAndFinalizeAccountability,
+        generateConsolidatedAccountabilityReport,
+        registerAccountabilityReportInRepository,
 
         searchQuery,
         setSearchQuery,

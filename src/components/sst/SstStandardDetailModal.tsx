@@ -40,6 +40,7 @@ interface SstStandardDetailModalProps {
   onOpenPolicy?: (tab?: 'POLICY' | 'OBJECTIVES') => void;
   onOpenEvaluation?: (tab?: 'CHECKLIST' | 'DASHBOARD' | 'ACTIONS' | 'VALIDATION' | 'REPORT') => void;
   onOpenDocumentation?: (tab?: 'REPOSITORY' | 'PROCEDURE' | 'CODING' | 'RETENTION') => void;
+  onOpenAccountability?: () => void;
 }
 
 export const SstStandardDetailModal: React.FC<SstStandardDetailModalProps> = ({
@@ -54,7 +55,8 @@ export const SstStandardDetailModal: React.FC<SstStandardDetailModalProps> = ({
   onOpenTraining,
   onOpenPolicy,
   onOpenEvaluation,
-  onOpenDocumentation
+  onOpenDocumentation,
+  onOpenAccountability
 }) => {
   const {
     evidences,
@@ -81,6 +83,7 @@ export const SstStandardDetailModal: React.FC<SstStandardDetailModalProps> = ({
   const isObjectivesStandard = standard.code === '2.1.2';
   const isEvaluationStandard = standard.code === '2.1.3' || standard.actionType === 'INITIAL_EVALUATION';
   const isDocumentationStandard = standard.code === '2.2.1' || standard.actionType === 'DOCUMENTATION';
+  const isAccountabilityStandard = standard.code === '2.3.1' || standard.actionType === 'ACCOUNTABILITY';
 
   const handleSave = () => {
     updateStandardStatus(standard.id, status, notes);
@@ -202,7 +205,7 @@ export const SstStandardDetailModal: React.FC<SstStandardDetailModalProps> = ({
           </div>
 
           {/* Quick Action Trigger if standard has specialized tool */}
-          {(standard.actionType || isPilaStandard || isCopasstStandard || isCclStandard || isTrainingStandard || isCourse50Standard || isPolicyStandard || isObjectivesStandard || isEvaluationStandard || isDocumentationStandard) && (
+          {(standard.actionType || isPilaStandard || isCopasstStandard || isCclStandard || isTrainingStandard || isCourse50Standard || isPolicyStandard || isObjectivesStandard || isEvaluationStandard || isDocumentationStandard || isAccountabilityStandard) && (
             <div className="p-3.5 rounded-xl bg-gradient-to-r from-orange-50 via-white to-slate-50 border border-orange-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <span className="font-bold text-slate-900 block">Herramienta Integrada Disponible</span>
@@ -216,6 +219,7 @@ export const SstStandardDetailModal: React.FC<SstStandardDetailModalProps> = ({
                    isObjectivesStandard ? 'Gestione los objetivos del SG-SST, metas, indicadores asociados, seguimiento periódico y derivación directa a matriz ACPM.' :
                    isEvaluationStandard ? 'Diagnóstico integral según los 10 componentes del Art. 2.2.4.6.16 del Decreto 1072 de 2015, trazabilidad con módulos, brechas e informe PDF.' :
                    isDocumentationStandard ? 'Gestione el Procedimiento de Control Documental editable (PR-SGSST-GEN-001), la codificación por serie, el repositorio centralizado transversal y la matriz de retención legal de 20 años (Art. 2.2.4.6.13).' :
+                   isAccountabilityStandard ? 'Gestione la Rendición de Cuentas anual sobre el desempeño en SST (Dec. 1072 Art. 2.2.4.6.8 Num. 3) articulada con el Plan Anual de Trabajo, comités, firma electrónica y archivo central.' :
                    standard.actionType === 'RESPONSIBLE' ? 'Gestione la hoja de vida, licencia y la Carta de Asignación formal generada en vivo.' :
                    standard.actionType === 'BUDGET' ? 'Configure el presupuesto integrado SST + Vial PESV con aprobación de gerencia.' :
                    standard.actionType === 'HAZARDS' ? 'Identifique peligros y valore riesgos según la matriz GTC 45.' :
@@ -421,6 +425,22 @@ export const SstStandardDetailModal: React.FC<SstStandardDetailModalProps> = ({
                 >
                   <FolderArchive className="w-3.5 h-3.5" />
                   <span>Ir a Archivo & Retención (2.2.1)</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              )}
+
+              {isAccountabilityStandard && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    if (onOpenAccountability) onOpenAccountability();
+                    else if (onNavigateToTab) onNavigateToTab('sst');
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold transition-all shrink-0 shadow-sm"
+                >
+                  <FileCheck className="w-3.5 h-3.5" />
+                  <span>Ir a Rendición de Cuentas (2.3.1)</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               )}

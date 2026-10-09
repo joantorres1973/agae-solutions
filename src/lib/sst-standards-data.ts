@@ -580,10 +580,10 @@ export const master60Standards: SstStandardDefinition[] = [
     applicableIn7: false,
     applicableIn21: true,
     applicableIn60: true,
-    modeOfVerification: 'Revisar registros de rendición de cuentas anual elaborada por la alta dirección y los responsables de procesos.',
+    modeOfVerification: 'Verificar registros individuales y consolidados de rendición de cuentas anual elaborada por la alta dirección, responsable del SG-SST, líderes de proceso y comités, articulados con el Plan Anual de Trabajo.',
     status: 'CUMPLE',
-    evidenceIds: [],
-    actionType: 'GENERAL'
+    evidenceIds: ['evi-rendicion-cuentas-2026'],
+    actionType: 'ACCOUNTABILITY'
   },
   {
     id: 'std-2.4.1',

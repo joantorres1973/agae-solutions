@@ -45,6 +45,7 @@ import { TrainingModule } from './training/TrainingModule';
 import { SstPolicyObjectivesModule } from './policy/SstPolicyObjectivesModule';
 import { SstInitialEvaluationModule } from './evaluation/SstInitialEvaluationModule';
 import { DocumentManagementModule } from './documents/DocumentManagementModule';
+import { AccountabilityModule } from './accountability/AccountabilityModule';
 
 export const SstModule: React.FC = () => {
   const {
@@ -66,7 +67,7 @@ export const SstModule: React.FC = () => {
 
   // Navigation subtabs
   const [activeSubTab, setActiveSubTab] = useState<
-    'STANDARDS' | 'RESPONSIBLE' | 'BUDGET' | 'MATRIX' | 'INSPECTIONS' | 'COMMITTEES' | 'CCL' | 'TRAINING' | 'POLICY' | 'EVALUATION' | 'DOCUMENTATION'
+    'STANDARDS' | 'RESPONSIBLE' | 'BUDGET' | 'MATRIX' | 'INSPECTIONS' | 'COMMITTEES' | 'CCL' | 'TRAINING' | 'POLICY' | 'EVALUATION' | 'DOCUMENTATION' | 'ACCOUNTABILITY'
   >('STANDARDS');
   const [copasstInitialTab, setCopasstInitialTab] = useState<
     'DASHBOARD' | 'CONFORMATION' | 'MEETINGS' | 'FINDINGS' | 'TRAININGS' | 'DOCUMENTS' | 'ELECTION' | 'VIGIA'
@@ -420,6 +421,16 @@ export const SstModule: React.FC = () => {
             <FolderArchive className="w-3.5 h-3.5" />
             <span>2.2.1 Archivo & Retención</span>
           </button>
+
+          <button
+            onClick={() => setActiveSubTab('ACCOUNTABILITY')}
+            className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
+              activeSubTab === 'ACCOUNTABILITY' ? 'bg-orange-600 text-white shadow' : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <FileCheck className="w-3.5 h-3.5" />
+            <span>2.3.1 Rendición de Cuentas</span>
+          </button>
         </div>
       </div>
 
@@ -655,6 +666,7 @@ export const SstModule: React.FC = () => {
               const isObjectivesStandard = std.code === '2.1.2';
               const isEvaluationStandard = std.code === '2.1.3' || std.actionType === 'INITIAL_EVALUATION';
               const isDocumentationStandard = std.code === '2.2.1' || std.actionType === 'DOCUMENTATION';
+              const isAccountabilityStandard = std.code === '2.3.1' || std.actionType === 'ACCOUNTABILITY';
 
               const action =
                 isPilaStandard ? (
@@ -776,6 +788,17 @@ export const SstModule: React.FC = () => {
                   >
                     <FolderArchive className="w-3.5 h-3.5" />
                     <span>2.2.1 Archivo & Retención</span>
+                  </button>
+                ) : isAccountabilityStandard ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveSubTab('ACCOUNTABILITY');
+                    }}
+                    className={`${actionBtn} bg-orange-600 hover:bg-orange-500 text-white shadow-sm`}
+                  >
+                    <FileCheck className="w-3.5 h-3.5" />
+                    <span>2.3.1 Rendición de Cuentas</span>
                   </button>
                 ) : std.actionType === 'RESPONSIBLE' ? (
                   <button type="button" onClick={() => setIsResponsibleModalOpen(true)} className={`${actionBtn} bg-orange-600 hover:bg-orange-500 text-white shadow-sm`}>
@@ -1389,6 +1412,21 @@ export const SstModule: React.FC = () => {
       )}
 
       {/* ============================================================== */}
+      {/* SUBTAB 12: RENDICIÓN DE CUENTAS SOBRE EL DESEMPEÑO EN SST (Estándar 2.3.1) */}
+      {/* ============================================================== */}
+      {activeSubTab === 'ACCOUNTABILITY' && (
+        <AccountabilityModule
+          onNavigateToModule={(targetTab, sstSub) => {
+            if (sstSub) {
+              setActiveSubTab(sstSub as any);
+            } else if (targetTab) {
+              setActiveTab(targetTab);
+            }
+          }}
+        />
+      )}
+
+      {/* ============================================================== */}
       {/* MODALS */}
       {/* ============================================================== */}
 
@@ -1433,6 +1471,7 @@ export const SstModule: React.FC = () => {
           setDocumentInitialTab(tab || 'REPOSITORY');
           setActiveSubTab('DOCUMENTATION');
         }}
+        onOpenAccountability={() => setActiveSubTab('ACCOUNTABILITY')}
       />
 
       {/* 4. Modal Add Hazard GTC 45 */}

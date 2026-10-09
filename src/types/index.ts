@@ -8,6 +8,7 @@ export * from './training';
 export * from './policy-objectives';
 export * from './initial-evaluation';
 export * from './document-management';
+export * from './accountability';
 
 export type ModuleType = 
   | 'SST'
