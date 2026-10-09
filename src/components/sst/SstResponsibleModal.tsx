@@ -103,6 +103,11 @@ export const SstResponsibleModal: React.FC<SstResponsibleModalProps> = ({ isOpen
     const updated = { ...formData, [fieldMap[type]]: newEvidence.id };
     setFormData(updated);
     updateSstResponsible(updated);
+
+    if (type === 'CURSO50') {
+      updateStandardStatus('std-1.2.3', 'CUMPLE', `Certificado Curso 50h/20h cargado por el Líder SST (${formData.fullName}). Articulado con Estándar 1.1.1.`);
+    }
+
     showNotification(`Soporte de ${type} cargado y registrado en el Motor de Evidencias.`);
   };
 
@@ -375,8 +380,19 @@ export const SstResponsibleModal: React.FC<SstResponsibleModalProps> = ({ isOpen
               <div className="glass-card p-4 rounded-xl border border-slate-300 space-y-4">
                 <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
                   <Paperclip className="w-4 h-4 text-purple-700" />
-                  3. Cargue de Documentos y Hoja de Vida (Soportes para Auditoría)
+                  3. Cargue de Documentos, Idoneidad y Curso 50h/20h (Articulación 1.1.1 & 1.2.3)
                 </h3>
+
+                {/* Banner de Articulación Normativa con Estándar 1.2.3 */}
+                <div className="p-3 bg-purple-50 border border-purple-200 rounded-xl text-purple-900 text-xs flex items-start gap-2.5">
+                  <Award className="w-5 h-5 text-purple-700 shrink-0 mt-0.5" />
+                  <div>
+                    <strong className="block text-purple-950">Articulación Normativa Unificada (Estándares 1.1.1 y 1.2.3 - Res. 0312 / Dec. 1072):</strong>
+                    <span className="text-[11px] text-purple-800 leading-relaxed block mt-0.5">
+                      La documentación requerida para el responsable del SG-SST (Hoja de vida, Licencia de SST y Certificación del curso virtual de 50 horas o actualización de 20 horas) se gestiona de manera centralizada en este módulo. Al vincular el certificado a continuación, el <strong>Estándar 1.2.3</strong> se certifica y audita automáticamente sin duplicar trámites.
+                    </span>
+                  </div>
+                </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                   {/* Hoja de Vida */}

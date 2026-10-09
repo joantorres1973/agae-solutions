@@ -72,12 +72,19 @@ import {
   VirtualCertificate,
   InductionPackage,
   AiTrainingSuggestion,
-  TrainingAttendanceEntry
+  TrainingAttendanceEntry,
+  SstPolicyDocument,
+  SstObjectiveItem,
+  SstObjectiveFollowUp,
+  SstObjectiveDeviationAction,
+  SstPolicyRevisionRecord,
+  SstPolicyObjectivesState
 } from '@/types';
 import { initialPilaRecords } from './mock-pila-data';
 import { initialCopasstGlobalState } from './copasst-mock-data';
 import { initialCclGlobalState } from './ccl-mock-data';
 import { INITIAL_TRAINING_STATE } from './training-mock-data';
+import { INITIAL_SST_POLICY, INITIAL_SST_OBJECTIVES } from './policy-objectives-mock';
 import { initialMasterWorkers } from './worker-mock-data';
 import {
   initialOrganization,
@@ -357,6 +364,17 @@ interface AppContextType {
   addVirtualCourse: (course: Omit<VirtualCourse, 'id' | 'code' | 'version' | 'publicEnrollmentUrlToken'>) => VirtualCourse;
   updateVirtualCourse: (courseId: string, updates: Partial<VirtualCourse>) => void;
 
+  // Política y Objetivos del SG-SST (Estándares 2.1.1 y 2.1.2 - Dec. 1072 & Res. 0312)
+  policyObjectivesState: SstPolicyObjectivesState;
+  updateSstPolicy: (policyUpdates: Partial<SstPolicyDocument>) => void;
+  signSstPolicyLegalRep: () => void;
+  addSstPolicyRevision: (revision: Omit<SstPolicyRevisionRecord, 'id'>) => void;
+  addSstObjective: (objectiveData: Omit<SstObjectiveItem, 'id' | 'createdAt' | 'updatedAt' | 'followUps' | 'deviations'>) => SstObjectiveItem;
+  updateSstObjective: (id: string, updates: Partial<SstObjectiveItem>) => void;
+  deleteSstObjective: (id: string) => void;
+  addSstObjectiveFollowUp: (objectiveId: string, followUp: Omit<SstObjectiveFollowUp, 'id'>) => void;
+  addSstObjectiveDeviation: (objectiveId: string, deviation: Omit<SstObjectiveDeviationAction, 'id' | 'registeredAt'>, sendDirectToAcpm?: boolean) => void;
+
   // Global search & filters
   searchQuery: string;
   setSearchQuery: (q: string) => void;
@@ -415,6 +433,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   // Programa de Capacitación, Inducción y Aula Virtual (Estándar 1.2)
   const [trainingState, setTrainingState] = useState<TrainingGlobalState>(INITIAL_TRAINING_STATE);
+
+  // Política y Objetivos del SG-SST (Estándares 2.1.1 y 2.1.2)
+  const [policyObjectivesState, setPolicyObjectivesState] = useState<SstPolicyObjectivesState>({
+    policy: INITIAL_SST_POLICY,
+    objectives: INITIAL_SST_OBJECTIVES
+  });
   // Caracterización Inteligente & Motor de Aplicabilidad
   // Saved draft (browser only). The public landing does not render characterization data, so there is no hydration mismatch.
   const [initialDraft] = useState(() => (typeof window === 'undefined' ? null : loadDraft()));
@@ -3555,6 +3579,222 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     showNotification('Curso virtual actualizado');
   };
 
+  // ============================================================================
+  // POLÍTICA Y OBJETIVOS DEL SG-SST (ESTÁNDARES 2.1.1 Y 2.1.2)
+  // ============================================================================
+  const updateSstPolicy = (policyUpdates: Partial<SstPolicyDocument>) => {
+    if (blockedByDemo()) return;
+    setPolicyObjectivesState(prev => {
+      const updatedPolicy: SstPolicyDocument = {
+        ...prev.policy,
+        ...policyUpdates,
+        lastRevisionDate: new Date().toISOString().split('T')[0]
+      };
+      return { ...prev, policy: updatedPolicy };
+    });
+    showNotification('Política del SG-SST actualizada');
+  };
+
+  const signSstPolicyLegalRep = () => {
+    if (blockedByDemo()) return;
+    const now = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    const today = now.split(' ')[0];
+    const nextYear = new Date();
+    nextYear.setFullYear(nextYear.getFullYear() + 1);
+    const nextDeadline = nextYear.toISOString().split('T')[0];
+
+    setPolicyObjectivesState(prev => {
+      const updatedPolicy: SstPolicyDocument = {
+        ...prev.policy,
+        status: 'APROBADA_Y_FIRMADA',
+        signedByLegalRep: true,
+        signedAt: now,
+        lastRevisionDate: today,
+        nextRevisionDeadline: nextDeadline,
+        revisionHistory: [
+          {
+            id: `rev-${Date.now()}`,
+            revisionNumber: (parseInt(prev.policy.version, 10) + 1).toString().padStart(2, '0'),
+            revisionDate: today,
+            reviewedBy: prev.policy.legalRepName,
+            role: 'Representante Legal / Gerencia General',
+            changesSummary: 'Revisión anual obligatoria y firma electrónica formal de la Política del SG-SST conforme al Dec. 1072 Art. 2.2.4.6.7.',
+            status: 'RATIFICADA_SIN_CAMBIOS'
+          },
+          ...prev.policy.revisionHistory
+        ]
+      };
+      return { ...prev, policy: updatedPolicy };
+    });
+
+    // Mark Standard 2.1.1 as CUMPLE
+    updateStandardStatus('std-2.1.1', 'CUMPLE', `Política de SST firmada y fechada por el representante legal el ${today}.`);
+    showNotification('Política de SST firmada formalmente por el Representante Legal. Estándar 2.1.1 en CUMPLE.', 'success');
+  };
+
+  const addSstPolicyRevision = (revision: Omit<SstPolicyRevisionRecord, 'id'>) => {
+    if (blockedByDemo()) return;
+    const newRev: SstPolicyRevisionRecord = {
+      ...revision,
+      id: `rev-${Date.now()}`
+    };
+    const nextYear = new Date();
+    nextYear.setFullYear(nextYear.getFullYear() + 1);
+    const nextDeadline = nextYear.toISOString().split('T')[0];
+
+    setPolicyObjectivesState(prev => ({
+      ...prev,
+      policy: {
+        ...prev.policy,
+        lastRevisionDate: revision.revisionDate,
+        nextRevisionDeadline: nextDeadline,
+        revisionHistory: [newRev, ...prev.policy.revisionHistory]
+      }
+    }));
+    showNotification('Revisión anual de la política registrada en el historial inmutable');
+  };
+
+  const addSstObjective = (
+    objectiveData: Omit<SstObjectiveItem, 'id' | 'createdAt' | 'updatedAt' | 'followUps' | 'deviations'>
+  ): SstObjectiveItem => {
+    if (blockedByDemo()) return {} as SstObjectiveItem;
+    const now = new Date().toISOString().split('T')[0];
+    const newObj: SstObjectiveItem = {
+      ...objectiveData,
+      id: `obj-${Date.now()}`,
+      followUps: [],
+      deviations: [],
+      createdAt: now,
+      updatedAt: now
+    };
+
+    setPolicyObjectivesState(prev => ({
+      ...prev,
+      objectives: [newObj, ...prev.objectives]
+    }));
+
+    // Mark Standard 2.1.2 as CUMPLE
+    updateStandardStatus('std-2.1.2', 'CUMPLE', `Objetivo ${newObj.code} formulado y articulado con la política de SST.`);
+    showNotification(`Objetivo ${newObj.code} creado y vinculado a la Política de SST`, 'success');
+    return newObj;
+  };
+
+  const updateSstObjective = (id: string, updates: Partial<SstObjectiveItem>) => {
+    if (blockedByDemo()) return;
+    const now = new Date().toISOString().split('T')[0];
+    setPolicyObjectivesState(prev => ({
+      ...prev,
+      objectives: prev.objectives.map(o => o.id === id ? { ...o, ...updates, updatedAt: now } : o)
+    }));
+    showNotification('Objetivo actualizado correctamente');
+  };
+
+  const deleteSstObjective = (id: string) => {
+    if (blockedByDemo()) return;
+    setPolicyObjectivesState(prev => ({
+      ...prev,
+      objectives: prev.objectives.filter(o => o.id !== id)
+    }));
+    showNotification('Objetivo eliminado del sistema', 'info');
+  };
+
+  const addSstObjectiveFollowUp = (objectiveId: string, followUp: Omit<SstObjectiveFollowUp, 'id'>) => {
+    if (blockedByDemo()) return;
+    const newFollowUp: SstObjectiveFollowUp = {
+      ...followUp,
+      id: `fu-${Date.now()}`
+    };
+
+    setPolicyObjectivesState(prev => ({
+      ...prev,
+      objectives: prev.objectives.map(o => {
+        if (o.id !== objectiveId) return o;
+        // Auto-calculate new status
+        let newStatus = o.status;
+        if (o.targetCriteria === 'SUPERAR_VALOR') {
+          if (followUp.actualValue >= o.targetValue) newStatus = 'CUMPLIDO';
+          else if (followUp.actualValue >= o.targetValue * 0.85) newStatus = 'EN_CUMPLIMIENTO';
+          else newStatus = 'EN_RIESGO';
+        } else if (o.targetCriteria === 'MANTENER_DEBAJO') {
+          if (followUp.actualValue <= o.targetValue) newStatus = 'EN_CUMPLIMIENTO';
+          else if (followUp.actualValue <= o.targetValue * 1.2) newStatus = 'EN_RIESGO';
+          else newStatus = 'INCUMPLIDO';
+        } else if (o.targetCriteria === 'RANGO') {
+          const min = o.rangeMin ?? 0;
+          const max = o.rangeMax ?? 100;
+          if (followUp.actualValue >= min && followUp.actualValue <= max) newStatus = 'CUMPLIDO';
+          else newStatus = 'EN_RIESGO';
+        }
+
+        return {
+          ...o,
+          status: newStatus,
+          followUps: [newFollowUp, ...o.followUps],
+          updatedAt: new Date().toISOString().split('T')[0]
+        };
+      })
+    }));
+
+    showNotification('Seguimiento periódico registrado exitosamente', 'success');
+  };
+
+  const addSstObjectiveDeviation = (
+    objectiveId: string,
+    deviation: Omit<SstObjectiveDeviationAction, 'id' | 'registeredAt'>,
+    sendDirectToAcpm = true
+  ) => {
+    if (blockedByDemo()) return;
+    const now = new Date().toISOString().split('T')[0];
+    const devId = `dev-${Date.now()}`;
+    let acpmFindingId: string | undefined = undefined;
+
+    const targetObj = policyObjectivesState.objectives.find(o => o.id === objectiveId);
+
+    if (sendDirectToAcpm && targetObj) {
+      acpmFindingId = addFinding({
+        title: `Desviación en Objetivo ${targetObj.code}: ${targetObj.name}`,
+        description: `Análisis: ${deviation.deviationAnalysis} | Causa Raíz: ${deviation.rootCause} | Acción Requerida: ${deviation.requiredAction}`,
+        originType: 'LEGAL_REQUIREMENT',
+        originModule: 'SST',
+        originDetail: `Objetivo SG-SST: ${targetObj.code} - ${targetObj.name}`,
+        processName: 'Gestión de Seguridad y Salud en el Trabajo (SG-SST)',
+        severity: 'MAYOR',
+        status: 'ABIERTO',
+        reportedBy: deviation.responsible,
+        siteName: organization.name,
+        legalCriterion: `Decreto 1072/2015 Art. 2.2.4.6.17 y Res. 0312/2019 Estándar 2.1.2 (${targetObj.code})`
+      }, true);
+    }
+
+    const newDeviation: SstObjectiveDeviationAction = {
+      ...deviation,
+      id: devId,
+      registeredAt: now,
+      sentToAcpm: sendDirectToAcpm,
+      acpmFindingId
+    };
+
+    setPolicyObjectivesState(prev => ({
+      ...prev,
+      objectives: prev.objectives.map(o => {
+        if (o.id !== objectiveId) return o;
+        return {
+          ...o,
+          status: 'EN_RIESGO',
+          deviations: [newDeviation, ...o.deviations],
+          updatedAt: now
+        };
+      })
+    }));
+
+    showNotification(
+      sendDirectToAcpm
+        ? 'Desviación registrada y transferida automáticamente a la Matriz ACPM'
+        : 'Desviación y acción preventiva registradas',
+      'warning'
+    );
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -3720,6 +3960,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         discardAiTrainingSuggestion,
         addVirtualCourse,
         updateVirtualCourse,
+
+        // Política y Objetivos del SG-SST (Estándares 2.1.1 y 2.1.2)
+        policyObjectivesState,
+        updateSstPolicy,
+        signSstPolicyLegalRep,
+        addSstPolicyRevision,
+        addSstObjective,
+        updateSstObjective,
+        deleteSstObjective,
+        addSstObjectiveFollowUp,
+        addSstObjectiveDeviation,
 
         searchQuery,
         setSearchQuery,

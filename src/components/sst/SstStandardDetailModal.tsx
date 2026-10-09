@@ -19,7 +19,8 @@ import {
   Award,
   HeartHandshake,
   FolderLock,
-  GraduationCap
+  GraduationCap,
+  Target
 } from 'lucide-react';
 import { SstStandardDefinition, SstStandardStatus } from '@/types/sst';
 import { PilaSocialSecurityModal } from './PilaSocialSecurityModal';
@@ -34,6 +35,7 @@ interface SstStandardDetailModalProps {
   onOpenCopasst?: (tab?: 'CONFORMATION' | 'TRAININGS') => void;
   onOpenCcl?: (tab?: string) => void;
   onOpenTraining?: () => void;
+  onOpenPolicy?: (tab?: 'POLICY' | 'OBJECTIVES') => void;
 }
 
 export const SstStandardDetailModal: React.FC<SstStandardDetailModalProps> = ({
@@ -45,7 +47,8 @@ export const SstStandardDetailModal: React.FC<SstStandardDetailModalProps> = ({
   onNavigateToTab,
   onOpenCopasst,
   onOpenCcl,
-  onOpenTraining
+  onOpenTraining,
+  onOpenPolicy
 }) => {
   const {
     evidences,
@@ -66,7 +69,10 @@ export const SstStandardDetailModal: React.FC<SstStandardDetailModalProps> = ({
   const isPilaStandard = standard.code === '1.1.4' || standard.code === '1.1.5';
   const isCopasstStandard = standard.code === '1.1.6' || standard.code === '1.1.7';
   const isCclStandard = standard.code === '1.1.8';
-  const isTrainingStandard = standard.code === '1.2.1' || standard.code === '1.2.2' || standard.code === '1.2.3';
+  const isTrainingStandard = standard.code === '1.2.1' || standard.code === '1.2.2';
+  const isCourse50Standard = standard.code === '1.2.3';
+  const isPolicyStandard = standard.code === '2.1.1';
+  const isObjectivesStandard = standard.code === '2.1.2';
 
   const handleSave = () => {
     updateStandardStatus(standard.id, status, notes);
@@ -188,7 +194,7 @@ export const SstStandardDetailModal: React.FC<SstStandardDetailModalProps> = ({
           </div>
 
           {/* Quick Action Trigger if standard has specialized tool */}
-          {(standard.actionType || isPilaStandard || isCopasstStandard || isCclStandard || isTrainingStandard) && (
+          {(standard.actionType || isPilaStandard || isCopasstStandard || isCclStandard || isTrainingStandard || isCourse50Standard || isPolicyStandard || isObjectivesStandard) && (
             <div className="p-3.5 rounded-xl bg-gradient-to-r from-orange-50 via-white to-slate-50 border border-orange-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <span className="font-bold text-slate-900 block">Herramienta Integrada Disponible</span>
@@ -197,6 +203,9 @@ export const SstStandardDetailModal: React.FC<SstStandardDetailModalProps> = ({
                    isCopasstStandard ? 'Gestione el flujo integral del COPASST o Vigía: elecciones, actas, compromisos y ACPM.' :
                    isCclStandard ? 'Gestione casos confidenciales, actas, compromisos y mediación conforme a la Res. 3461 de 2025.' :
                    isTrainingStandard ? 'Gestione el Programa Anual de Capacitación (Excel + Calendario), Inducciones y Aula Virtual AGAE.' :
+                   isCourse50Standard ? 'El curso virtual de 50h/20h se gestiona y certifica de manera articulada en el expediente del Responsable (1.1.1).' :
+                   isPolicyStandard ? 'Gestione la formulación de la política, compromisos mínimos Dec. 1072, revisión anual y firma digital del Representante Legal.' :
+                   isObjectivesStandard ? 'Gestione los objetivos del SG-SST, metas, indicadores asociados, seguimiento periódico y derivación directa a matriz ACPM.' :
                    standard.actionType === 'RESPONSIBLE' ? 'Gestione la hoja de vida, licencia y la Carta de Asignación formal generada en vivo.' :
                    standard.actionType === 'BUDGET' ? 'Configure el presupuesto integrado SST + Vial PESV con aprobación de gerencia.' :
                    standard.actionType === 'HAZARDS' ? 'Identifique peligros y valore riesgos según la matriz GTC 45.' :
@@ -323,6 +332,53 @@ export const SstStandardDetailModal: React.FC<SstStandardDetailModalProps> = ({
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold transition-all shrink-0"
                 >
                   <span>Ir a Matriz ACPM</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              )}
+
+              {isCourse50Standard && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    if (onOpenResponsibleModal) onOpenResponsibleModal();
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-700 hover:bg-purple-600 text-white text-xs font-bold transition-all shrink-0 shadow-sm"
+                >
+                  <Award className="w-3.5 h-3.5" />
+                  <span>Gestionar en Responsable (1.1.1)</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              )}
+
+              {isPolicyStandard && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    if (onOpenPolicy) onOpenPolicy('POLICY');
+                    else if (onNavigateToTab) onNavigateToTab('sst');
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-teal-700 hover:bg-teal-600 text-white text-xs font-bold transition-all shrink-0 shadow-sm"
+                >
+                  <FileText className="w-3.5 h-3.5" />
+                  <span>Ir a Política SST (2.1.1)</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              )}
+
+              {isObjectivesStandard && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    if (onOpenPolicy) onOpenPolicy('OBJECTIVES');
+                    else if (onNavigateToTab) onNavigateToTab('sst');
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-teal-700 hover:bg-teal-600 text-white text-xs font-bold transition-all shrink-0 shadow-sm"
+                >
+                  <Target className="w-3.5 h-3.5" />
+                  <span>Ir a Objetivos SG-SST (2.1.2)</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               )}

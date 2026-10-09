@@ -27,7 +27,8 @@ import {
   FileCheck,
   Award,
   HeartHandshake,
-  GraduationCap
+  GraduationCap,
+  Target
 } from 'lucide-react';
 import { SstStandardDefinition, SstStandardCycle, SstStandardStatus } from '@/types/sst';
 import { SstHazardItem } from '@/types';
@@ -39,6 +40,7 @@ import { PilaSocialSecurityModal } from './PilaSocialSecurityModal';
 import { CopasstVigiaModule } from './copasst/CopasstVigiaModule';
 import { CclModule } from './ccl/CclModule';
 import { TrainingModule } from './training/TrainingModule';
+import { SstPolicyObjectivesModule } from './policy/SstPolicyObjectivesModule';
 
 export const SstModule: React.FC = () => {
   const {
@@ -60,7 +62,7 @@ export const SstModule: React.FC = () => {
 
   // Navigation subtabs
   const [activeSubTab, setActiveSubTab] = useState<
-    'STANDARDS' | 'RESPONSIBLE' | 'BUDGET' | 'MATRIX' | 'INSPECTIONS' | 'COMMITTEES' | 'CCL' | 'TRAINING'
+    'STANDARDS' | 'RESPONSIBLE' | 'BUDGET' | 'MATRIX' | 'INSPECTIONS' | 'COMMITTEES' | 'CCL' | 'TRAINING' | 'POLICY'
   >('STANDARDS');
   const [copasstInitialTab, setCopasstInitialTab] = useState<
     'DASHBOARD' | 'CONFORMATION' | 'MEETINGS' | 'FINDINGS' | 'TRAININGS' | 'DOCUMENTS' | 'ELECTION' | 'VIGIA'
@@ -68,6 +70,7 @@ export const SstModule: React.FC = () => {
   const [cclInitialTab, setCclInitialTab] = useState<
     'DASHBOARD' | 'CASES' | 'ELECTIONS' | 'CONFORMATION' | 'MEETINGS' | 'REGULATION' | 'REPORTS'
   >('DASHBOARD');
+  const [policyInitialTab, setPolicyInitialTab] = useState<'POLICY' | 'OBJECTIVES' | 'TRACEABILITY'>('POLICY');
 
   // Filter state for the 60 Standards
   const [showOnlyApplicable, setShowOnlyApplicable] = useState(true);
@@ -372,6 +375,19 @@ export const SstModule: React.FC = () => {
             <GraduationCap className="w-3.5 h-3.5" />
             <span>1.2 Capacitación & Aula Virtual</span>
           </button>
+
+          <button
+            onClick={() => {
+              setPolicyInitialTab('POLICY');
+              setActiveSubTab('POLICY');
+            }}
+            className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
+              activeSubTab === 'POLICY' ? 'bg-teal-700 text-white shadow' : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <Target className="w-3.5 h-3.5" />
+            <span>2.1 Política & Objetivos</span>
+          </button>
         </div>
       </div>
 
@@ -601,7 +617,10 @@ export const SstModule: React.FC = () => {
               const isPilaStandard = std.code === '1.1.4' || std.code === '1.1.5';
               const isCclStandard = std.code === '1.1.8' || std.actionType === 'CCL';
               const isCopasstStandard = (std.code === '1.1.6' || std.code === '1.1.7' || std.actionType === 'COPASST') && !isCclStandard;
-              const isTrainingStandard = (std.code.startsWith('1.2.') || std.actionType === 'TRAINING') && std.actionType !== 'RESPONSIBLE';
+              const isCourse50Standard = std.code === '1.2.3';
+              const isTrainingStandard = (std.code.startsWith('1.2.') || std.actionType === 'TRAINING') && std.actionType !== 'RESPONSIBLE' && !isCourse50Standard;
+              const isPolicyStandard = std.code === '2.1.1';
+              const isObjectivesStandard = std.code === '2.1.2';
 
               const action =
                 isPilaStandard ? (
@@ -656,6 +675,15 @@ export const SstModule: React.FC = () => {
                       </>
                     )}
                   </button>
+                ) : isCourse50Standard ? (
+                  <button
+                    type="button"
+                    onClick={() => setIsResponsibleModalOpen(true)}
+                    className={`${actionBtn} bg-purple-700 hover:bg-purple-600 text-white shadow-sm`}
+                  >
+                    <Award className="w-3.5 h-3.5" />
+                    <span>1.2.3 Articulado con 1.1.1 (Cargar 50h)</span>
+                  </button>
                 ) : isTrainingStandard ? (
                   <button
                     type="button"
@@ -666,6 +694,30 @@ export const SstModule: React.FC = () => {
                   >
                     <GraduationCap className="w-3.5 h-3.5" />
                     <span>1.2 Capacitación SG-SST</span>
+                  </button>
+                ) : isPolicyStandard ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPolicyInitialTab('POLICY');
+                      setActiveSubTab('POLICY');
+                    }}
+                    className={`${actionBtn} bg-teal-700 hover:bg-teal-600 text-white shadow-sm`}
+                  >
+                    <FileText className="w-3.5 h-3.5" />
+                    <span>2.1.1 Política SST</span>
+                  </button>
+                ) : isObjectivesStandard ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPolicyInitialTab('OBJECTIVES');
+                      setActiveSubTab('POLICY');
+                    }}
+                    className={`${actionBtn} bg-teal-700 hover:bg-teal-600 text-white shadow-sm`}
+                  >
+                    <Target className="w-3.5 h-3.5" />
+                    <span>2.1.2 Objetivos SG-SST</span>
                   </button>
                 ) : std.actionType === 'RESPONSIBLE' ? (
                   <button type="button" onClick={() => setIsResponsibleModalOpen(true)} className={`${actionBtn} bg-orange-600 hover:bg-orange-500 text-white shadow-sm`}>
@@ -1240,6 +1292,13 @@ export const SstModule: React.FC = () => {
       )}
 
       {/* ============================================================== */}
+      {/* SUBTAB 9: POLÍTICA Y OBJETIVOS DEL SG-SST (2.1.1 & 2.1.2) */}
+      {/* ============================================================== */}
+      {activeSubTab === 'POLICY' && (
+        <SstPolicyObjectivesModule initialTab={policyInitialTab} />
+      )}
+
+      {/* ============================================================== */}
       {/* MODALS */}
       {/* ============================================================== */}
 
@@ -1272,6 +1331,10 @@ export const SstModule: React.FC = () => {
           setActiveSubTab('CCL');
         }}
         onOpenTraining={() => setActiveSubTab('TRAINING')}
+        onOpenPolicy={(tab) => {
+          setPolicyInitialTab(tab || 'POLICY');
+          setActiveSubTab('POLICY');
+        }}
       />
 
       {/* 4. Modal Add Hazard GTC 45 */}
