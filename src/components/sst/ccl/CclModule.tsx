@@ -44,7 +44,11 @@ import {
   RefreshCw,
   FolderLock,
   MessageSquare,
-  ClipboardList
+  ClipboardList,
+  Printer,
+  Edit3,
+  Save,
+  ExternalLink
 } from 'lucide-react';
 import {
   CclComplaintCase,
@@ -86,6 +90,7 @@ export const CclModule: React.FC<CclModuleProps> = ({ initialTab = 'DASHBOARD' }
     updateCclMeeting,
     updateCclRegulation,
     updateCclDocumentNotes,
+    updateCclProtocol,
     showNotification,
     setActiveTab
   } = useApp();
@@ -114,6 +119,45 @@ export const CclModule: React.FC<CclModuleProps> = ({ initialTab = 'DASHBOARD' }
   const [isEmployerDesignationModalOpen, setIsEmployerDesignationModalOpen] = useState(false);
   const [selectedProtocolForView, setSelectedProtocolForView] = useState<CclProtocolDocument | null>(null);
 
+  // Protocol Editor State
+  const [isEditingProtocol, setIsEditingProtocol] = useState(false);
+  const [editProtocolTitle, setEditProtocolTitle] = useState('');
+  const [editProtocolBasis, setEditProtocolBasis] = useState('');
+  const [editProtocolDesc, setEditProtocolDesc] = useState('');
+  const [editProtocolContent, setEditProtocolContent] = useState('');
+
+  const openProtocolViewer = (prot: CclProtocolDocument) => {
+    setSelectedProtocolForView(prot);
+    setEditProtocolTitle(prot.title);
+    setEditProtocolBasis(prot.legalBasis);
+    setEditProtocolDesc(prot.description);
+    setEditProtocolContent(prot.contentTemplate);
+    setIsEditingProtocol(false);
+  };
+
+  const handleSaveProtocolEdits = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedProtocolForView) return;
+    const nextVer = (parseInt(selectedProtocolForView.version, 10) + 1).toString().padStart(2, '0');
+    updateCclProtocol(selectedProtocolForView.id, {
+      title: editProtocolTitle,
+      legalBasis: editProtocolBasis,
+      description: editProtocolDesc,
+      contentTemplate: editProtocolContent,
+      version: nextVer
+    });
+    setSelectedProtocolForView({
+      ...selectedProtocolForView,
+      title: editProtocolTitle,
+      legalBasis: editProtocolBasis,
+      description: editProtocolDesc,
+      contentTemplate: editProtocolContent,
+      version: nextVer,
+      updatedAt: new Date().toISOString().split('T')[0]
+    });
+    setIsEditingProtocol(false);
+  };
+
   // New Complaint Form State
   const [newComplaintData, setNewComplaintData] = useState({
     channel: 'CANAL_CONFIDENCIAL' as CclComplaintCase['channel'],
@@ -130,6 +174,18 @@ export const CclModule: React.FC<CclModuleProps> = ({ initialTab = 'DASHBOARD' }
   const [voterDocInput, setVoterDocInput] = useState('');
   const [selectedCandidateId, setSelectedCandidateId] = useState('');
   const [votingResultFeedback, setVotingResultFeedback] = useState<{ success?: boolean; message?: string } | null>(null);
+
+  // Real-time voter live identification against Master Worker Base (Sin login)
+  const cleanVoterDoc = voterDocInput.replace(/\D/g, '');
+  const detectedVoter = useMemo(() => {
+    if (!cleanVoterDoc) return null;
+    return workers.find(w => w.docNumber.replace(/\D/g, '') === cleanVoterDoc && w.status === 'ACTIVO') || null;
+  }, [cleanVoterDoc, workers]);
+
+  const hasAlreadyVoted = useMemo(() => {
+    if (!cleanVoterDoc) return false;
+    return cclState.election.voterAuditLog.some(log => log.voterDocNumber.replace(/\D/g, '') === cleanVoterDoc);
+  }, [cleanVoterDoc, cclState.election.voterAuditLog]);
 
   // New Candidate Postulation Form State
   const [candidateWorkerId, setCandidateWorkerId] = useState('');
@@ -155,7 +211,7 @@ export const CclModule: React.FC<CclModuleProps> = ({ initialTab = 'DASHBOARD' }
     ],
     discussionSummary: '',
     preventiveRecommendations: [
-      'Mantener talleres trimestrales de comunicación asertiva en áreas operativas',
+      'Mantener talleres mensuales de comunicación asertiva en áreas operativas',
       'Socializar canales de radicación confidencial y alcance preventivo del CCL'
     ]
   });
@@ -462,7 +518,7 @@ export const CclModule: React.FC<CclModuleProps> = ({ initialTab = 'DASHBOARD' }
             }`}
           >
             <Calendar className="w-3.5 h-3.5" />
-            <span>Sesiones & Actas Trimestrales ({cclState.meetings.length})</span>
+            <span>Sesiones & Actas Mensuales ({cclState.meetings.length})</span>
           </button>
 
           <button
@@ -486,7 +542,7 @@ export const CclModule: React.FC<CclModuleProps> = ({ initialTab = 'DASHBOARD' }
             }`}
           >
             <FileCheck className="w-3.5 h-3.5" />
-            <span>Informes Trimestrales / Anual & SG-SST</span>
+            <span>Informes Mensuales / Anual & SG-SST</span>
           </button>
         </div>
       </div>
@@ -551,7 +607,7 @@ export const CclModule: React.FC<CclModuleProps> = ({ initialTab = 'DASHBOARD' }
                 </span>
               </div>
               <div className="mt-2 text-[11px] text-amber-800 font-medium">
-                Periodicidad trimestral obligatoria
+                Periodicidad mensual obligatoria (Res. 3461/2025)
               </div>
             </div>
           </div>
@@ -689,7 +745,7 @@ export const CclModule: React.FC<CclModuleProps> = ({ initialTab = 'DASHBOARD' }
                   onClick={() => setActiveTabLocal('REPORTS')}
                   className="w-full py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-colors text-center"
                 >
-                  Ver Estadísticas Trimestrales
+                  Ver Estadísticas Mensuales
                 </button>
                 <button
                   onClick={() => setActiveTab('acpm')}
@@ -999,15 +1055,69 @@ export const CclModule: React.FC<CclModuleProps> = ({ initialTab = 'DASHBOARD' }
             </div>
           </div>
 
-          {/* Audit Log / Escrutinio Info */}
-          <div className="glass-card p-4 rounded-xl border border-slate-200 bg-white">
-            <h3 className="font-bold text-xs text-slate-800 mb-2 flex items-center gap-1.5">
-              <ShieldCheck className="w-4 h-4 text-teal-600" />
-              <span>Garantía de Imparcialidad y Separación Técnica del Voto</span>
-            </h3>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              El censo electoral valida contra la <strong>Base Maestra de Trabajadores</strong> que cada votante esté habilitado y vote una única vez ({cclState.election.votesSubmitted} votos registrados). Por secreto del sufragio, el sistema registra la constancia de sufragio sin vincular jamás la identidad de la persona con el sentido de su voto.
-            </p>
+          {/* Enlace público y auditoría de votación (Simil COPASST) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Tarjeta de Enlace Público Electoral */}
+            <div className="bg-slate-900 text-white rounded-xl p-4 space-y-3 border border-teal-500/30 shadow-md">
+              <div className="flex items-center gap-2 text-xs font-bold text-teal-400">
+                <ExternalLink className="w-4 h-4" />
+                <span>Página Pública Electoral CCL (Sin Login Requerido)</span>
+              </div>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                Los trabajadores pueden votar directamente desde cualquier celular, tablet o estación compartida con solo ingresar su número de cédula. No requieren credenciales ni usuario en AGAE SOLUTIONS.
+              </p>
+              <div className="p-2.5 rounded-lg bg-black/40 border border-white/10 font-mono text-xs text-teal-300 truncate">
+                https://agae.app/elecciones-ccl/{cclState.election.publicVotingUrlToken || 'ccl-2026-voto-directo'}
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setVotingResultFeedback(null);
+                  setVoterDocInput('');
+                  setSelectedCandidateId('');
+                  setIsVotingModalOpen(true);
+                }}
+                className="w-full py-2 rounded-lg bg-teal-600 hover:bg-teal-500 text-white font-bold text-xs transition-colors flex items-center justify-center gap-2 shadow-xs"
+              >
+                <Vote className="w-4 h-4" />
+                <span>Abrir Urna de Votación Simil-Pública</span>
+              </button>
+            </div>
+
+            {/* Auditoría Inmutable del Proceso Electoral */}
+            <div className="bg-white rounded-xl border border-slate-200 p-4 space-y-2 shadow-xs">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-1.5">
+                <span className="text-xs font-bold text-slate-900 uppercase flex items-center gap-1.5">
+                  <ShieldCheck className="w-3.5 h-3.5 text-teal-600" />
+                  <span>Control de Participación & Secreto del Voto</span>
+                </span>
+                <span className="text-[10px] text-slate-500 font-mono font-bold bg-slate-100 px-2 py-0.5 rounded">
+                  {cclState.election.voterAuditLog.length} sufragios
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-600">
+                El sistema valida contra la Base Maestra que cada cédula vote una única vez. La identidad se separa de la papeleta digital para garantizar anonimato total (Res. 3461/2025).
+              </p>
+              <div className="max-h-32 overflow-y-auto divide-y divide-slate-100 text-[11px] border border-slate-100 rounded-lg p-1.5 bg-slate-50/50">
+                {cclState.election.voterAuditLog.length === 0 ? (
+                  <div className="text-center py-3 text-slate-400 italic text-[11px]">
+                    No se han registrado sufragios aún.
+                  </div>
+                ) : (
+                  cclState.election.voterAuditLog.map((log, idx) => (
+                    <div key={idx} className="py-1 px-1 flex items-center justify-between text-slate-600">
+                      <span className="font-mono font-semibold">
+                        Doc: {log.voterDocNumber.replace(/(\d{3})\d{3}(\d{3})/, '$1***$2')}
+                      </span>
+                      <span className="text-[10px] text-slate-400 font-mono">{log.votedAt}</span>
+                      <span className="text-[10px] text-emerald-700 font-bold bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200">
+                        Votó ✓
+                      </span>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -1182,7 +1292,7 @@ export const CclModule: React.FC<CclModuleProps> = ({ initialTab = 'DASHBOARD' }
                 Sesiones del Comité de Convivencia Laboral
               </h2>
               <p className="text-xs text-slate-600">
-                Sesiones ordinarias trimestrales y extraordinarias por situaciones urgentes (Res. 3461/2025).
+                Sesiones ordinarias mensuales (12 actas al año obligatorias) y extraordinarias por situaciones urgentes (Res. 3461/2025).
               </p>
             </div>
             <button
@@ -1305,7 +1415,7 @@ export const CclModule: React.FC<CclModuleProps> = ({ initialTab = 'DASHBOARD' }
                     {prot.legalBasis}
                   </span>
                   <button
-                    onClick={() => setSelectedProtocolForView(prot)}
+                    onClick={() => openProtocolViewer(prot)}
                     className="px-2.5 py-1 rounded bg-teal-600 hover:bg-teal-700 text-white text-[11px] font-bold transition-colors"
                   >
                     Ver Protocolo
@@ -1346,7 +1456,7 @@ export const CclModule: React.FC<CclModuleProps> = ({ initialTab = 'DASHBOARD' }
       )}
 
       {/* ============================================================== */}
-      {/* SUBTAB 7: INFORMES TRIMESTRALES, ANUAL & CONEXIÓN SG-SST */}
+      {/* SUBTAB 7: INFORMES MENSUALES, ANUAL & CONEXIÓN SG-SST */}
       {/* ============================================================== */}
       {activeTab === 'REPORTS' && (
         <div className="space-y-5">
@@ -1354,18 +1464,18 @@ export const CclModule: React.FC<CclModuleProps> = ({ initialTab = 'DASHBOARD' }
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <h2 className="text-sm font-black text-slate-900">
-                  Informes Trimestrales & Consolidado Anual del CCL (Res. 3461 de 2025)
+                  Informes Mensuales & Consolidado Anual del CCL (Res. 3461 de 2025)
                 </h2>
                 <p className="text-xs text-slate-600">
-                  Reportes estadísticos agregados sin revelación de datos sensibles ni identidades privadas.
+                  Reportes estadísticos agregados mensuales sin revelación de datos sensibles ni identidades privadas.
                 </p>
               </div>
               <button
-                onClick={() => showNotification('Informe trimestral exportado en PDF institucional con sellos de confidencialidad', 'success')}
+                onClick={() => showNotification('Informe mensual exportado en PDF institucional con sellos de confidencialidad', 'success')}
                 className="px-4 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs transition-all flex items-center gap-2 shadow-xs shrink-0"
               >
                 <Download className="w-4 h-4" />
-                <span>Exportar Informe Trimestral</span>
+                <span>Exportar Informe Mensual</span>
               </button>
             </div>
 
@@ -1787,20 +1897,31 @@ export const CclModule: React.FC<CclModuleProps> = ({ initialTab = 'DASHBOARD' }
       )}
 
       {/* ============================================================== */}
-      {/* MODAL 3: URNA ELECTORAL SECRETA */}
+      {/* ============================================================== */}
+      {/* MODAL 3: URNA ELECTORAL SECRETA (SIN LOGIN REQUERIDO) */}
       {/* ============================================================== */}
       {isVotingModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-5 space-y-4 shadow-2xl border border-slate-300">
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-5 animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-5 sm:p-6 space-y-4 shadow-2xl border border-slate-300 max-h-[92vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-slate-200 pb-3">
               <div className="flex items-center gap-2">
-                <Vote className="w-5 h-5 text-teal-600" />
-                <h3 className="font-black text-base text-slate-900">
-                  Urna Electoral Secreta - Representantes CCL
-                </h3>
+                <div className="p-2 rounded-xl bg-teal-100 text-teal-800">
+                  <Vote className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-black text-base text-slate-900 leading-tight">
+                    Urna Electrónica de Votación CCL
+                  </h3>
+                  <p className="text-[11px] text-teal-700 font-semibold">
+                    Acceso Democrático Directo • Sin Login Requerido
+                  </p>
+                </div>
               </div>
               <button
-                onClick={() => setIsVotingModalOpen(false)}
+                onClick={() => {
+                  setIsVotingModalOpen(false);
+                  setVotingResultFeedback(null);
+                }}
                 className="text-slate-400 hover:text-slate-700 p-1"
               >
                 <X className="w-5 h-5" />
@@ -1808,100 +1929,187 @@ export const CclModule: React.FC<CclModuleProps> = ({ initialTab = 'DASHBOARD' }
             </div>
 
             <form onSubmit={handleCastVote} className="space-y-4 text-xs">
-              <div className="p-3 rounded-xl bg-teal-50 border border-teal-200 text-teal-900 text-[11px]">
+              <div className="p-3 rounded-xl bg-teal-50/80 border border-teal-200 text-teal-900 text-[11px] leading-relaxed">
                 <strong>Garantía de Voto Secreto (Res. 3461 de 2025):</strong>
                 <p>
-                  Su documento solo se utiliza para verificar que pertenezca al censo y vote una única vez. El sistema separa técnicamente su identidad del sentido de su voto.
+                  Ingrese únicamente su cédula. El sistema valida contra el censo activo que usted sea colaborador habilitado y registre un solo sufragio. Su elección es 100% confidencial y secreta.
                 </p>
               </div>
 
-              <div>
-                <label className="font-bold text-slate-700 block mb-1">
-                  Número de Identificación del Trabajador
+              {/* Input Cédula / Documento */}
+              <div className="space-y-1.5">
+                <label className="font-bold text-slate-700 block">
+                  Ingrese su Número de Cédula o Documento de Identidad:
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="Ingrese su número de documento sin puntos"
+                  placeholder="Ej: 1020784952 o 79654120"
                   value={voterDocInput}
-                  onChange={(e) => setVoterDocInput(e.target.value)}
-                  className="w-full p-2.5 rounded-lg border border-slate-300 text-slate-800 font-mono font-bold"
+                  onChange={(e) => {
+                    setVoterDocInput(e.target.value);
+                    if (votingResultFeedback) setVotingResultFeedback(null);
+                  }}
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 font-mono text-sm text-slate-900 font-bold focus:outline-none focus:border-teal-600 focus:bg-white transition-all shadow-inner"
                 />
+                <span className="text-[10px] text-slate-500 block">
+                  * Solo para control de voto único. Su papeleta digital se desvincula de su identidad.
+                </span>
               </div>
 
-              <div className="space-y-2">
-                <label className="font-bold text-slate-700 block">
-                  Seleccione su Candidato de Preferencia:
+              {/* Banner de Verificación en Tiempo Real del Votante */}
+              {hasAlreadyVoted ? (
+                <div className="p-3 rounded-xl bg-rose-50 border border-rose-300 text-rose-900 text-xs flex items-center gap-2.5 animate-in fade-in">
+                  <AlertTriangle className="w-5 h-5 text-rose-600 shrink-0" />
+                  <div>
+                    <strong className="block text-rose-950 font-bold">Sufragio Ya Registrado</strong>
+                    <span>
+                      El titular de la cédula ({detectedVoter ? `${detectedVoter.firstName} ${detectedVoter.lastName}` : cleanVoterDoc}) ya depositó su voto en esta elección. No se permiten sufragios duplicados.
+                    </span>
+                  </div>
+                </div>
+              ) : detectedVoter ? (
+                <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-950 text-xs flex items-center gap-3 animate-in fade-in">
+                  <img
+                    src={detectedVoter.photoUrl || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80'}
+                    alt={detectedVoter.firstName}
+                    className="w-10 h-10 rounded-xl object-cover shrink-0 border border-emerald-300 shadow-xs"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="font-black text-xs text-emerald-950 flex items-center gap-1.5 truncate">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                      <span>{detectedVoter.firstName} {detectedVoter.lastName}</span>
+                    </div>
+                    <div className="text-[11px] text-emerald-800 font-medium truncate mt-0.5">
+                      {detectedVoter.position} • {detectedVoter.area}
+                    </div>
+                    <div className="text-[10px] text-emerald-700 font-bold uppercase tracking-wide">
+                      Censo Activo Habilitado ✓
+                    </div>
+                  </div>
+                </div>
+              ) : cleanVoterDoc.length >= 6 ? (
+                <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 text-xs flex items-center gap-2 animate-in fade-in">
+                  <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                  <span>
+                    Documento no encontrado en el censo activo de colaboradores de <strong>{organization.name}</strong>. Por favor verifique el número ingresado.
+                  </span>
+                </div>
+              ) : null}
+
+              {/* Lista de Candidatos para Votar */}
+              <div className="space-y-2 pt-1">
+                <label className="font-bold text-slate-800 block text-xs">
+                  Seleccione al Candidato por quien desea Votar:
                 </label>
-                {cclState.election.candidates.map(candidate => (
-                  <label
-                    key={candidate.id}
+
+                <div className="space-y-2.5 max-h-64 overflow-y-auto p-1">
+                  {cclState.election.candidates.map(candidate => {
+                    const isSelected = selectedCandidateId === candidate.id;
+                    const candWorker = workers.find(w => w.id === candidate.workerId);
+
+                    return (
+                      <div
+                        key={candidate.id}
+                        onClick={() => setSelectedCandidateId(candidate.id)}
+                        className={`p-3 rounded-xl border flex items-start gap-3 cursor-pointer transition-all ${
+                          isSelected
+                            ? 'bg-teal-50 border-teal-500 shadow-sm ring-2 ring-teal-500/20'
+                            : 'bg-white border-slate-200 hover:bg-slate-50'
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="candidateVote"
+                          value={candidate.id}
+                          checked={isSelected}
+                          onChange={() => setSelectedCandidateId(candidate.id)}
+                          className="w-4 h-4 text-teal-600 focus:ring-teal-500 mt-1 shrink-0"
+                        />
+                        <img
+                          src={candidate.photoUrl || candWorker?.photoUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80'}
+                          alt={candidate.workerName}
+                          className="w-11 h-11 rounded-xl object-cover border border-slate-200 shrink-0"
+                        />
+                        <div className="min-w-0 flex-1">
+                          <div className="font-black text-xs text-slate-900 leading-tight">
+                            {candidate.workerName}
+                          </div>
+                          <div className="text-[11px] text-slate-600 font-medium">
+                            {candidate.workerPosition} • <span className="text-teal-700 font-semibold">{candidate.workerArea}</span>
+                          </div>
+                          <p className="mt-1 text-[11px] text-slate-600 italic bg-slate-100/70 p-1.5 rounded-lg border border-slate-200/50 line-clamp-2">
+                            "{candidate.proposalBrief}"
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                  {/* Tarjeta Voto en Blanco */}
+                  <div
+                    onClick={() => setSelectedCandidateId('BLANCO')}
                     className={`p-3 rounded-xl border flex items-center gap-3 cursor-pointer transition-all ${
-                      selectedCandidateId === candidate.id
-                        ? 'border-teal-500 bg-teal-50/50 shadow-xs'
-                        : 'border-slate-200 hover:bg-slate-50'
+                      selectedCandidateId === 'BLANCO'
+                        ? 'bg-teal-50 border-teal-500 shadow-sm ring-2 ring-teal-500/20'
+                        : 'bg-slate-50 border-slate-200 hover:bg-slate-100'
                     }`}
                   >
                     <input
                       type="radio"
                       name="candidateVote"
-                      value={candidate.id}
-                      checked={selectedCandidateId === candidate.id}
-                      onChange={() => setSelectedCandidateId(candidate.id)}
-                      className="text-teal-600 focus:ring-teal-500"
+                      value="BLANCO"
+                      checked={selectedCandidateId === 'BLANCO'}
+                      onChange={() => setSelectedCandidateId('BLANCO')}
+                      className="w-4 h-4 text-teal-600 focus:ring-teal-500 shrink-0"
                     />
-                    <div>
-                      <div className="font-bold text-slate-900">{candidate.workerName}</div>
-                      <div className="text-[11px] text-slate-500">{candidate.workerPosition}</div>
+                    <div className="w-11 h-11 rounded-xl bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-xs shrink-0">
+                      BLANCO
                     </div>
-                  </label>
-                ))}
-
-                <label
-                  className={`p-3 rounded-xl border flex items-center gap-3 cursor-pointer transition-all ${
-                    selectedCandidateId === 'BLANCO'
-                      ? 'border-teal-500 bg-teal-50/50 shadow-xs'
-                      : 'border-slate-200 hover:bg-slate-50'
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="candidateVote"
-                    value="BLANCO"
-                    checked={selectedCandidateId === 'BLANCO'}
-                    onChange={() => setSelectedCandidateId('BLANCO')}
-                    className="text-teal-600 focus:ring-teal-500"
-                  />
-                  <div>
-                    <div className="font-bold text-slate-900">Voto en Blanco</div>
-                    <div className="text-[11px] text-slate-500">Opción democrática institucional</div>
+                    <div className="min-w-0 flex-1">
+                      <div className="font-bold text-xs text-slate-900">Voto en Blanco</div>
+                      <div className="text-[11px] text-slate-500">
+                        Opción democrática libre conforme a las garantías electorales (Res. 3461/2025).
+                      </div>
+                    </div>
                   </div>
-                </label>
+                </div>
               </div>
 
+              {/* Mensaje de Feedback */}
               {votingResultFeedback && (
                 <div className={`p-3 rounded-xl border text-xs font-bold ${
                   votingResultFeedback.success
-                    ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-                    : 'bg-rose-50 text-rose-800 border-rose-200'
+                    ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                    : 'bg-rose-50 text-rose-800 border-rose-300'
                 }`}>
                   {votingResultFeedback.message}
                 </div>
               )}
 
-              <div className="flex justify-end gap-2 pt-2 border-t border-slate-200">
+              {/* Botones de Acción */}
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-200">
                 <button
                   type="button"
-                  onClick={() => setIsVotingModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold"
+                  onClick={() => {
+                    setIsVotingModalOpen(false);
+                    setVotingResultFeedback(null);
+                  }}
+                  className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold shadow-md shadow-teal-600/20"
+                  disabled={hasAlreadyVoted || !cleanVoterDoc || !selectedCandidateId || (cleanVoterDoc.length >= 6 && !detectedVoter)}
+                  className={`px-5 py-2 rounded-xl text-white font-bold text-xs shadow-md flex items-center gap-1.5 transition-all ${
+                    hasAlreadyVoted || !cleanVoterDoc || !selectedCandidateId || (cleanVoterDoc.length >= 6 && !detectedVoter)
+                      ? 'bg-slate-400 cursor-not-allowed opacity-60'
+                      : 'bg-teal-600 hover:bg-teal-700 shadow-teal-600/20'
+                  }`}
                 >
-                  Depositar Voto Secreto
+                  <Vote className="w-4 h-4" />
+                  <span>Depositar Voto Secreto</span>
                 </button>
               </div>
             </form>
@@ -2113,7 +2321,7 @@ export const CclModule: React.FC<CclModuleProps> = ({ initialTab = 'DASHBOARD' }
                     onChange={(e) => setNewMeetingData({ ...newMeetingData, type: e.target.value as any })}
                     className="w-full p-2 rounded-lg border border-slate-300 bg-white font-semibold"
                   >
-                    <option value="ORDINARIA">Ordinaria (Trimestral)</option>
+                    <option value="ORDINARIA">Ordinaria (Mensual - 12 al año)</option>
                     <option value="EXTRAORDINARIA">Extraordinaria (Urgente)</option>
                   </select>
                 </div>
@@ -2198,47 +2406,258 @@ export const CclModule: React.FC<CclModuleProps> = ({ initialTab = 'DASHBOARD' }
       )}
 
       {/* ============================================================== */}
-      {/* MODAL 7: VISOR DE PROTOCOLO DE LA RESOLUCIÓN 3461 DE 2025 */}
+      {/* MODAL 7: VISOR Y EDITOR ESTRUCTURADO DE PROTOCOLOS (RES. 3461/2025) */}
       {/* ============================================================== */}
       {selectedProtocolForView && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl max-w-2xl w-full p-6 space-y-4 shadow-2xl border border-slate-300 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-              <div className="flex items-center gap-2">
-                <BookOpen className="w-5 h-5 text-teal-600" />
-                <h3 className="font-black text-base text-slate-900">
-                  {selectedProtocolForView.title}
-                </h3>
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-5 animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl max-w-4xl w-full p-5 sm:p-7 space-y-5 shadow-2xl border border-slate-300 max-h-[92vh] overflow-y-auto">
+            {/* Header del Modal */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-200 gap-3">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-teal-100 text-teal-800 shrink-0">
+                  <BookOpen className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-teal-100 text-teal-900 border border-teal-300">
+                      {selectedProtocolForView.code}
+                    </span>
+                    <span className="text-[11px] font-semibold text-slate-500">
+                      Versión {selectedProtocolForView.version} • {selectedProtocolForView.updatedAt}
+                    </span>
+                  </div>
+                  <h3 className="font-black text-sm sm:text-base text-slate-900 leading-tight mt-0.5">
+                    {selectedProtocolForView.title}
+                  </h3>
+                </div>
               </div>
-              <button
-                onClick={() => setSelectedProtocolForView(null)}
-                className="text-slate-400 hover:text-slate-700 p-1"
-              >
-                <X className="w-5 h-5" />
-              </button>
+
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setIsEditingProtocol(!isEditingProtocol)}
+                  className={`px-3 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-colors border ${
+                    isEditingProtocol
+                      ? 'bg-amber-100 text-amber-900 border-amber-300 hover:bg-amber-200'
+                      : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+                  }`}
+                >
+                  <Edit3 className="w-3.5 h-3.5" />
+                  <span>{isEditingProtocol ? 'Cancelar Edición' : 'Editar Protocolo'}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center gap-1.5 transition-colors shadow-xs"
+                >
+                  <Printer className="w-3.5 h-3.5" />
+                  <span>Imprimir / PDF</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setSelectedProtocolForView(null);
+                    setIsEditingProtocol(false);
+                  }}
+                  className="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
             </div>
 
-            <div className="flex items-center gap-2 text-xs">
-              <span className="font-mono bg-teal-50 text-teal-800 px-2.5 py-0.5 rounded font-bold border border-teal-200">
-                {selectedProtocolForView.code}
-              </span>
-              <span className="text-slate-500">
-                Norma: <strong>{selectedProtocolForView.legalBasis}</strong>
-              </span>
-            </div>
+            {/* MODO EDICIÓN ACTIVO */}
+            {isEditingProtocol ? (
+              <form onSubmit={handleSaveProtocolEdits} className="space-y-4 text-xs animate-in fade-in">
+                <div className="p-3 bg-amber-50 border-2 border-amber-200 rounded-xl flex items-center gap-2 text-amber-900">
+                  <Edit3 className="w-4 h-4 text-amber-600 shrink-0" />
+                  <span>
+                    <strong>Modo de Edición Activo:</strong> Puede ajustar el articulado, plazos, canales o responsabilidades conforme a las particularidades de la organización. Al guardar se generará automáticamente una nueva versión oficial del documento.
+                  </span>
+                </div>
 
-            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono text-slate-800 whitespace-pre-wrap leading-relaxed max-h-96 overflow-y-auto">
-              {selectedProtocolForView.contentTemplate}
-            </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Título del Protocolo</label>
+                    <input
+                      type="text"
+                      required
+                      value={editProtocolTitle}
+                      onChange={(e) => setEditProtocolTitle(e.target.value)}
+                      className="w-full p-2.5 rounded-xl border border-slate-300 font-semibold text-slate-900 focus:outline-none focus:border-teal-600"
+                    />
+                  </div>
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Marco Jurídico / Base Legal</label>
+                    <input
+                      type="text"
+                      required
+                      value={editProtocolBasis}
+                      onChange={(e) => setEditProtocolBasis(e.target.value)}
+                      className="w-full p-2.5 rounded-xl border border-slate-300 font-semibold text-slate-900 focus:outline-none focus:border-teal-600"
+                    />
+                  </div>
+                </div>
 
-            <div className="flex justify-end gap-2 pt-2 border-t border-slate-200">
-              <button
-                onClick={() => setSelectedProtocolForView(null)}
-                className="px-4 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs"
-              >
-                Cerrar Visor
-              </button>
-            </div>
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Descripción / Alcance</label>
+                  <textarea
+                    rows={2}
+                    required
+                    value={editProtocolDesc}
+                    onChange={(e) => setEditProtocolDesc(e.target.value)}
+                    className="w-full p-2.5 rounded-xl border border-slate-300 text-slate-800 leading-relaxed focus:outline-none focus:border-teal-600"
+                  />
+                </div>
+
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">
+                    Cuerpo Normativo Estructurado del Protocolo (Articulado, Procedimiento y Firmas)
+                  </label>
+                  <textarea
+                    rows={15}
+                    required
+                    value={editProtocolContent}
+                    onChange={(e) => setEditProtocolContent(e.target.value)}
+                    className="w-full p-3 rounded-xl border border-slate-300 font-mono text-[11px] text-slate-800 leading-relaxed focus:outline-none focus:border-teal-600"
+                  />
+                </div>
+
+                <div className="flex justify-end gap-2 pt-3 border-t border-slate-200">
+                  <button
+                    type="button"
+                    onClick={() => setIsEditingProtocol(false)}
+                    className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold"
+                  >
+                    Descartar Edición
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-5 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold flex items-center gap-1.5 shadow-md shadow-teal-600/20"
+                  >
+                    <Save className="w-4 h-4" />
+                    <span>Guardar Cambios & Nueva Versión</span>
+                  </button>
+                </div>
+              </form>
+            ) : (
+              /* MODO VISOR ESTRUCTURADO IMPRIMIBLE / PDF */
+              <div id="printable-ccl-protocol" className="space-y-6 text-xs text-slate-800 bg-white">
+                {/* Estilos para impresión PDF nítida */}
+                <style>{`
+                  @media print {
+                    body * {
+                      visibility: hidden;
+                    }
+                    #printable-ccl-protocol, #printable-ccl-protocol * {
+                      visibility: visible;
+                    }
+                    #printable-ccl-protocol {
+                      position: fixed;
+                      left: 0;
+                      top: 0;
+                      width: 100%;
+                      height: auto;
+                      margin: 0;
+                      padding: 15mm 20mm;
+                      background: white !important;
+                      color: #000 !important;
+                      font-size: 10.5pt !important;
+                      line-height: 1.5 !important;
+                      z-index: 999999;
+                    }
+                    .no-print {
+                      display: none !important;
+                    }
+                  }
+                `}</style>
+
+                {/* Membrete Institucional Oficial */}
+                <div className="border-2 border-slate-800 rounded-xl overflow-hidden shadow-xs">
+                  <div className="grid grid-cols-12 divide-y md:divide-y-0 md:divide-x-2 divide-slate-800 bg-slate-50/50">
+                    <div className="col-span-12 md:col-span-3 p-3 flex flex-col items-center justify-center text-center bg-white">
+                      <div className="w-10 h-10 rounded-xl bg-teal-700 text-white flex items-center justify-center font-black text-sm mb-1">
+                        AGAE
+                      </div>
+                      <span className="font-black text-xs text-slate-900 uppercase tracking-tight">
+                        {organization.name}
+                      </span>
+                      <span className="text-[10px] text-slate-600 font-mono">
+                        NIT: {organization.nit}
+                      </span>
+                    </div>
+
+                    <div className="col-span-12 md:col-span-6 p-3 flex flex-col items-center justify-center text-center">
+                      <span className="font-bold text-[11px] text-slate-600 uppercase tracking-wider">
+                        SISTEMA DE GESTIÓN DE SEGURIDAD Y SALUD EN EL TRABAJO (SG-SST)
+                      </span>
+                      <h2 className="font-black text-sm text-slate-900 uppercase mt-0.5">
+                        COMITÉ DE CONVIVENCIA LABORAL (CCL)
+                      </h2>
+                      <span className="text-[11px] text-teal-800 font-extrabold uppercase mt-0.5">
+                        {selectedProtocolForView.title}
+                      </span>
+                    </div>
+
+                    <div className="col-span-12 md:col-span-3 p-3 text-[10px] space-y-1 bg-white font-mono flex flex-col justify-center">
+                      <div><strong className="text-slate-900">CÓDIGO:</strong> {selectedProtocolForView.code}</div>
+                      <div><strong className="text-slate-900">VERSIÓN:</strong> {selectedProtocolForView.version}</div>
+                      <div><strong className="text-slate-900">FECHA:</strong> {selectedProtocolForView.updatedAt}</div>
+                      <div><strong className="text-slate-900">ESTADO:</strong> VIGENTE ✓</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Ficha Técnica y Marco Jurídico */}
+                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                  <div>
+                    <span className="font-bold text-slate-500 uppercase text-[10px] block">Marco Normativo Aplicable:</span>
+                    <strong className="text-teal-900 font-bold">{selectedProtocolForView.legalBasis}</strong>
+                  </div>
+                  <div>
+                    <span className="font-bold text-slate-500 uppercase text-[10px] block">Alcance Institucional:</span>
+                    <span className="text-slate-700">{selectedProtocolForView.description}</span>
+                  </div>
+                </div>
+
+                {/* Cuerpo del Protocolo Estructurado */}
+                <div className="p-5 rounded-xl bg-white border border-slate-200 shadow-inner">
+                  <div className="prose prose-slate max-w-none text-xs font-mono whitespace-pre-wrap leading-relaxed text-slate-800">
+                    {selectedProtocolForView.contentTemplate}
+                  </div>
+                </div>
+
+                {/* Bloque Oficial de Firmas y Validación Institucional */}
+                <div className="pt-6 border-t-2 border-slate-300 space-y-4">
+                  <div className="text-center font-bold text-xs uppercase tracking-wider text-slate-600">
+                    CONSTANCIA DE APROBACIÓN, FIRMAS Y ADOPCIÓN OFICIAL
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-3">
+                    <div className="border-t border-slate-700 pt-2 text-center space-y-0.5">
+                      <div className="font-serif italic text-sm text-teal-900">Mariana Restrepo Morales</div>
+                      <div className="font-black text-[11px] text-slate-900">Mariana Restrepo Morales</div>
+                      <div className="text-[10px] text-slate-600 font-semibold">Presidente(a) del CCL</div>
+                      <div className="text-[9px] text-emerald-700 font-mono">Firma Digital Verificada ✓</div>
+                    </div>
+
+                    <div className="border-t border-slate-700 pt-2 text-center space-y-0.5">
+                      <div className="font-serif italic text-sm text-teal-900">Sandra Milena Gómez</div>
+                      <div className="font-black text-[11px] text-slate-900">Sandra Milena Gómez</div>
+                      <div className="text-[10px] text-slate-600 font-semibold">Secretaria del CCL</div>
+                      <div className="text-[9px] text-emerald-700 font-mono">Firma Digital Verificada ✓</div>
+                    </div>
+
+                    <div className="border-t border-slate-700 pt-2 text-center space-y-0.5">
+                      <div className="font-serif italic text-sm text-teal-900">Fernando Ortiz Salazar</div>
+                      <div className="font-black text-[11px] text-slate-900">Fernando Ortiz Salazar</div>
+                      <div className="text-[10px] text-slate-600 font-semibold">Representante Legal / Gerencia</div>
+                      <div className="text-[9px] text-emerald-700 font-mono">Adopción SG-SST Aprobada ✓</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

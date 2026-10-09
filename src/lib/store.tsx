@@ -64,6 +64,7 @@ import {
   CclFollowUpRecord,
   CclMeeting,
   CclEvidenceAttachment,
+  CclProtocolDocument,
   TrainingGlobalState,
   TrainingPlanActivity,
   TrainingRescheduleHistoryEntry,
@@ -324,6 +325,7 @@ interface AppContextType {
   updateCclMeeting: (meetingId: string, updatedData: Partial<CclMeeting>) => void;
   updateCclRegulation: (newText: string) => void;
   updateCclDocumentNotes: (docType: string, notes: string) => void;
+  updateCclProtocol: (protocolId: string, updatedFields: Partial<CclProtocolDocument>) => void;
 
   // Capacitación, Formación, Inducción y Aula Virtual (Estándar 1.2 - Res. 0312 / Dec. 1072 Art. 2.2.4.6.11)
   trainingState: TrainingGlobalState;
@@ -2717,25 +2719,32 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const castCclVote = (voterDocNumber: string, candidateId: string): { success: boolean; message: string } => {
     if (blockedByDemo()) return { success: false, message: 'Función en modo demo' };
+    const cleanDoc = voterDocNumber.replace(/\D/g, '');
+    if (!cleanDoc) {
+      return { success: false, message: 'Ingrese un número de documento válido.' };
+    }
+
     if (!cclState.election.isVotingOpen || cclState.election.isClosed) {
       return { success: false, message: 'El periodo electoral no se encuentra activo o ya fue cerrado.' };
     }
 
-    const voter = workers.find(w => w.docNumber.trim() === voterDocNumber.trim());
+    const voter = workers.find(w => w.docNumber.replace(/\D/g, '') === cleanDoc && w.status === 'ACTIVO');
     if (!voter) {
-      return { success: false, message: 'El número de identificación no pertenece al censo de trabajadores de la empresa.' };
+      return { success: false, message: 'El número de identificación no figura en el censo de trabajadores activos de la empresa.' };
     }
 
-    const alreadyVoted = cclState.election.voterAuditLog.some(log => log.voterDocNumber.trim() === voterDocNumber.trim());
+    const alreadyVoted = cclState.election.voterAuditLog.some(
+      log => log.voterDocNumber.replace(/\D/g, '') === cleanDoc
+    );
     if (alreadyVoted) {
       return { success: false, message: 'Usted ya ha ejercido su derecho al voto en esta jornada electoral.' };
     }
 
-    const now = new Date().toISOString();
+    const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
     const auditEntry = {
-      voterDocNumber: voterDocNumber.trim(),
+      voterDocNumber: voter.docNumber,
       votedAt: now,
-      ipAddress: '192.168.1.xxx'
+      ipAddress: '127.0.0.1'
     };
 
     setCclState(prev => {
@@ -2759,7 +2768,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       };
     });
 
-    return { success: true, message: 'Su voto secreto ha sido depositado y certificado legalmente.' };
+    return { success: true, message: `¡Voto depositado con éxito para ${voter.firstName} ${voter.lastName}! Garantía legal de voto secreto.` };
   };
 
   const closeCclElection = () => {
@@ -2888,7 +2897,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       meetings: [newMeeting, ...prev.meetings]
     }));
 
-    showNotification(`Reunión ${actaCode} convocada y registrada en el cronograma trimestral`);
+    showNotification(`Reunión ${actaCode} convocada y registrada en el cronograma mensual`);
     return newMeeting;
   };
 
@@ -3001,6 +3010,23 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       }
     }));
     showNotification('Observaciones y personalización del documento guardadas', 'success');
+  };
+
+  const updateCclProtocol = (protocolId: string, updatedFields: Partial<CclProtocolDocument>) => {
+    if (blockedByDemo()) return;
+    const today = new Date().toISOString().split('T')[0];
+    setCclState(prev => ({
+      ...prev,
+      protocols: prev.protocols.map(p => {
+        if (p.id !== protocolId) return p;
+        return {
+          ...p,
+          ...updatedFields,
+          updatedAt: today
+        };
+      })
+    }));
+    showNotification('Protocolo del CCL actualizado, estructurado y versionado con éxito', 'success');
   };
 
   // ==============================================================
@@ -3678,6 +3704,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         updateCclMeeting,
         updateCclRegulation,
         updateCclDocumentNotes,
+        updateCclProtocol,
 
         // Capacitación, Formación, Inducción y Aula Virtual (Estándar 1.2 - Dec. 1072 & Res. 0312)
         trainingState,

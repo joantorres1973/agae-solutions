@@ -11,108 +11,248 @@ export const INITIAL_CCL_PROTOCOLS: CclProtocolDocument[] = [
   {
     id: 'prot-01',
     code: 'PROT-CCL-01',
-    title: 'Protocolo de Recepción, Registro y Trámite Confidencial de Quejas',
+    title: 'Protocolo de Prevención Integral del Acoso Laboral, Violencia y Discriminación de Género',
     category: 'PROTOCOLO',
-    legalBasis: 'Resolución 3461 de 2025 - Ministerio del Trabajo',
-    version: '01',
-    updatedAt: '2026-02-15',
-    description: 'Establece los canales formales, formularios estandarizados y medidas de custodia para radicar presuntas conductas sin prejuzgamiento jurídico.',
-    contentTemplate: `1. OBJETO Y ALCANCE
-El presente protocolo define el procedimiento para la recepción, radicación y preservación confidencial de solicitudes y quejas relacionadas con presuntas conductas que puedan afectar la convivencia laboral en la organización, en estricto cumplimiento de la Resolución 3461 de 2025.
+    legalBasis: 'Resolución 3461 de 2025, Ley 1010 de 2006 y Ley 2365 de 2024',
+    version: '02',
+    updatedAt: '2026-03-01',
+    description: 'Directrices preventivas organizacionales, mecanismos de sensibilización, detección temprana de factores de riesgo psicosocial y políticas de cero tolerancia ante conductas de acoso o violencia.',
+    contentTemplate: `================================================================================
+AGAE SOLUTIONS S.A.S. | SISTEMA DE GESTIÓN SG-SST
+CÓDIGO: PROT-CCL-01 | VERSIÓN: 02 | VIGENCIA: 2025 - 2027
+PROTOCOLO DE PREVENCIÓN INTEGRAL DEL ACOSO LABORAL, VIOLENCIA Y DISCRIMINACIÓN DE GÉNERO
+================================================================================
 
-2. PRINCIPIO DE IMPARCIALIDAD Y NO PREJUZGAMIENTO
-El Comité de Convivencia Laboral (CCL) es un organismo preventivo y conciliador. Ninguna queja recibida constituirá prueba o declaración judicial automática de acoso laboral. El CCL no tiene facultades disciplinarias ni sancionatorias.
+I. OBJETO Y POLÍTICA INSTITUCIONAL
+Establecer medidas proactivas, pedagógicas y organizacionales destinadas a prevenir conductas constitutivas de acoso laboral, violencia en el trabajo y acoso sexual laboral, garantizando un ambiente de trabajo digno, armónico y seguro para la totalidad de los colaboradores, en estricto cumplimiento de la Resolución 3461 de 2025 del Ministerio del Trabajo, la Ley 1010 de 2006 y la Ley 2365 de 2024.
 
-3. CANALES AUTORIZADOS DE RECEPCIÓN
-- Canal digital confidencial AGAE SOLUTIONS (cifrado con acceso exclusivo al Secretario/a).
-- Formulario físico en sobre cerrado dirigido a la Secretaría del CCL.
-- Correo electrónico institucional seguro exclusivo del Comité.
+II. ALCANCE Y POBLACIÓN CUBIERTA
+Aplica obligatoriamente a todos los centros de trabajo de la organización, personal vinculado directamente mediante contrato de trabajo, aprendices del SENA, practicantes universitarios, personal en misión, contratistas independientes y personal directivo.
 
-4. TIEMPOS DE RESPUESTA Y TÉRMINOS LEGALES (RES. 3461/2025)
-- Radicación y asignación de código único: Máximo 3 días hábiles tras recepción.
-- Examen confidencial por el Comité: Máximo 8 días hábiles tras radicación.
-- Citación a escucha individual: Máximo 5 días hábiles tras examen confidencial.`
+III. MARCO NORMATIVO VIGENTE
+1. Resolución 3461 de 2025 (Ministerio del Trabajo): Régimen legal de conformación y funcionamiento del Comité de Convivencia Laboral y medidas preventivas obligatorias.
+2. Ley 1010 de 2006: Mecanismos de prevención y corrección del acoso laboral.
+3. Ley 2365 de 2024: Prevención y atención integral del acoso sexual en el ámbito laboral.
+4. Decreto 1072 de 2015 (Libro 2, Parte 2, Título 4, Capítulo 6): SG-SST y gestión del riesgo psicosocial.
+5. Resolución 2764 de 2022: Batería de instrumentos para la evaluación de factores de riesgo psicosocial.
+
+IV. DEFINICIONES Y CONDUCTAS REGULADAS
+- Acoso Laboral: Toda conducta persistente y demostrable ejercida sobre un empleado, encaminada a infundir miedo, intimidación, terror y angustia, a causar perjuicio laboral, generar desmotivación en el trabajo o inducir la renuncia del mismo.
+- Acoso Sexual en el Ámbito Laboral (Ley 2365 de 2024): Todo acto de persecución, hostigamiento, asedio físico o verbal, proposición no consentida con connotación sexual o prevalimiento de autoridad que afecte la dignidad de la persona.
+- Conductas Atenuantes y Agravantes: Conforme al Art. 3 y 4 de la Ley 1010 de 2006.
+- Conductas que NO constituyen acoso laboral: Actos de formulación de circulares técnicas, exigencias razonables de fidelidad y rendimiento laboral, memorandos de llamado de atención motivados y potestades disciplinarias ejercidas con debido proceso.
+
+V. PRINCIPIOS RECTORES
+- Confidencialidad y Reserva Absoluta: Toda actuación, testimonio o información gozará de reserva legal.
+- Imparcialidad y Presunción de Inocencia: El Comité actúa como órgano preventivo y mediador, sin prejudicamiento.
+- No Revictimización: Prohibición de someter a la víctima a interrogatorios reiterativos, descalificadores o revictimizantes.
+- Celeridad Procesal: Cumplimiento riguroso de los términos legales establecidos en la Resolución 3461 de 2025.
+
+VI. PROGRAMAS Y ACCIONES PREVENTIVAS OBLIGATORIAS
+1. Capacitación y Sensibilización Periódica: Taller mensual obligatorio sobre comunicación asertiva, resolución pacífica de conflictos, prevención de violencia basada en género y liderazgo positivo.
+2. Evaluación Psicosocial: Aplicación y seguimiento anual de la Batería de Riesgo Psicosocial con plan de intervención liderado por Psicólogo con licencia en SST.
+3. Canales de Escucha Abierta: Espacios anónimos y consultivos de orientación sobre clima laboral.
+4. Socialización del Decálogo de Convivencia: Difusión en inducciones y reinducciones del SG-SST.
+
+VII. FIRMAS DE ADOPCIÓN Y VIGENCIA
+Aprobado por el Comité de Convivencia Laboral y la Gerencia General para el periodo 2025 - 2027.
+- Presidente del CCL: Mariana Restrepo Morales
+- Secretaria del CCL: Sandra Milena Gómez
+- Representante Legal / Gerencia: Fernando Ortiz Salazar`
   },
   {
     id: 'prot-02',
     code: 'PROT-CCL-02',
-    title: 'Protocolo de Escucha Imparcial de las Partes y Garantía de No Revictimización',
-    category: 'PROTOCOLO',
-    legalBasis: 'Resolución 3461 de 2025 Art. 6',
-    version: '01',
-    updatedAt: '2026-02-15',
-    description: 'Lineamientos obligatorios para realizar audiencias y entrevistas separadas, respetando el debido proceso y la dignidad humana.',
-    contentTemplate: `1. SEPARACIÓN ESTRICTA DE AUDIENCIAS
-En ningún caso se confrontará a las partes involucradas en una primera instancia. El Comité escuchará de manera individual y en sesiones independientes a la persona que presenta la queja y a la persona señalada.
+    title: 'Procedimiento de Recepción, Radicación y Trámite Confidencial de Quejas',
+    category: 'PROCEDIMIENTO',
+    legalBasis: 'Resolución 3461 de 2025 Art. 4, 5 y 6',
+    version: '02',
+    updatedAt: '2026-03-01',
+    description: 'Establece los canales formales de recepción, asignación de código reservado, examen preliminar de pertinencia y términos perentorios en días hábiles.',
+    contentTemplate: `================================================================================
+AGAE SOLUTIONS S.A.S. | SISTEMA DE GESTIÓN SG-SST
+CÓDIGO: PROT-CCL-02 | VERSIÓN: 02 | VIGENCIA: 2025 - 2027
+PROCEDIMIENTO DE RECEPCIÓN, RADICACIÓN Y TRÁMITE CONFIDENCIAL DE QUEJAS
+================================================================================
 
-2. GARANTÍAS PROCESALES
-- Derecho a ser escuchado sin interrupciones ni descalificaciones.
-- Posibilidad de aportar elementos de contexto o soportes documentales.
-- Absoluta reserva de lo manifestado durante la sesión.
-- Prohibición expresa de conductas revictimizantes o preguntas revictimizantes.
+I. OBJETO
+Normar el flujo integral de radicación, registro cifrado, análisis preliminar y trámite interno de quejas o solicitudes sobre convivencia laboral y presuntas conductas de acoso, garantizando la reserva del expediente y la celeridad requerida por la Resolución 3461 de 2025.
 
-3. ACTAS DE COMPARECENCIA INDIVIDUAL
-Cada entrevista contará con un acta sucinta suscrita por la parte y los integrantes delegados del Comité, conservada bajo custodia reservada.`
+II. CANALES AUTORIZADOS DE RECEPCIÓN
+1. Canal Digital Cifrado AGAE SOLUTIONS: Formulario web seguro con token de radicación automático al que únicamente tiene acceso la Secretaría del Comité.
+2. Buzón Físico de Convivencia: Ubicado en punto ciego sin cámaras, con apertura quincenal exclusiva por la Secretaría del Comité.
+3. Correo Electrónico Institucional Exclusivo: ccl.confidencial@andina-logistica.com.co
+
+III. TÉRMINOS LEGALES PERENTORIOS (RESOLUCIÓN 3461 DE 2025)
+- Día 0 a 3 hábiles: Recepción, asignación de consecutivo único (ej: CCL-2026-0001) y acuse de recibo confidencial al quejoso.
+- Día 4 a 8 hábiles: Convocatoria extraordinaria o inclusión en la sesión ordinaria mensual para examen preliminar de admisibilidad y pertinencia.
+- Día 9 a 12 hábiles: Notificación y citación por separado a las partes para audiencia de escucha individual.
+- Día 13 a 20 hábiles: Audiencias individuales de versión libre, recepción de elementos de contexto y firma de actas reservadas.
+- Día 21 a 30 hábiles: Sesión de mediación conjunta (si ambas partes consienten) o formulación de recomendaciones preventivas institucionales.
+
+IV. REQUISITOS FORMALES DE LA QUEJA
+La solicitud debe contener:
+a) Identificación del quejoso (nombre, cargo, área y documento de identidad).
+b) Identificación de la persona o personas señaladas.
+c) Relato cronológico y sucinto de los hechos, con fechas y lugares específicos.
+d) Relación de posibles testigos o elementos de soporte (si los hubiere).
+e) Declaración de no haber interpuesto querella administrativa simultánea o manifestación de trámite interno previo.
+
+V. CADENA DE CUSTODIA Y ARCHIVO
+Toda la documentación física se conservará en el archivo de seguridad bajo custodia de la Secretaría. Los registros digitales contarán con cifrado AES-256 en la plataforma AGAE.`
   },
   {
     id: 'prot-03',
     code: 'PROT-CCL-03',
-    title: 'Protocolo para Espacios de Diálogo, Concertación y Planes de Mejora',
+    title: 'Protocolo de Audiencias Separadas, Escucha Imparcial y No Revictimización',
     category: 'PROTOCOLO',
-    legalBasis: 'Resolución 3461 de 2025 Art. 7',
-    version: '01',
-    updatedAt: '2026-02-15',
-    description: 'Metodología de mediación institucional para promover acuerdos voluntarios, restauración de relaciones y compromisos mutuos.',
-    contentTemplate: `1. PREPARACIÓN DEL ENCUENTRO DE CONCILIACIÓN
-Una vez agotada la etapa de escucha individual, y siempre que ambas partes expresen su voluntad de participar, el Comité convocará a una reunión conjunta de diálogo.
+    legalBasis: 'Resolución 3461 de 2025 Art. 6',
+    version: '02',
+    updatedAt: '2026-03-01',
+    description: 'Lineamientos obligatorios para realizar entrevistas individuales, garantizar el derecho a la defensa y el debido proceso sin confrontación lesiva entre las partes.',
+    contentTemplate: `================================================================================
+AGAE SOLUTIONS S.A.S. | SISTEMA DE GESTIÓN SG-SST
+CÓDIGO: PROT-CCL-03 | VERSIÓN: 02 | VIGENCIA: 2025 - 2027
+PROTOCOLO DE AUDIENCIAS SEPARADAS, ESCUCHA IMPARCIAL Y NO REVICTIMIZACIÓN
+================================================================================
 
-2. REGLAS DE CONVIVENCIA EN LA MESA DE DIÁLOGO
-- Uso de lenguaje respetuoso, constructivo y desprovisto de agresiones verbales.
-- Enfoque hacia soluciones futuras y no hacia la confrontación del pasado.
-- Moderación activa por parte del Presidente y Secretario del CCL.
+I. PRINCIPIO DE SEPARACIÓN ESTRICTA EN ETAPA PRELIMINAR
+Queda expresamente prohibido celebrar careos o confrontaciones directas entre la parte quejosa y la parte señalada en la etapa inicial de conocimiento de la queja. El Comité escuchará de forma estrictamente individual y en días o franjas horarias separadas a cada interviniente.
 
-3. PLAN DE MEJORA Y COMPROMISOS
-Los acuerdos alcanzados se registrarán en la Matriz de Compromisos con:
-a) Conductas o acciones específicas acordadas.
-b) Plazo de cumplimiento y responsable directo.
-c) Indicador o evidencia de cumplimiento objetivo.
-d) Fechas programadas de seguimiento periódico por el Comité.`
+II. GARANTÍAS PARA LA PERSONA QUEJOSA
+1. Ambiente Seguro y Privado: La sesión se adelantará en sala cerrada con insonorización, garantizando intimidad y tranquilidad emocional.
+2. No Cuestionamiento de Credibilidad a Priori: El Comité escuchará activamente sin emitir juicios de valor, descalificaciones ni preguntas revictimizantes.
+3. Posibilidad de Acompañamiento Psicosocial: La persona podrá solicitar la presencia orientadora de un profesional en psicología del SG-SST.
+
+III. GARANTÍAS PARA LA PERSONA SEÑALADA (DEBIDO PROCESO)
+1. Notificación Previa y Concreta: Conocimiento oportuno de los hechos motivo de la queja, protegiendo datos sensibles.
+2. Derecho a la Contradicción: Oportunidad procesal amplia de exponer su versión de los acontecimientos y aportar elementos de contexto.
+3. Presunción de Buena Fe e Inocencia: El trámite ante el CCL es de naturaleza conciliatoria y preventiva; no genera antecedente disciplinario per se.
+
+IV. REGLAS PARA LA RECEPCIÓN DE TESTIMONIOS
+- La citación a testigos es potestativa del Comité y se limitará a corroborar el clima de convivencia en el entorno de trabajo.
+- Se mantendrá el anonimato de las declaraciones en los informes que se deriven del proceso.`
   },
   {
     id: 'prot-04',
     code: 'PROT-CCL-04',
-    title: 'Protocolo de Seguridad, Custodia y Reserva Legal de Expedientes',
+    title: 'Protocolo de Medidas Cautelares, Protección Preventiva y Garantía de No Represalias',
     category: 'PROTOCOLO',
-    legalBasis: 'Resolución 3461 de 2025 y Ley 1581 de 2012 (Habeas Data)',
-    version: '01',
-    updatedAt: '2026-02-15',
-    description: 'Mecanismos técnicos y jurídicos de restricción de acceso, salvaguardando la confidencialidad de datos sensibles.',
-    contentTemplate: `1. NIVEL MÁXIMO DE RESERVA
-La documentación de quejas de convivencia y presunto acoso laboral constituye información sensible sujeta a reserva legal. Ni el Gerente General ni auditores del SG-SST tienen acceso irrestricto al contenido nominativo de los casos.
+    legalBasis: 'Ley 1010 de 2006 Art. 11, Resolución 3461 de 2025 y Ley 2365 de 2024',
+    version: '02',
+    updatedAt: '2026-03-01',
+    description: 'Procedimiento de emisión inmediata de medidas provisionales de protección, reubicación temporal preventiva y blindaje contra represalias laborales directas o indirectas.',
+    contentTemplate: `================================================================================
+AGAE SOLUTIONS S.A.S. | SISTEMA DE GESTIÓN SG-SST
+CÓDIGO: PROT-CCL-04 | VERSIÓN: 02 | VIGENCIA: 2025 - 2027
+PROTOCOLO DE MEDIDAS CAUTELARES, PROTECCIÓN INMEDIATA Y NO REPRESALIAS
+================================================================================
 
-2. MEDIDAS DE CONTROL DE ACCESO
-- Trazabilidad criptográfica de cada consulta, descarga o modificación.
-- Prohibición de extracción o difusión no autorizada bajo sanciones legales.
-- Custodia física de archivos bajo llave exclusiva de la Secretaría del CCL.
-- Exclusión de nombres personales en los informes estadísticos trimestrales y anuales.`
+I. OBJETO Y FINALIDAD
+Salvaguardar de manera perentoria la integridad física, psicológica y las condiciones de estabilidad laboral de las personas involucradas en una queja durante la tramitación del proceso ante el CCL.
+
+II. MEDIDAS CAUTELARES DISPONIBLES (A SOLICITUD O DE OFICIO)
+Cuando el Comité identifique riesgo inminente para la salud mental o física de los involucrados, recomendará formalmente a la Gerencia:
+1. Reubicación Temporal de Puesto de Trabajo: Traslado preventivo de puesto físico dentro de la misma sede sin desmejora salarial ni prestacional.
+2. Modificación Temporal de Horarios o Turnos: Ajuste en la programación operativa para evitar coincidencias en turnos de servicio.
+3. Modalidad de Trabajo Remoto o Híbrido Temporal: Aplicación transitoria de trabajo en casa o teletrabajo durante la vigencia del trámite.
+4. Separación de Línea de Reporte o Supervisión: Asignación transitoria de un evaluador o supervisor par para evaluaciones de desempeño y directrices.
+
+III. GARANTÍA DE NO REPRESALIAS (ARTÍCULO 11 LEY 1010 DE 2006)
+- Protección Laboral Reforzada: La terminación unilateral del contrato de trabajo del quejoso o de los testigos dentro de los seis (6) meses siguientes a la formulación de la queja carecerá de todo efecto si se demuestra relación de causalidad con la misma.
+- Prohibición de Represalias Ocultas: Se prohíbe cualquier cambio injustificado de funciones descalificatorio, sobrecarga selectiva de trabajo, exclusión deliberada de comunicaciones o evaluaciones sesgadas.
+- Canal Prioritario de Denuncia por Represalia: Ante cualquier indicio de retaliación, el Comité sesionará de forma extraordinaria en menos de 48 horas.`
   },
   {
     id: 'prot-05',
+    code: 'PROT-CCL-05',
+    title: 'Protocolo para Espacios de Diálogo, Concertación Amigable y Planes de Mejora',
+    category: 'PROTOCOLO',
+    legalBasis: 'Resolución 3461 de 2025 Art. 7',
+    version: '02',
+    updatedAt: '2026-03-01',
+    description: 'Metodología estructurada de mediación institucional paritaria para lograr acuerdos voluntarios de conducta, compromisos verificables y restauración del clima laboral.',
+    contentTemplate: `================================================================================
+AGAE SOLUTIONS S.A.S. | SISTEMA DE GESTIÓN SG-SST
+CÓDIGO: PROT-CCL-05 | VERSIÓN: 02 | VIGENCIA: 2025 - 2027
+PROTOCOLO PARA ESPACIOS DE DIÁLOGO, CONCERTACIÓN AMIGABLE Y PLANES DE MEJORA
+================================================================================
+
+I. VOLUNTARIEDAD DEL ESPACIO DE MEDIACIÓN
+La sesión conjunta de diálogo se convocará única y exclusivamente cuando ambas partes hayan manifestado expresamente su consentimiento libre e informado de acudir a la mesa de concertación facilitada por el Comité.
+
+II. METODOLOGÍA DEL ENCUENTRO
+1. Apertura: El Presidente del CCL reitera el marco de confidencialidad, las reglas de respeto mutuo y el objetivo restaurativo de la reunión.
+2. Exposición Orientada a Soluciones: Cada parte expresa sus percepciones y expectativas de futuro, prohibiéndose descalificaciones personales o revictimizaciones.
+3. Identificación de Puntos de Convergencia: El Comité actúa como facilitador neutral para formular fórmulas de arreglo amigable.
+
+III. ACTA DE ACUERDO Y COMPROMISOS (PLAN DE MEJORA)
+Los acuerdos alcanzados se consignarán en un acta con fuerza vinculante interna, especificando:
+- Conductas concretas y compromisos de comunicación asertiva.
+- Cronograma de metas y fechas de cumplimiento.
+- Indicador objetivo de verificación.
+- Periodicidad de sesiones de seguimiento por parte del Comité (a los 30, 60 y 90 días).
+
+IV. PROCEDIMIENTO ANTE FALTA DE ACUERDO O INCUMPLIMIENTO
+Si las partes no logran acuerdo voluntario, o si una de ellas incumple los compromisos pactados, el Comité cerrará la etapa conciliatoria y remitirá informe reservado con recomendaciones a la Alta Dirección para que adopte las medidas legales o disciplinarias pertinentes.`
+  },
+  {
+    id: 'prot-06',
+    code: 'PROT-CCL-06',
+    title: 'Protocolo de Seguridad, Custodia y Reserva Legal de Expedientes Sensibles',
+    category: 'PROTOCOLO',
+    legalBasis: 'Resolución 3461 de 2025, Ley 1581 de 2012 y Código Sustantivo del Trabajo',
+    version: '02',
+    updatedAt: '2026-03-01',
+    description: 'Protocolos de seguridad informática, niveles de cifrado, deber de secreto profesional inmutable y reserva de expedientes para proteger la intimidad y el buen nombre.',
+    contentTemplate: `================================================================================
+AGAE SOLUTIONS S.A.S. | SISTEMA DE GESTIÓN SG-SST
+CÓDIGO: PROT-CCL-06 | VERSIÓN: 02 | VIGENCIA: 2025 - 2027
+PROTOCOLO DE SEGURIDAD, CUSTODIA Y RESERVA LEGAL DE EXPEDIENTES SENSIBLES
+================================================================================
+
+I. CALIFICACIÓN JURÍDICA DE LA INFORMACIÓN
+Todos los documentos, actas, audios, declaraciones y expedientes radicados ante el Comité de Convivencia Laboral tienen el carácter legal de DATOS SENSIBLES Y RESERVADOS.
+
+II. COMPROMISO INMUTABLE DE CONFIDENCIALIDAD
+Todos los integrantes del Comité (principales y suplentes), así como el personal técnico que asista en las plataformas, deben suscribir al posesionarse el Acuerdo de Confidencialidad y Reserva Procesal. La violación de este secreto constituye falta gravísima laboral y causal de exclusión inmediata del Comité, sin perjuicio de acciones civiles y penales.
+
+III. MEDIDAS DE CONTROL DE ACCESO
+1. Separación de Perfiles: Los expedientes nominativos no son visibles en los tableros generales del SG-SST ni por la Gerencia General, salvo entrega formal de informe de remisión.
+2. Trazabilidad Criptográfica: Cada acceso, apertura o edición de un expediente deja registro inalterable de auditoría (usuario, cédula, fecha, hora e IP).
+3. Anonimización Obligatoria en Informes Periódicos: Todos los informes mensuales, consolidados y estadísticas de gestión omitirán nombres propios, usando exclusivamente códigos de expediente.`
+  },
+  {
+    id: 'prot-07',
     code: 'REGL-CCL-01',
-    title: 'Reglamento Interno de Funcionamiento del Comité de Convivencia Laboral',
+    title: 'Reglamento Interno de Funcionamiento del Comité de Convivencia Laboral (Res. 3461/2025)',
     category: 'REGLAMENTO',
     legalBasis: 'Resolución 3461 de 2025 Art. 9',
     version: '02',
-    updatedAt: '2026-02-15',
-    description: 'Estatuto regulador de conformación, quórum, funciones del presidente y secretario, y causales de impedimento y recusación.',
-    contentTemplate: `CAPÍTULO I: NATURALEZA Y COMPOSICIÓN
-El Comité de Convivencia Laboral es un organismo colegiado, preventivo y paritario, integrado por representantes del empleador y representantes de los trabajadores elegidos por voto secreto, para un periodo de dos (2) años.
+    updatedAt: '2026-03-01',
+    description: 'Estatuto regulador de la conformación, régimen de sesiones mensuales ordinarias, quórum decisorio, funciones del presidente y secretario, e impedimentos y recusaciones.',
+    contentTemplate: `================================================================================
+AGAE SOLUTIONS S.A.S. | SISTEMA DE GESTIÓN SG-SST
+CÓDIGO: REGL-CCL-01 | VERSIÓN: 02 | VIGENCIA: 2025 - 2027
+REGLAMENTO INTERNO DE FUNCIONAMIENTO DEL COMITÉ DE CONVIVENCIA LABORAL
+================================================================================
 
-CAPÍTULO II: SESIONES Y QUÓRUM DELIBERATORIO
-El Comité sesionará ordinariamente de forma trimestral y extraordinariamente ante situaciones de urgencia. Existirá quórum decisorio con la mayoría calificada de sus integrantes.
+CAPÍTULO I: NATURALEZA, COMPOSICIÓN Y PERIODO
+El Comité de Convivencia Laboral es un organismo paritario, preventivo y autónomo, conformado por igual número de representantes del empleador (designados directamente) y de los trabajadores (elegidos por voto libre y secreto). Su periodo legal es de dos (2) años a partir del acta de instalación.
 
-CAPÍTULO III: IMPEDIMENTOS Y RECUSACIONES
-Cualquier integrante del Comité involucrado directamente en una queja (como quejoso o persona señalada) deberá declararse impedido y será reemplazado de inmediato por su suplente paritario respectivo.`
+CAPÍTULO II: PERIODICIDAD DE SESIONES (RESOLUCIÓN 3461 DE 2025)
+1. Sesiones Ordinarias Mensuales: El Comité sesionará de manera obligatoria una (1) vez al mes de forma ordinaria (mínimo 12 actas ordinarias al año), para realizar seguimiento a planes preventivos, estadísticas, capacitaciones y clima organizacional.
+2. Sesiones Extraordinarias: Se convocará extraordinariamente cuando se presente una situación de urgencia, se radique una queja con solicitud de medidas cautelares o a solicitud motivada de cualquiera de sus miembros.
+
+CAPÍTULO III: QUÓRUM Y DECISIONES
+El quórum deliberatorio y decisorio se constituirá con la presencia de la mayoría de los integrantes del Comité (al menos un representante de cada parte). Las decisiones se tomarán preferentemente por consenso y subsidiariamente por mayoría simple.
+
+CAPÍTULO IV: FUNCIONES DEL PRESIDENTE Y SECRETARIO
+- Presidente: Convocar a sesiones, presidir y moderar con imparcialidad las reuniones, y canalizar las recomendaciones institucionales ante la Alta Dirección.
+- Secretario: Recibir y custodiar las quejas bajo reserva, levantar las actas de cada sesión ordinaria y extraordinaria, enviar citaciones reservadas y proyectar los informes mensuales de gestión.
+
+CAPÍTULO V: IMPEDIMENTOS Y RECUSACIONES
+Cualquier integrante del Comité involucrado en una queja como parte quejosa, persona señalada o testigo directo, deberá manifestar de inmediato su impedimento legal y abstenerse de participar en el estudio del caso. En tal circunstancia, será reemplazado de pleno derecho por su suplente paritario correspondiente.`
   }
 ];
 
@@ -625,7 +765,7 @@ ARTÍCULO 4. PROCEDIMIENTO PREVENTIVO DE TRÁMITE
         '2. Seguimiento al Plan Anual de Capacitación en Convivencia',
         '3. Análisis estadístico de casos y tendencias preventivas',
         '4. Propuesta de semana de la salud mental y clima laboral',
-        '5. Varios y compromisos para el siguiente trimestre'
+        '5. Varios y compromisos para el siguiente mes'
       ],
       agendaDetails: [
         {
@@ -641,10 +781,10 @@ ARTÍCULO 4. PROCEDIMIENTO PREVENTIVO DE TRÁMITE
         {
           pointNumber: 3,
           title: 'Análisis Estadístico de Casos',
-          discussionNotes: 'Cero quejas activas en el primer trimestre. Tendencia positiva en clima organizacional.'
+          discussionNotes: 'Cero quejas activas en el mes evaluado. Tendencia positiva en clima organizacional.'
         }
       ],
-      discussionSummary: 'Se evaluaron los indicadores de convivencia laboral del segundo trimestre de 2025. Se resaltó la buena disposición de los líderes de área y se acordó apoyar la campaña de pausas activas psicosociales.',
+      discussionSummary: 'Se evaluaron los indicadores de convivencia laboral del mes. Se resaltó la buena disposición de los líderes de área y se acordó apoyar la campaña de pausas activas psicosociales.',
       preventiveRecommendations: [
         'Realizar carteleras informativas sobre el decálogo de la convivencia laboral.',
         'Incluir cápsulas de comunicación positiva en las charlas de 5 minutos matutinas.'
@@ -711,7 +851,7 @@ ARTÍCULO 4. PROCEDIMIENTO PREVENTIVO DE TRÁMITE
         '1. Verificación de quórum reglamentario',
         '2. Lectura y aprobación del acta ordinaria anterior',
         '3. Seguimiento al caso CCL-2025-0003 y verificación de acuerdos',
-        '4. Preparación de informe preventivo del tercer trimestre',
+        '4. Preparación de informe preventivo mensual',
         '5. Conclusiones y fecha de próxima sesión ordinaria'
       ],
       agendaDetails: [
@@ -726,14 +866,14 @@ ARTÍCULO 4. PROCEDIMIENTO PREVENTIVO DE TRÁMITE
           discussionNotes: 'Se constató cumplimiento de publicación de turnos de conductores. Caso listo para cierre formal.'
         }
       ],
-      discussionSummary: 'Sesión ordinaria trimestral. Se analizó el cierre del caso CCL-2025-0003 por cumplimiento voluntario. Se estructuró el informe preventivo para entrega a la Alta Dirección.',
+      discussionSummary: 'Sesión ordinaria mensual. Se analizó el cierre del caso CCL-2025-0003 por cumplimiento voluntario. Se estructuró el informe preventivo para entrega a la Alta Dirección.',
       preventiveRecommendations: [
         'Coordinar con Talento Humano la encuesta de clima laboral y batería de riesgo psicosocial.'
       ],
       commitments: [
         {
           id: 'com-ccl-m2-1',
-          description: 'Radicar informe de gestión del tercer trimestre ante la Gerencia General.',
+          description: 'Radicar informe de gestión mensual ante la Gerencia General.',
           responsibleName: 'Sandra Milena Gómez',
           dueDate: '2025-10-30',
           status: 'CUMPLIDO'
@@ -856,7 +996,7 @@ ARTÍCULO 4. PROCEDIMIENTO PREVENTIVO DE TRÁMITE
 
   documentNotes: {
     CONFORMATION: 'Acta formal de conformación paritaria del CCL conforme a los lineamientos y reglas de la Resolución 3461 de 2025 del Ministerio del Trabajo.',
-    INSTALLATION: 'Acta de instalación del Comité de Convivencia Laboral fijando cronograma ordinario trimestral y funciones de presidencia y secretaría.',
+    INSTALLATION: 'Acta de instalación del Comité de Convivencia Laboral fijando cronograma ordinario mensual (Res. 3461 de 2025) y funciones de presidencia y secretaría.',
     ELECTION: 'Acta de escrutinio electoral con voto secreto e identificación del censo de votantes, garantizando la confidencialidad del sufragio.',
     EMPLOYER_DESIGNATION: 'Carta formal de designación de los representantes del empleador por parte de la Gerencia General de Andina de Seguridad & Logística S.A.S.'
   },

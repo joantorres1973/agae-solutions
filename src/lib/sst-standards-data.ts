@@ -399,18 +399,18 @@ export const master60Standards: SstStandardDefinition[] = [
     cycle: 'PLANEAR',
     numeralGroup: '1.1 Recursos financieros, técnicos, humanos y de otra índole',
     title: 'Conformación y Funcionamiento del Comité de Convivencia Laboral',
-    criterion: 'Conformar el Comité de Convivencia Laboral, con periodo de dos años, reuniones trimestrales y gestión de acoso laboral.',
-    decreto1072Article: 'Ley 1010 de 2006 y Res. 652 de 2012',
-    decreto1072Title: 'Prevención del acoso laboral y clima de trabajo armónico',
-    decreto1072Excerpt: 'Mecanismo de prevención de conductas constitutivas de acoso laboral y trámite confidencial de quejas y reclamos.',
+    criterion: 'Conformar el Comité de Convivencia Laboral, con periodo de dos años, reuniones mensuales ordinarias y trámite confidencial de quejas.',
+    decreto1072Article: 'Resolución 3461 de 2025, Ley 1010 de 2006 y Ley 2365 de 2024',
+    decreto1072Title: 'Prevención del acoso laboral, violencia en el trabajo y funcionamiento del CCL',
+    decreto1072Excerpt: 'Conformación paritaria y funcionamiento del Comité de Convivencia Laboral, con sesiones ordinarias mensuales obligatorias, protocolo de quejas y medidas preventivas.',
     weight: 0.5,
     applicableIn7: false,
     applicableIn21: true,
     applicableIn60: true,
-    modeOfVerification: 'Solicitar acta de conformación, actas de reuniones trimestrales e informe anual de gestión del Comité de Convivencia.',
+    modeOfVerification: 'Solicitar acta de conformación paritaria, actas de reuniones mensuales (12 ordinarias al año) e informes de gestión del CCL conforme a la Resolución 3461 de 2025.',
     status: 'CUMPLE',
     evidenceIds: [],
-    actionType: 'COPASST'
+    actionType: 'CCL'
   },
   {
     id: 'std-1.2.1',
@@ -429,7 +429,7 @@ export const master60Standards: SstStandardDefinition[] = [
     modeOfVerification: 'Solicitar el programa de capacitación anual en SST, cronograma y registros de asistencia con evaluaciones de eficacia.',
     status: 'EN_PROCESO',
     evidenceIds: [],
-    actionType: 'GENERAL'
+    actionType: 'TRAINING'
   },
   {
     id: 'std-1.2.2',
@@ -448,7 +448,7 @@ export const master60Standards: SstStandardDefinition[] = [
     modeOfVerification: 'Revisar registros firmados de inducción y reinducción en SST de trabajadores nuevos y antiguos.',
     status: 'CUMPLE',
     evidenceIds: [],
-    actionType: 'GENERAL'
+    actionType: 'TRAINING'
   },
   {
     id: 'std-1.2.3',

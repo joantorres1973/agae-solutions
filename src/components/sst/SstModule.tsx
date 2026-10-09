@@ -599,7 +599,9 @@ export const SstModule: React.FC = () => {
 
               const actionBtn = 'w-full px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-all flex items-center justify-center gap-1';
               const isPilaStandard = std.code === '1.1.4' || std.code === '1.1.5';
-              const isCopasstStandard = std.code === '1.1.6' || std.code === '1.1.7' || std.actionType === 'COPASST';
+              const isCclStandard = std.code === '1.1.8' || std.actionType === 'CCL';
+              const isCopasstStandard = (std.code === '1.1.6' || std.code === '1.1.7' || std.actionType === 'COPASST') && !isCclStandard;
+              const isTrainingStandard = (std.code.startsWith('1.2.') || std.actionType === 'TRAINING') && std.actionType !== 'RESPONSIBLE';
 
               const action =
                 isPilaStandard ? (
@@ -612,6 +614,18 @@ export const SstModule: React.FC = () => {
                     className={`${actionBtn} bg-emerald-700 hover:bg-emerald-600 text-white shadow-sm`}
                   >
                     <FileCheck className="w-3.5 h-3.5" /> Planilla PILA & Pagos
+                  </button>
+                ) : isCclStandard ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCclInitialTab('DASHBOARD');
+                      setActiveSubTab('CCL');
+                    }}
+                    className={`${actionBtn} bg-teal-700 hover:bg-teal-600 text-white shadow-sm`}
+                  >
+                    <HeartHandshake className="w-3.5 h-3.5" />
+                    <span>1.1.8 Convivencia (CCL)</span>
                   </button>
                 ) : isCopasstStandard ? (
                   <button
@@ -641,6 +655,17 @@ export const SstModule: React.FC = () => {
                         <span>1.1.6 Conformación COPASST</span>
                       </>
                     )}
+                  </button>
+                ) : isTrainingStandard ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveSubTab('TRAINING');
+                    }}
+                    className={`${actionBtn} bg-orange-700 hover:bg-orange-600 text-white shadow-sm`}
+                  >
+                    <GraduationCap className="w-3.5 h-3.5" />
+                    <span>1.2 Capacitación SG-SST</span>
                   </button>
                 ) : std.actionType === 'RESPONSIBLE' ? (
                   <button type="button" onClick={() => setIsResponsibleModalOpen(true)} className={`${actionBtn} bg-orange-600 hover:bg-orange-500 text-white shadow-sm`}>
