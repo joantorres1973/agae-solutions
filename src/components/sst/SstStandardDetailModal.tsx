@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useApp } from '@/lib/store';
 import {
   FileText,
@@ -12,9 +12,13 @@ import {
   Upload,
   ArrowRight,
   ExternalLink,
-  X
+  X,
+  FileCheck,
+  Calendar,
+  Users
 } from 'lucide-react';
 import { SstStandardDefinition, SstStandardStatus } from '@/types/sst';
+import { PilaSocialSecurityModal } from './PilaSocialSecurityModal';
 
 interface SstStandardDetailModalProps {
   standard: SstStandardDefinition | null;
@@ -44,8 +48,13 @@ export const SstStandardDetailModal: React.FC<SstStandardDetailModalProps> = ({
   const [status, setStatus] = useState<SstStandardStatus>(standard?.status || 'CUMPLE');
   const [notes, setNotes] = useState(standard?.notes || '');
   const [selectedExistingEvidence, setSelectedExistingEvidence] = useState('');
+  const [isPilaModalOpen, setIsPilaModalOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   if (!isOpen || !standard) return null;
+
+  const isPilaStandard = standard.code === '1.1.4' || standard.code === '1.1.5';
+  const isCopasstStandard = standard.code === '1.1.6' || standard.code === '1.1.7';
 
   const handleSave = () => {
     updateStandardStatus(standard.id, status, notes);
@@ -59,19 +68,34 @@ export const SstStandardDetailModal: React.FC<SstStandardDetailModalProps> = ({
     setSelectedExistingEvidence('');
   };
 
-  const handleSimulateUploadEvidence = () => {
-    const newEvidence = addEvidence({
-      title: `Evidencia para ${standard.code} - ${standard.title}`,
-      fileType: 'DOCUMENT',
-      fileName: `Soporte_${standard.code.replace(/\./g, '_')}_2026.pdf`,
-      fileSize: '2.1 MB',
-      uploadedBy: 'Responsable SG-SST',
-      url: 'https://images.unsplash.com/photo-1586281380349-632531db7ed4?auto=format&fit=crop&w=800&q=80',
-      tags: ['SST', `ESTANDAR_${standard.code}`, 'DEC_1072']
-    });
+  const handleTriggerUpload = () => {
+    fileInputRef.current?.click();
+  };
 
-    attachEvidenceToStandard(standard.id, newEvidence.id);
-    showNotification(`Nueva evidencia cargada y vinculada al Estándar ${standard.code}`);
+  const handleRealFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const sizeInKb = (file.size / 1024).toFixed(1);
+    const sizeStr = file.size > 1024 * 1024 ? `${(file.size / (1024 * 1024)).toFixed(2)} MB` : `${sizeInKb} KB`;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const base64 = event.target?.result as string;
+      const newEvidence = addEvidence({
+        title: `Soporte Digital para ${standard.code} - ${standard.title}`,
+        fileType: 'DOCUMENT',
+        fileName: file.name,
+        fileSize: sizeStr,
+        uploadedBy: 'Responsable SG-SST',
+        url: base64 || 'https://images.unsplash.com/photo-1586281380349-632531db7ed4?auto=format&fit=crop&q=80',
+        tags: ['SST', `ESTANDAR_${standard.code}`, 'DEC_1072', 'SOPORTE_REAL']
+      });
+
+      attachEvidenceToStandard(standard.id, newEvidence.id);
+      showNotification(`Soporte "${file.name}" cargado y vinculado exitosamente al Estándar ${standard.code}`, 'success');
+    };
+    reader.readAsDataURL(file);
   };
 
   const attachedEvidences = evidences.filter(e => standard.evidenceIds.includes(e.id));
@@ -152,19 +176,45 @@ export const SstStandardDetailModal: React.FC<SstStandardDetailModalProps> = ({
           </div>
 
           {/* Quick Action Trigger if standard has specialized tool */}
-          {standard.actionType && (
-            <div className="p-3.5 rounded-xl bg-gradient-to-r from-orange-50 via-white to-slate-50 border border-orange-200 flex items-center justify-between">
+          {(standard.actionType || isPilaStandard || isCopasstStandard) && (
+            <div className="p-3.5 rounded-xl bg-gradient-to-r from-orange-50 via-white to-slate-50 border border-orange-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <span className="font-bold text-slate-900 block">Herramienta Integrada Disponible</span>
                 <span className="text-[11px] text-slate-600">
-                  {standard.actionType === 'RESPONSIBLE' ? 'Gestione la hoja de vida, licencia y la Carta de Asignación formal generada en vivo.' :
+                  {isPilaStandard ? 'Gestione la carga de planillas PILA con fecha de pago, PIN y filtros por trabajador.' :
+                   isCopasstStandard ? 'Gestione el flujo integral del COPASST o Vigía: elecciones, actas, compromisos y ACPM.' :
+                   standard.actionType === 'RESPONSIBLE' ? 'Gestione la hoja de vida, licencia y la Carta de Asignación formal generada en vivo.' :
                    standard.actionType === 'BUDGET' ? 'Configure el presupuesto integrado SST + Vial PESV con aprobación de gerencia.' :
                    standard.actionType === 'HAZARDS' ? 'Identifique peligros y valore riesgos según la matriz GTC 45.' :
                    standard.actionType === 'INSPECTION' ? 'Ejecute inspecciones de campo con conexión automática a ACPM.' :
-                   standard.actionType === 'COPASST' ? 'Consulte actas y funcionamiento del comité paritario.' :
                    'Gestione acciones correctivas en la matriz central ACPM.'}
                 </span>
               </div>
+
+              {isPilaStandard && (
+                <button
+                  type="button"
+                  onClick={() => setIsPilaModalOpen(true)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold transition-all shrink-0"
+                >
+                  <FileCheck className="w-3.5 h-3.5" />
+                  <span>Planillas PILA & Filtros</span>
+                </button>
+              )}
+
+              {isCopasstStandard && onNavigateToTab && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    onNavigateToTab('sst');
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold transition-all shrink-0"
+                >
+                  <Users className="w-3.5 h-3.5" />
+                  <span>Gestión COPASST / Vigía</span>
+                </button>
+              )}
 
               {standard.actionType === 'RESPONSIBLE' && onOpenResponsibleModal && (
                 <button
@@ -251,15 +301,49 @@ export const SstStandardDetailModal: React.FC<SstStandardDetailModalProps> = ({
                 <Paperclip className="w-3.5 h-3.5 text-blue-700" />
                 Evidencias Digitales Vinculadas ({attachedEvidences.length})
               </h3>
+              
+              {/* Input oculto para carga real de archivos */}
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleRealFileUpload}
+                accept=".pdf,.xlsx,.xls,.jpg,.jpeg,.png,.doc,.docx"
+                className="hidden"
+              />
+
               <button
                 type="button"
-                onClick={handleSimulateUploadEvidence}
-                className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 text-teal-700 text-xs font-semibold border border-slate-300 transition-colors"
+                onClick={handleTriggerUpload}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-xs transition-colors"
               >
-                <Upload className="w-3 h-3" />
-                <span>+ Cargar Soporte Digital</span>
+                <Upload className="w-3.5 h-3.5" />
+                <span>+ Cargar Soporte Digital Real</span>
               </button>
             </div>
+
+            {/* Banner especializado para Estándar 1.1.4 y 1.1.5 */}
+            {isPilaStandard && (
+              <div className="p-3.5 rounded-xl bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="space-y-0.5">
+                  <div className="font-bold text-emerald-900 text-xs flex items-center gap-1.5">
+                    <FileCheck className="w-4 h-4 text-emerald-600" />
+                    <span>Gestión Especializada de Planillas PILA & Filtros por Trabajador</span>
+                  </div>
+                  <div className="text-[11px] text-emerald-800">
+                    Registre la fecha exacta del pago, PIN de liquidación, monto de aportes y filtre las coberturas por trabajador individual.
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setIsPilaModalOpen(true)}
+                  className="px-3.5 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold shadow-xs flex items-center gap-1.5 shrink-0 transition-colors"
+                >
+                  <Calendar className="w-3.5 h-3.5" />
+                  <span>Abrir Gestor PILA & Fechas</span>
+                </button>
+              </div>
+            )}
 
             {attachedEvidences.length > 0 ? (
               <div className="space-y-2">
@@ -282,7 +366,7 @@ export const SstStandardDetailModal: React.FC<SstStandardDetailModalProps> = ({
               </div>
             ) : (
               <div className="p-3 rounded-lg bg-white/80 border border-dashed border-slate-200 text-center text-slate-600 text-xs">
-                No hay archivos adjuntos directamente a este estándar. Puede cargar un archivo o vincular una evidencia existente.
+                No hay archivos adjuntos directamente a este estándar. Puede cargar un archivo real o vincular una evidencia existente.
               </div>
             )}
 
@@ -336,6 +420,15 @@ export const SstStandardDetailModal: React.FC<SstStandardDetailModalProps> = ({
             </button>
           </div>
         </div>
+
+        {/* Modal de Seguridad Social PILA */}
+        {isPilaStandard && (
+          <PilaSocialSecurityModal
+            isOpen={isPilaModalOpen}
+            onClose={() => setIsPilaModalOpen(false)}
+            defaultPayrollType={standard.code === '1.1.5' ? 'ALTO_RIESGO' : 'GENERAL'}
+          />
+        )}
       </div>
     </div>
   );

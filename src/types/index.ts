@@ -1,6 +1,8 @@
 export * from './sst';
 export * from './characterization';
 export * from './worker';
+export * from './social-security';
+export * from './copasst';
 
 export type ModuleType = 
   | 'SST'

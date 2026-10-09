@@ -44,8 +44,21 @@ import {
   WorkerTrainingRecord,
   WorkerCommitteeParticipation,
   WorkerOccupationalExam,
-  WorkerAuditEntry
+  WorkerAuditEntry,
+  PilaPayrollRecord,
+  CopasstGlobalState,
+  VigiaProfile,
+  VigiaActuation,
+  CopasstMember,
+  CopasstCandidate,
+  CopasstMeeting,
+  CopasstMeetingCommitment,
+  CopasstFindingItem,
+  CopasstTrainingCourse,
+  CopasstMechanismType
 } from '@/types';
+import { initialPilaRecords } from './mock-pila-data';
+import { initialCopasstGlobalState } from './copasst-mock-data';
 import { initialMasterWorkers } from './worker-mock-data';
 import {
   initialOrganization,
@@ -236,6 +249,27 @@ interface AppContextType {
   getWorkerByDoc: (docNumber: string) => MasterWorker | undefined;
   assignWorkerAsSstResponsible: (workerId: string) => void;
 
+  // Seguridad Social & Planillas PILA (Estándares 1.1.4 y 1.1.5)
+  pilaRecords: PilaPayrollRecord[];
+  addPilaRecord: (record: Omit<PilaPayrollRecord, 'id' | 'uploadedAt'>) => PilaPayrollRecord;
+  deletePilaRecord: (id: string) => void;
+
+  // COPASST / Vigía de SST (Estándares 1.1.6 y 1.1.7 - Dec. 1072 / Res. 0312 / Res. 2013)
+  copasstState: CopasstGlobalState;
+  setCopasstMechanism: (mechanism: CopasstMechanismType) => void;
+  updateVigiaProfile: (profile: Partial<VigiaProfile>) => void;
+  addVigiaActuation: (actuation: Omit<VigiaActuation, 'id' | 'registeredBy'>) => void;
+  registerCopasstCandidate: (workerId: string, proposalBrief?: string) => void;
+  castCopasstVote: (voterDocNumber: string, candidateId: string) => { success: boolean; message: string };
+  closeCopasstElection: () => void;
+  setEmployerRepresentatives: (principalWorkerId: string, suplenteWorkerId?: string) => void;
+  saveCopasstConformationAct: (actNumber: string, actDate: string) => void;
+  saveCopasstInstallationAct: (presidentWorkerId: string, secretaryWorkerId: string, date: string) => void;
+  addCopasstMeeting: (meeting: Omit<CopasstMeeting, 'id' | 'actaCode'>) => CopasstMeeting;
+  toggleCopasstCommitmentStatus: (commitmentId: string, newStatus: CopasstMeetingCommitment['status']) => void;
+  createCopasstFinding: (finding: Omit<CopasstFindingItem, 'id' | 'status' | 'sentToAcpm'>, sendDirectToAcpm?: boolean) => void;
+  addCopasstTraining: (training: Omit<CopasstTrainingCourse, 'id'>) => void;
+
   // Global search & filters
   searchQuery: string;
   setSearchQuery: (q: string) => void;
@@ -282,6 +316,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [sstBudgetItems, setSstBudgetItems] = useState<SstBudgetItem[]>(initialSstBudgetItems);
   const [sstBudgetState, setSstBudgetState] = useState<SstBudgetState>(initialSstBudgetState);
   const [currentSimulatedRole, setCurrentSimulatedRole] = useState<SimulatedRole>('LIDER_SST');
+  
+  // Seguridad Social & Planillas PILA (Estándares 1.1.4 y 1.1.5)
+  const [pilaRecords, setPilaRecords] = useState<PilaPayrollRecord[]>(initialPilaRecords);
+
+  // COPASST o Vigía de SST (Estándares 1.1.6 y 1.1.7)
+  const [copasstState, setCopasstState] = useState<CopasstGlobalState>(initialCopasstGlobalState);
   // Caracterización Inteligente & Motor de Aplicabilidad
   // Saved draft (browser only). The public landing does not render characterization data, so there is no hydration mismatch.
   const [initialDraft] = useState(() => (typeof window === 'undefined' ? null : loadDraft()));
@@ -1592,6 +1632,449 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     showNotification(`Configuración del encargado de presupuesto actualizada a: ${title}`);
   };
 
+  // =========================================================================
+  // GESTIÓN DE PLANILLAS PILA Y SEGURIDAD SOCIAL (Estándares 1.1.4 y 1.1.5)
+  // =========================================================================
+  const addPilaRecord = (recordData: Omit<PilaPayrollRecord, 'id' | 'uploadedAt'>): PilaPayrollRecord => {
+    if (blockedByDemo()) return {} as PilaPayrollRecord;
+    const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
+    const newRecordId = `pila-${Date.now()}`;
+    const newRecord: PilaPayrollRecord = {
+      ...recordData,
+      id: newRecordId,
+      uploadedAt: now
+    };
+
+    // 1. Guardar en repositorio central de evidencias
+    const newEvidence = addEvidence({
+      title: `Planilla PILA ${recordData.payrollType === 'ALTO_RIESGO' ? 'Alto Riesgo (Dec. 2090)' : 'General'} - Periodo ${recordData.period}`,
+      fileType: 'DOCUMENT',
+      fileName: recordData.fileName,
+      fileSize: recordData.fileSize,
+      uploadedBy: recordData.uploadedBy || 'Responsable SG-SST',
+      url: recordData.fileUrl || (recordData.fileBase64 ? recordData.fileBase64 : 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=800&auto=format&fit=crop&q=80'),
+      tags: ['PILA', recordData.payrollType, recordData.period, 'SEGURIDAD_SOCIAL']
+    });
+
+    // 2. Asociar automáticamente al estándar correspondiente (1.1.4 o 1.1.5)
+    const stdCode = recordData.payrollType === 'ALTO_RIESGO' ? '1.1.5' : '1.1.4';
+    const targetStd = sstStandards.find(s => s.code === stdCode);
+    if (targetStd) {
+      attachEvidenceToStandard(targetStd.id, newEvidence.id);
+      updateStandardStatus(
+        targetStd.id,
+        'CUMPLE',
+        `Planilla de aportes del periodo ${recordData.period} pagada el ${recordData.paymentDate} (PIN: ${recordData.pinNumber}). Cubre ${recordData.coveredWorkerIds.length} trabajador(es).`
+      );
+    }
+
+    // 3. Alimentar automáticamente el expediente digital de cada trabajador cubierto
+    recordData.coveredWorkerIds.forEach(workerId => {
+      addWorkerDocument(workerId, {
+        type: 'AFILIACION_SEGURIDAD_SOCIAL',
+        title: `Planilla PILA ${recordData.period} (${recordData.payrollType === 'ALTO_RIESGO' ? 'Alto Riesgo' : 'General'})`,
+        fileName: recordData.fileName,
+        fileSize: recordData.fileSize,
+        issueDate: recordData.paymentDate,
+        url: recordData.fileUrl,
+        fileBase64: recordData.fileBase64,
+        uploadedBy: recordData.uploadedBy || 'Talento Humano',
+        notes: `Pago verificado el ${recordData.paymentDate} - PIN: ${recordData.pinNumber}`
+      });
+    });
+
+    setPilaRecords(prev => [newRecord, ...prev]);
+    showNotification(`Planilla PILA ${newRecord.pinNumber} (${recordData.period}) registrada y sincronizada`);
+    return newRecord;
+  };
+
+  const deletePilaRecord = (id: string) => {
+    if (blockedByDemo()) return;
+    setPilaRecords(prev => prev.filter(r => r.id !== id));
+    showNotification('Planilla PILA eliminada del registro');
+  };
+
+  // =========================================================================
+  // GESTIÓN DE COPASST O VIGÍA DE SST (Estándares 1.1.6 y 1.1.7)
+  // =========================================================================
+  const setCopasstMechanism = (mechanism: CopasstMechanismType) => {
+    if (blockedByDemo()) return;
+    setCopasstState(prev => ({
+      ...prev,
+      mechanismType: mechanism,
+      ruleExplanation: mechanism === 'VIGIA_SST'
+        ? 'Configurado como Vigía de Seguridad y Salud en el Trabajo según Decreto 1072/2015 Art. 2.2.4.6.8 Parágrafo 2 (empresas con menos de 10 trabajadores). Designado directamente por el empleador.'
+        : 'Configurado como COPASST según Resolución 2013 de 1986 y Decreto 1072 de 2015 (empresas con 10 o más trabajadores). Requiere elección democrática de representantes de trabajadores y designación paritaria del empleador.'
+    }));
+    showNotification(`Mecanismo de participación configurado a: ${mechanism === 'VIGIA_SST' ? 'Vigía SST' : 'COPASST'}`);
+  };
+
+  const updateVigiaProfile = (profileUpdates: Partial<VigiaProfile>) => {
+    if (blockedByDemo()) return;
+    setCopasstState(prev => ({
+      ...prev,
+      vigiaProfile: prev.vigiaProfile ? { ...prev.vigiaProfile, ...profileUpdates } : {
+        workerId: 'wrk-001',
+        appointmentDate: new Date().toISOString().substring(0, 10),
+        termYears: 2,
+        termEndDate: new Date(Date.now() + 2 * 365 * 24 * 3600 * 1000).toISOString().substring(0, 10),
+        employerName: organization.name,
+        employerDoc: organization.nit,
+        isSigned: true,
+        functionsAccepted: true,
+        ...profileUpdates
+      }
+    }));
+    showNotification('Expediente del Vigía de SST actualizado');
+  };
+
+  const addVigiaActuation = (actuationData: Omit<VigiaActuation, 'id' | 'registeredBy'>) => {
+    if (blockedByDemo()) return;
+    const newActuationId = `act-vig-${Date.now()}`;
+    const newActuation: VigiaActuation = {
+      ...actuationData,
+      id: newActuationId,
+      registeredBy: 'Vigía de SST'
+    };
+
+    // Si genera hallazgo y se envía a ACPM
+    if (actuationData.sentToAcpm && actuationData.findingAssociated) {
+      const acpmId = addFinding({
+        title: actuationData.findingAssociated,
+        originModule: 'SST',
+        originType: actuationData.type === 'INSPECCION' ? 'INSPECTION' : 'ROUTINE',
+        originDetail: `Actuación del Vigía SST (${actuationData.type})`,
+        siteName: organization.sites[0]?.name || 'Sede Principal',
+        processName: 'Gestión Integral HSEQ',
+        description: actuationData.description,
+        legalCriterion: 'Decreto 1072 de 2015 Art. 2.2.4.6.8',
+        severity: 'MAYOR',
+        status: 'EN_ACPM',
+        reportedBy: 'Vigía de Seguridad y Salud en el Trabajo'
+      }, true);
+      newActuation.linkedAcpmId = acpmId;
+    }
+
+    setCopasstState(prev => ({
+      ...prev,
+      vigiaActuations: [newActuation, ...prev.vigiaActuations]
+    }));
+    showNotification('Actuación del Vigía de SST registrada');
+  };
+
+  const registerCopasstCandidate = (workerId: string, proposalBrief?: string) => {
+    if (blockedByDemo()) return;
+    const worker = workers.find(w => w.id === workerId);
+    if (!worker) return;
+
+    // Verificar si ya está postulado
+    if (copasstState.election.candidates.some(c => c.workerId === workerId)) {
+      showNotification('Este trabajador ya se encuentra postulado como candidato', 'warning');
+      return;
+    }
+
+    const newCandidate: CopasstCandidate = {
+      id: `cand-${Date.now()}`,
+      workerId,
+      registrationDate: new Date().toISOString().substring(0, 10),
+      proposalBrief: proposalBrief || 'Compromiso con la seguridad, ergonomía y bienestar de los trabajadores.',
+      status: 'ACEPTADO',
+      votesCount: 0,
+      isElected: false
+    };
+
+    setCopasstState(prev => ({
+      ...prev,
+      election: {
+        ...prev.election,
+        candidates: [...prev.election.candidates, newCandidate]
+      }
+    }));
+    showNotification(`Trabajador ${worker.firstName} ${worker.lastName} postulado como candidato al COPASST`);
+  };
+
+  const castCopasstVote = (voterDocNumber: string, candidateId: string): { success: boolean; message: string } => {
+    const cleanDoc = voterDocNumber.replace(/\D/g, '');
+    if (!cleanDoc) {
+      return { success: false, message: 'Ingrese un número de documento válido.' };
+    }
+
+    // 1. Control de voto único (auditoría inmutable)
+    const alreadyVoted = copasstState.election.voterAuditLog.some(
+      entry => entry.voterDocNumber.replace(/\D/g, '') === cleanDoc
+    );
+    if (alreadyVoted) {
+      return { success: false, message: 'Este documento de identidad ya ejerció su voto en este proceso electoral.' };
+    }
+
+    // 2. Validar que la persona esté dentro del censo de trabajadores habilitados
+    const isEligibleWorker = workers.some(
+      w => w.docNumber.replace(/\D/g, '') === cleanDoc && w.status === 'ACTIVO'
+    );
+    if (!isEligibleWorker) {
+      return { success: false, message: 'El documento no figura en el censo electoral de trabajadores activos habilitados para votar.' };
+    }
+
+    // 3. Registrar el voto: secreto garantizado (el voto se suma al candidato, la cédula se anota en el padrón de participación)
+    const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
+    setCopasstState(prev => ({
+      ...prev,
+      election: {
+        ...prev.election,
+        voterAuditLog: [
+          ...prev.election.voterAuditLog,
+          { voterDocNumber, votedAt: now, ipAddress: '127.0.0.1' }
+        ],
+        candidates: prev.election.candidates.map(c =>
+          c.id === candidateId ? { ...c, votesCount: c.votesCount + 1 } : c
+        )
+      }
+    }));
+
+    return { success: true, message: '¡Voto registrado con éxito de manera secreta y segura!' };
+  };
+
+  const closeCopasstElection = () => {
+    if (blockedByDemo()) return;
+    const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
+
+    setCopasstState(prev => {
+      // Ordenar candidatos por número de votos descendente
+      const sorted = [...prev.election.candidates].sort((a, b) => b.votesCount - a.votesCount);
+      const updatedCandidates = sorted.map((cand, idx) => {
+        if (idx === 0) return { ...cand, isElected: true, electedRole: 'PRINCIPAL' as const };
+        if (idx === 1) return { ...cand, isElected: true, electedRole: 'SUPLENTE' as const };
+        return { ...cand, isElected: false };
+      });
+
+      // Crear integrantes de trabajadores a partir de los electos
+      const electedMembers: CopasstMember[] = updatedCandidates
+        .filter(c => c.isElected)
+        .map((c, idx) => ({
+          id: `mem-trk-${Date.now()}-${idx}`,
+          workerId: c.workerId,
+          role: c.electedRole === 'PRINCIPAL' ? 'PRINCIPAL' : 'SUPLENTE',
+          party: 'TRABAJADORES',
+          appointmentDate: now.substring(0, 10),
+          isActive: true
+        }));
+
+      // Conservar los del empleador y reemplazar los de los trabajadores
+      const employerMembers = prev.members.filter(m => m.party === 'EMPLEADOR');
+
+      return {
+        ...prev,
+        election: {
+          ...prev.election,
+          isVotingOpen: false,
+          isClosed: true,
+          closedAt: now,
+          closedBy: 'Comité Electoral Central',
+          candidates: updatedCandidates,
+          resultsPublished: true
+        },
+        members: [...employerMembers, ...electedMembers]
+      };
+    });
+
+    showNotification('Votaciones cerradas y escrutinio electoral oficial generado exitosamente');
+  };
+
+  const setEmployerRepresentatives = (principalWorkerId: string, suplenteWorkerId?: string) => {
+    if (blockedByDemo()) return;
+    const now = new Date().toISOString().substring(0, 10);
+    const newEmployerMembers: CopasstMember[] = [
+      {
+        id: `mem-emp-prin-${Date.now()}`,
+        workerId: principalWorkerId,
+        role: 'PRESIDENTE',
+        party: 'EMPLEADOR',
+        appointmentDate: now,
+        isActive: true,
+        signatureDate: now
+      }
+    ];
+
+    if (suplenteWorkerId) {
+      newEmployerMembers.push({
+        id: `mem-emp-supl-${Date.now()}`,
+        workerId: suplenteWorkerId,
+        role: 'SUPLENTE',
+        party: 'EMPLEADOR',
+        appointmentDate: now,
+        isActive: true,
+        signatureDate: now
+      });
+    }
+
+    setCopasstState(prev => {
+      const workerMembers = prev.members.filter(m => m.party === 'TRABAJADORES');
+      return {
+        ...prev,
+        presidentWorkerId: principalWorkerId,
+        members: [...newEmployerMembers, ...workerMembers]
+      };
+    });
+
+    showNotification('Representantes del empleador designados formalmente');
+  };
+
+  const saveCopasstConformationAct = (actNumber: string, actDate: string) => {
+    if (blockedByDemo()) return;
+    setCopasstState(prev => ({
+      ...prev,
+      conformationActNumber: actNumber,
+      conformationActDate: actDate,
+      status: 'CUMPLE'
+    }));
+
+    // Actualizar Estándar 1.1.6
+    const std116 = sstStandards.find(s => s.code === '1.1.6');
+    if (std116) {
+      updateStandardStatus(std116.id, 'CUMPLE', `COPASST conformado con ${actNumber} de fecha ${actDate}.`);
+    }
+
+    showNotification(`Acta de Conformación ${actNumber} legalizada y archivada`);
+  };
+
+  const saveCopasstInstallationAct = (presidentWorkerId: string, secretaryWorkerId: string, date: string) => {
+    if (blockedByDemo()) return;
+    setCopasstState(prev => ({
+      ...prev,
+      presidentWorkerId,
+      secretaryWorkerId,
+      installationActDate: date
+    }));
+    showNotification('Acta de Instalación del COPASST formalizada');
+  };
+
+  const addCopasstMeeting = (meetingData: Omit<CopasstMeeting, 'id' | 'actaCode'>): CopasstMeeting => {
+    if (blockedByDemo()) return {} as CopasstMeeting;
+    const meetingCount = copasstState.meetings.length + 1;
+    const currentYear = new Date().getFullYear();
+    const actaCode = `ACTA-COP-${currentYear}-${String(meetingCount).padStart(2, '0')}`;
+    const newMeetingId = `mtg-${Date.now()}`;
+
+    const newMeeting: CopasstMeeting = {
+      ...meetingData,
+      id: newMeetingId,
+      actaCode,
+      commitments: meetingData.commitments.map((c, idx) => ({
+        ...c,
+        id: `com-${Date.now()}-${idx}`,
+        meetingId: newMeetingId
+      }))
+    };
+
+    // Convertir compromisos automáticamente en tareas pendientes ("¿Qué tengo pendiente?")
+    newMeeting.commitments.forEach(commitment => {
+      addTask({
+        title: `Compromiso COPASST (${actaCode}): ${commitment.description}`,
+        module: 'SST',
+        type: 'ACPM',
+        dueDate: commitment.dueDate,
+        responsible: commitment.responsibleName,
+        priority: 'ALTA',
+        status: 'PENDIENTE',
+        siteName: organization.sites[0]?.name || 'Sede Principal'
+      });
+    });
+
+    setCopasstState(prev => ({
+      ...prev,
+      meetings: [newMeeting, ...prev.meetings],
+      commitments: [...newMeeting.commitments, ...prev.commitments]
+    }));
+
+    showNotification(`Reunión ordinaria ${actaCode} registrada y compromisos programados`);
+    return newMeeting;
+  };
+
+  const toggleCopasstCommitmentStatus = (commitmentId: string, newStatus: CopasstMeetingCommitment['status']) => {
+    if (blockedByDemo()) return;
+    setCopasstState(prev => ({
+      ...prev,
+      commitments: prev.commitments.map(c => c.id === commitmentId ? { ...c, status: newStatus } : c),
+      meetings: prev.meetings.map(m => ({
+        ...m,
+        commitments: m.commitments.map(c => c.id === commitmentId ? { ...c, status: newStatus } : c)
+      }))
+    }));
+    showNotification(`Estado de compromiso del COPASST actualizado a: ${newStatus}`);
+  };
+
+  const createCopasstFinding = (findingData: Omit<CopasstFindingItem, 'id' | 'status' | 'sentToAcpm'>, sendDirectToAcpm = true) => {
+    if (blockedByDemo()) return;
+    const findingId = `cop-find-${Date.now()}`;
+    let linkedAcpmId: string | undefined = undefined;
+
+    if (sendDirectToAcpm) {
+      linkedAcpmId = addFinding({
+        title: `[COPASST] ${findingData.description.substring(0, 60)}...`,
+        originModule: 'SST',
+        originType: findingData.sourceType === 'INSPECCION_SEGURIDAD' ? 'INSPECTION' : 'ROUTINE',
+        originDetail: `Fuente: ${findingData.sourceRef}`,
+        siteName: organization.sites[0]?.name || 'Sede Principal',
+        processName: findingData.processName || 'Gestión Integral HSEQ',
+        description: findingData.description,
+        legalCriterion: findingData.legalRequirementRef || 'Decreto 1072 de 2015 Art. 2.2.4.6.8',
+        severity: findingData.classification === 'NO_CONFORMIDAD' || findingData.classification === 'INCUMPLIMIENTO' ? 'CRITICA' : 'MAYOR',
+        status: 'EN_ACPM',
+        reportedBy: 'COPASST / Vigía de SST'
+      }, true);
+    }
+
+    const newFinding: CopasstFindingItem = {
+      ...findingData,
+      id: findingId,
+      sentToAcpm: sendDirectToAcpm,
+      linkedAcpmId,
+      status: sendDirectToAcpm ? 'EN_ACPM' : 'ABIERTO'
+    };
+
+    setCopasstState(prev => ({
+      ...prev,
+      findings: [newFinding, ...prev.findings]
+    }));
+
+    showNotification('Hallazgo del COPASST registrado y transferido a la Matriz ACPM');
+  };
+
+  const addCopasstTraining = (trainingData: Omit<CopasstTrainingCourse, 'id'>) => {
+    if (blockedByDemo()) return;
+    const newTraining: CopasstTrainingCourse = {
+      ...trainingData,
+      id: `trn-cop-${Date.now()}`
+    };
+
+    // Actualizar Estándar 1.1.7 si está ejecutada
+    const std117 = sstStandards.find(s => s.code === '1.1.7');
+    if (std117) {
+      updateStandardStatus(std117.id, 'CUMPLE', `Capacitación de integrantes ejecutada: ${trainingData.topic}.`);
+    }
+
+    // Registrar en los expedientes de cada trabajador que asistió
+    trainingData.attendedWorkerIds.forEach(workerId => {
+      recordTrainingAttendance(workerId, {
+        trainingTitle: `[COPASST/Vigía] ${trainingData.topic}`,
+        date: trainingData.date,
+        hours: trainingData.durationHours,
+        trainingType: 'SST',
+        trainerName: trainingData.entityOrTrainer,
+        attendanceVerified: true,
+        approved: true,
+        certificateFileName: trainingData.evidenceFileName
+      });
+    });
+
+    setCopasstState(prev => ({
+      ...prev,
+      trainings: [newTraining, ...prev.trainings]
+    }));
+
+    showNotification('Capacitación del COPASST registrada y expedientes de integrantes actualizados');
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -1692,6 +2175,28 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         updateFinancialOfficerConfig,
         currentSimulatedRole,
         setCurrentSimulatedRole,
+
+        // Seguridad Social & PILA
+        pilaRecords,
+        addPilaRecord,
+        deletePilaRecord,
+
+        // COPASST / Vigía de SST
+        copasstState,
+        setCopasstMechanism,
+        updateVigiaProfile,
+        addVigiaActuation,
+        registerCopasstCandidate,
+        castCopasstVote,
+        closeCopasstElection,
+        setEmployerRepresentatives,
+        saveCopasstConformationAct,
+        saveCopasstInstallationAct,
+        addCopasstMeeting,
+        toggleCopasstCommitmentStatus,
+        createCopasstFinding,
+        addCopasstTraining,
+
         searchQuery,
         setSearchQuery,
         notification,

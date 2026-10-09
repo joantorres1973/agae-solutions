@@ -23,7 +23,8 @@ import {
   Sparkles,
   ArrowRight,
   TrendingUp,
-  FileCheck2
+  FileCheck2,
+  FileCheck
 } from 'lucide-react';
 import { SstStandardDefinition, SstStandardCycle, SstStandardStatus } from '@/types/sst';
 import { SstHazardItem } from '@/types';
@@ -31,6 +32,8 @@ import { isStandardApplicable, calculateScore } from '@/lib/sst-standards-data';
 import { SstResponsibleModal } from './SstResponsibleModal';
 import { SstBudgetModal } from './SstBudgetModal';
 import { SstStandardDetailModal } from './SstStandardDetailModal';
+import { PilaSocialSecurityModal } from './PilaSocialSecurityModal';
+import { CopasstVigiaModule } from './copasst/CopasstVigiaModule';
 
 export const SstModule: React.FC = () => {
   const {
@@ -65,6 +68,8 @@ export const SstModule: React.FC = () => {
   const [isResponsibleModalOpen, setIsResponsibleModalOpen] = useState(false);
   const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
   const [selectedStandardForModal, setSelectedStandardForModal] = useState<SstStandardDefinition | null>(null);
+  const [isPilaModalOpen, setIsPilaModalOpen] = useState(false);
+  const [pilaModalType, setPilaModalType] = useState<'GENERAL' | 'ALTO_RIESGO'>('GENERAL');
 
   // Inspection form state
   const [inspectAssetId, setInspectAssetId] = useState(assets[0]?.id || '');
@@ -551,157 +556,140 @@ export const SstModule: React.FC = () => {
             </div>
           </div>
 
-          {/* Standards Cards Grid / List */}
-          <div className="space-y-3">
+          {/* Standards Cards Grid (5 per row on wide screens) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3">
             {filteredStandards.map(std => {
               const isApplicableForCompany = isStandardApplicable(std, organization.sstStandardCount);
+              const cycleStyle =
+                std.cycle === 'PLANEAR' ? { bar: 'bg-teal-500', chip: 'bg-teal-50 text-teal-700 border-teal-200' } :
+                std.cycle === 'HACER' ? { bar: 'bg-orange-500', chip: 'bg-orange-50 text-orange-700 border-orange-200' } :
+                std.cycle === 'VERIFICAR' ? { bar: 'bg-purple-500', chip: 'bg-purple-50 text-purple-700 border-purple-200' } :
+                { bar: 'bg-rose-500', chip: 'bg-rose-50 text-rose-700 border-rose-200' };
+
+              const actionBtn = 'w-full px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-all flex items-center justify-center gap-1';
+              const isPilaStandard = std.code === '1.1.4' || std.code === '1.1.5';
+              const isCopasstStandard = std.code === '1.1.6' || std.code === '1.1.7' || std.actionType === 'COPASST';
+
+              const action =
+                isPilaStandard ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPilaModalType(std.code === '1.1.5' ? 'ALTO_RIESGO' : 'GENERAL');
+                      setIsPilaModalOpen(true);
+                    }}
+                    className={`${actionBtn} bg-emerald-700 hover:bg-emerald-600 text-white shadow-sm`}
+                  >
+                    <FileCheck className="w-3.5 h-3.5" /> Planilla PILA & Pagos
+                  </button>
+                ) : isCopasstStandard ? (
+                  <button
+                    type="button"
+                    onClick={() => setActiveSubTab('COMMITTEES')}
+                    className={`${actionBtn} bg-teal-600 hover:bg-teal-500 text-white shadow-sm`}
+                  >
+                    <Users className="w-3.5 h-3.5" /> Gestión COPASST/Vigía
+                  </button>
+                ) : std.actionType === 'RESPONSIBLE' ? (
+                  <button type="button" onClick={() => setIsResponsibleModalOpen(true)} className={`${actionBtn} bg-orange-600 hover:bg-orange-500 text-white shadow-sm`}>
+                    <UserCheck className="w-3.5 h-3.5" /> Carta & HV
+                  </button>
+                ) : std.actionType === 'BUDGET' ? (
+                  <button type="button" onClick={() => setIsBudgetModalOpen(true)} className={`${actionBtn} bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm`}>
+                    <DollarSign className="w-3.5 h-3.5" /> Presupuesto
+                  </button>
+                ) : std.actionType === 'HAZARDS' ? (
+                  <button type="button" onClick={() => setActiveSubTab('MATRIX')} className={`${actionBtn} bg-teal-50 hover:bg-teal-100 text-teal-700 border border-teal-200`}>
+                    Matriz GTC 45
+                  </button>
+                ) : std.actionType === 'INSPECTION' ? (
+                  <button type="button" onClick={() => setActiveSubTab('INSPECTIONS')} className={`${actionBtn} bg-teal-50 hover:bg-teal-100 text-teal-700 border border-teal-200`}>
+                    Inspección
+                  </button>
+                ) : std.actionType === 'ACPM' ? (
+                  <button type="button" onClick={() => setActiveTab('acpm')} className={`${actionBtn} bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200`}>
+                    ACPM
+                  </button>
+                ) : (
+                  <button type="button" onClick={() => setSelectedStandardForModal(std)} className={`${actionBtn} bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200`}>
+                    Detalles & Dec 1072
+                  </button>
+                );
 
               return (
                 <div
                   key={std.id}
-                  className={`glass-card rounded-xl p-4 border transition-all hover:border-slate-600 ${
-                    !isApplicableForCompany ? 'opacity-60 bg-white/80 border-slate-200' : 'border-slate-300'
+                  className={`group relative flex flex-col overflow-hidden rounded-2xl bg-white border shadow-[0_8px_28px_-18px_rgba(15,90,60,0.35)] hover:shadow-[0_16px_36px_-18px_rgba(15,90,60,0.45)] hover:-translate-y-0.5 transition-all ${
+                    isApplicableForCompany ? 'border-emerald-100' : 'border-slate-200 opacity-60'
                   }`}
                 >
-                  <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-                    
-                    {/* Left: Standard Identification and Decree 1072 Citation */}
-                    <div className="flex items-start gap-3 flex-1">
+                  <span className={`h-1 w-full ${cycleStyle.bar}`} />
+
+                  <div className="flex-1 flex flex-col p-3.5 gap-2">
+                    {/* Code, weight and applicability */}
+                    <div className="flex items-start justify-between gap-2">
                       <button
                         onClick={() => setSelectedStandardForModal(std)}
-                        className={`w-12 h-12 rounded-xl shrink-0 font-bold font-mono text-xs flex flex-col items-center justify-center border transition-transform hover:scale-105 ${
-                          std.cycle === 'PLANEAR' ? 'bg-teal-50 text-teal-700 border-teal-200' :
-                          std.cycle === 'HACER' ? 'bg-orange-50 text-orange-700 border-orange-200' :
-                          std.cycle === 'VERIFICAR' ? 'bg-purple-50 text-purple-700 border-purple-200' :
-                          'bg-rose-50 text-rose-700 border-rose-200'
-                        }`}
+                        className={`px-2 py-1 rounded-lg border font-mono font-bold text-xs leading-tight text-left transition-transform hover:scale-105 ${cycleStyle.chip}`}
                         title="Ver detalle legal y Decreto 1072"
                       >
-                        <span>{std.code}</span>
-                        <span className="text-[9px] font-sans font-normal opacity-75">{std.weight}%</span>
+                        {std.code}
+                        <span className="block text-[9px] font-sans font-normal opacity-80">Peso {std.weight}%</span>
                       </button>
-
-                      <div className="space-y-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-600">
-                            {std.cycle} • {std.numeralGroup}
-                          </span>
-
-                          {/* Applicability badges */}
-                          <div className="flex items-center gap-1">
-                            {std.applicableIn7 && (
-                              <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-blue-50 text-blue-700 border border-blue-200" title="Aplica a empresas de hasta 10 trabajadores">
-                                7
-                              </span>
-                            )}
-                            {std.applicableIn21 && (
-                              <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200" title="Aplica a empresas de 11 a 50 trabajadores">
-                                21
-                              </span>
-                            )}
-                            <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-purple-50 text-purple-700 border border-purple-200" title="Aplica a empresas de más de 50 trabajadores o riesgo IV y V">
-                              60
-                            </span>
-                          </div>
-
-                          {!isApplicableForCompany && (
-                            <span className="px-1.5 py-0.2 rounded text-[9px] font-medium bg-slate-100 text-slate-600">
-                              (No exigido a su tamaño de empresa)
-                            </span>
-                          )}
-                        </div>
-
-                        <h3
-                          onClick={() => setSelectedStandardForModal(std)}
-                          className="text-xs sm:text-sm font-bold text-slate-900 hover:text-orange-700 transition-colors cursor-pointer"
-                        >
-                          {std.title}
-                        </h3>
-
-                        {/* Cotejo con Decreto 1072 de 2015 */}
-                        <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-700">
-                          <span className="text-teal-700 font-mono font-semibold flex items-center gap-1">
-                            <BookOpen className="w-3 h-3" />
-                            {std.decreto1072Article}
-                          </span>
-                          <span className="text-slate-600">•</span>
-                          <span className="text-slate-600 truncate max-w-md">{std.criterion}</span>
-                        </div>
+                      <div className="flex items-center gap-1">
+                        {std.applicableIn7 && (
+                          <span className="px-1.5 rounded text-[9px] font-bold bg-blue-50 text-blue-700 border border-blue-200" title="Aplica a empresas de hasta 10 trabajadores">7</span>
+                        )}
+                        {std.applicableIn21 && (
+                          <span className="px-1.5 rounded text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200" title="Aplica a empresas de 11 a 50 trabajadores">21</span>
+                        )}
+                        <span className="px-1.5 rounded text-[9px] font-bold bg-purple-50 text-purple-700 border border-purple-200" title="Aplica a empresas de más de 50 trabajadores o riesgo IV y V">60</span>
                       </div>
                     </div>
 
-                    {/* Right: Status selector and Quick Actions */}
-                    <div className="flex flex-wrap items-center gap-2 shrink-0 justify-end pt-2 lg:pt-0 border-t lg:border-t-0 border-slate-200">
-                      {/* Status Selector */}
-                      <select
-                        value={std.status}
-                        onChange={(e) => updateStandardStatus(std.id, e.target.value as SstStandardStatus)}
-                        className={`text-xs font-bold rounded-lg px-2.5 py-1.5 border focus:outline-none cursor-pointer ${
-                          std.status === 'CUMPLE' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
-                          std.status === 'EN_PROCESO' ? 'bg-amber-50 text-amber-700 border-amber-200' :
-                          std.status === 'NO_APLICA_JUSTIFICADO' ? 'bg-slate-100 text-slate-700 border-slate-300' :
-                          'bg-rose-50 text-rose-700 border-rose-200'
-                        }`}
-                      >
-                        <option value="CUMPLE">✓ CUMPLE</option>
-                        <option value="EN_PROCESO">⏳ EN PROCESO</option>
-                        <option value="NO_CUMPLE">✕ NO CUMPLE</option>
-                        <option value="NO_APLICA_JUSTIFICADO">⊘ NO APLICA</option>
-                      </select>
+                    <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 line-clamp-1" title={std.numeralGroup}>
+                      {std.cycle} • {std.numeralGroup}
+                    </span>
 
-                      {/* Specialized Action Shortcuts */}
-                      {std.actionType === 'RESPONSIBLE' ? (
-                        <button
-                          type="button"
-                          onClick={() => setIsResponsibleModalOpen(true)}
-                          className="px-3 py-1.5 rounded-lg bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold transition-all shadow flex items-center gap-1"
-                        >
-                          <UserCheck className="w-3.5 h-3.5" />
-                          <span>Carta & HV</span>
-                        </button>
-                      ) : std.actionType === 'BUDGET' ? (
-                        <button
-                          type="button"
-                          onClick={() => setIsBudgetModalOpen(true)}
-                          className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow flex items-center gap-1"
-                        >
-                          <DollarSign className="w-3.5 h-3.5" />
-                          <span>Presupuesto</span>
-                        </button>
-                      ) : std.actionType === 'HAZARDS' ? (
-                        <button
-                          type="button"
-                          onClick={() => setActiveSubTab('MATRIX')}
-                          className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-teal-700 text-xs font-semibold border border-slate-300 transition-colors flex items-center gap-1"
-                        >
-                          <span>Matriz GTC 45</span>
-                        </button>
-                      ) : std.actionType === 'INSPECTION' ? (
-                        <button
-                          type="button"
-                          onClick={() => setActiveSubTab('INSPECTIONS')}
-                          className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-teal-700 text-xs font-semibold border border-slate-300 transition-colors flex items-center gap-1"
-                        >
-                          <span>Inspección</span>
-                        </button>
-                      ) : std.actionType === 'ACPM' ? (
-                        <button
-                          type="button"
-                          onClick={() => setActiveTab('acpm')}
-                          className="px-3 py-1.5 rounded-lg bg-rose-100 hover:bg-rose-600 text-rose-200 text-xs font-semibold border border-rose-200 transition-colors flex items-center gap-1"
-                        >
-                          <span>ACPM</span>
-                        </button>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => setSelectedStandardForModal(std)}
-                          className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium border border-slate-300 transition-colors"
-                        >
-                          Detalles & Dec 1072
-                        </button>
-                      )}
-                    </div>
+                    <h3
+                      onClick={() => setSelectedStandardForModal(std)}
+                      className="text-xs font-bold text-slate-900 leading-snug hover:text-orange-700 transition-colors cursor-pointer line-clamp-3"
+                      title={std.title}
+                    >
+                      {std.title}
+                    </h3>
+
+                    <p className="text-[10px] text-teal-700 font-mono font-semibold flex items-start gap-1">
+                      <BookOpen className="w-3 h-3 shrink-0 mt-px" />
+                      <span className="line-clamp-2">{std.decreto1072Article}</span>
+                    </p>
+                    <p className="text-[11px] text-slate-600 leading-snug line-clamp-2" title={std.criterion}>{std.criterion}</p>
+
+                    {!isApplicableForCompany && (
+                      <span className="self-start px-1.5 py-0.5 rounded text-[9px] font-medium bg-slate-100 text-slate-600">
+                        No exigido a su tamaño de empresa
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Status and action */}
+                  <div className="p-3 pt-0 mt-auto space-y-1.5">
+                    <select
+                      value={std.status}
+                      onChange={(e) => updateStandardStatus(std.id, e.target.value as SstStandardStatus)}
+                      className={`w-full text-[11px] font-bold rounded-lg px-2 py-1.5 border focus:outline-none cursor-pointer ${
+                        std.status === 'CUMPLE' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                        std.status === 'EN_PROCESO' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                        std.status === 'NO_APLICA_JUSTIFICADO' ? 'bg-slate-100 text-slate-700 border-slate-300' :
+                        'bg-rose-50 text-rose-700 border-rose-200'
+                      }`}
+                    >
+                      <option value="CUMPLE">✓ CUMPLE</option>
+                      <option value="EN_PROCESO">⏳ EN PROCESO</option>
+                      <option value="NO_CUMPLE">✕ NO CUMPLE</option>
+                      <option value="NO_APLICA_JUSTIFICADO">⊘ NO APLICA</option>
+                    </select>
+                    {action}
                   </div>
                 </div>
               );
@@ -1154,50 +1142,10 @@ export const SstModule: React.FC = () => {
       )}
 
       {/* ============================================================== */}
-      {/* SUBTAB 6: COMITÉS (COPASST Y CONVIVENCIA) */}
+      {/* SUBTAB 6: GESTIÓN INTEGRAL DEL COPASST O VIGÍA DE SST */}
       {/* ============================================================== */}
       {activeSubTab === 'COMMITTEES' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="glass-card rounded-xl p-5 border border-slate-300 space-y-3">
-            <div className="flex items-center justify-between">
-              <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                <Users className="w-4 h-4 text-teal-700" />
-                COPASST (Estándar 1.1.6 & 1.1.7)
-              </h2>
-              <span className="text-[10px] px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded font-semibold border border-emerald-200">
-                Periodo 2025 - 2027
-              </span>
-            </div>
-            <p className="text-xs text-slate-700">
-              Conformado según Resolución 2013 de 1986 y Decreto 1072 Art. 2.2.4.6.8 Numeral 9.
-            </p>
-            <div className="p-3 rounded bg-slate-50 border border-slate-200 text-xs space-y-1">
-              <div className="text-slate-700"><strong>Presidente:</strong> Carlos Mendoza (Principal Empresa)</div>
-              <div className="text-slate-700"><strong>Secretaria:</strong> Marcela Rincón (Principal Trabajadores)</div>
-              <div className="text-teal-700 font-medium pt-1">Última reunión ordinaria: 18 de Marzo de 2026 (Acta No. 03)</div>
-            </div>
-          </div>
-
-          <div className="glass-card rounded-xl p-5 border border-slate-300 space-y-3">
-            <div className="flex items-center justify-between">
-              <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                <HeartPulse className="w-4 h-4 text-rose-700" />
-                Comité de Convivencia Laboral (Estándar 1.1.8)
-              </h2>
-              <span className="text-[10px] px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded font-semibold border border-emerald-200">
-                Vigente (Res. 652/2012)
-              </span>
-            </div>
-            <p className="text-xs text-slate-700">
-              Órgano de prevención del acoso laboral (Ley 1010/2006) y promoción de un clima laboral armónico.
-            </p>
-            <div className="p-3 rounded bg-slate-50 border border-slate-200 text-xs space-y-1">
-              <div className="text-slate-700"><strong>Casos recibidos 2026:</strong> 0 quejas activas</div>
-              <div className="text-slate-700"><strong>Capacitaciones ejecutadas:</strong> 2 talleres sobre comunicación asertiva</div>
-              <div className="text-emerald-700 font-medium pt-1">Próxima sesión trimestral: Junio 2026</div>
-            </div>
-          </div>
-        </div>
+        <CopasstVigiaModule />
       )}
 
       {/* ============================================================== */}
@@ -1359,6 +1307,12 @@ export const SstModule: React.FC = () => {
           </form>
         </div>
       )}
+      {/* Modal de Seguridad Social PILA (Estándares 1.1.4 y 1.1.5) */}
+      <PilaSocialSecurityModal
+        isOpen={isPilaModalOpen}
+        onClose={() => setIsPilaModalOpen(false)}
+        defaultPayrollType={pilaModalType}
+      />
     </div>
   );
 };
