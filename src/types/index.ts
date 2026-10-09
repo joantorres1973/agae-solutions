@@ -6,6 +6,7 @@ export * from './copasst';
 export * from './ccl';
 export * from './training';
 export * from './policy-objectives';
+export * from './initial-evaluation';
 
 export type ModuleType = 
   | 'SST'

@@ -28,7 +28,8 @@ import {
   Award,
   HeartHandshake,
   GraduationCap,
-  Target
+  Target,
+  ClipboardCheck
 } from 'lucide-react';
 import { SstStandardDefinition, SstStandardCycle, SstStandardStatus } from '@/types/sst';
 import { SstHazardItem } from '@/types';
@@ -41,6 +42,7 @@ import { CopasstVigiaModule } from './copasst/CopasstVigiaModule';
 import { CclModule } from './ccl/CclModule';
 import { TrainingModule } from './training/TrainingModule';
 import { SstPolicyObjectivesModule } from './policy/SstPolicyObjectivesModule';
+import { SstInitialEvaluationModule } from './evaluation/SstInitialEvaluationModule';
 
 export const SstModule: React.FC = () => {
   const {
@@ -62,7 +64,7 @@ export const SstModule: React.FC = () => {
 
   // Navigation subtabs
   const [activeSubTab, setActiveSubTab] = useState<
-    'STANDARDS' | 'RESPONSIBLE' | 'BUDGET' | 'MATRIX' | 'INSPECTIONS' | 'COMMITTEES' | 'CCL' | 'TRAINING' | 'POLICY'
+    'STANDARDS' | 'RESPONSIBLE' | 'BUDGET' | 'MATRIX' | 'INSPECTIONS' | 'COMMITTEES' | 'CCL' | 'TRAINING' | 'POLICY' | 'EVALUATION'
   >('STANDARDS');
   const [copasstInitialTab, setCopasstInitialTab] = useState<
     'DASHBOARD' | 'CONFORMATION' | 'MEETINGS' | 'FINDINGS' | 'TRAININGS' | 'DOCUMENTS' | 'ELECTION' | 'VIGIA'
@@ -71,6 +73,7 @@ export const SstModule: React.FC = () => {
     'DASHBOARD' | 'CASES' | 'ELECTIONS' | 'CONFORMATION' | 'MEETINGS' | 'REGULATION' | 'REPORTS'
   >('DASHBOARD');
   const [policyInitialTab, setPolicyInitialTab] = useState<'POLICY' | 'OBJECTIVES' | 'TRACEABILITY'>('POLICY');
+  const [evaluationInitialTab, setEvaluationInitialTab] = useState<'CHECKLIST' | 'DASHBOARD' | 'ACTIONS' | 'VALIDATION' | 'REPORT'>('CHECKLIST');
 
   // Filter state for the 60 Standards
   const [showOnlyApplicable, setShowOnlyApplicable] = useState(true);
@@ -388,6 +391,19 @@ export const SstModule: React.FC = () => {
             <Target className="w-3.5 h-3.5" />
             <span>2.1 Política & Objetivos</span>
           </button>
+
+          <button
+            onClick={() => {
+              setEvaluationInitialTab('CHECKLIST');
+              setActiveSubTab('EVALUATION');
+            }}
+            className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
+              activeSubTab === 'EVALUATION' ? 'bg-teal-700 text-white shadow' : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <ClipboardCheck className="w-3.5 h-3.5" />
+            <span>2.1.3 Evaluación Inicial (Dec. 1072)</span>
+          </button>
         </div>
       </div>
 
@@ -621,6 +637,7 @@ export const SstModule: React.FC = () => {
               const isTrainingStandard = (std.code.startsWith('1.2.') || std.actionType === 'TRAINING') && std.actionType !== 'RESPONSIBLE' && !isCourse50Standard;
               const isPolicyStandard = std.code === '2.1.1';
               const isObjectivesStandard = std.code === '2.1.2';
+              const isEvaluationStandard = std.code === '2.1.3' || std.actionType === 'INITIAL_EVALUATION';
 
               const action =
                 isPilaStandard ? (
@@ -718,6 +735,18 @@ export const SstModule: React.FC = () => {
                   >
                     <Target className="w-3.5 h-3.5" />
                     <span>2.1.2 Objetivos SG-SST</span>
+                  </button>
+                ) : isEvaluationStandard ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEvaluationInitialTab('CHECKLIST');
+                      setActiveSubTab('EVALUATION');
+                    }}
+                    className={`${actionBtn} bg-teal-800 hover:bg-teal-700 text-white shadow-sm`}
+                  >
+                    <ClipboardCheck className="w-3.5 h-3.5" />
+                    <span>2.1.3 Evaluación Inicial (Dec. 1072)</span>
                   </button>
                 ) : std.actionType === 'RESPONSIBLE' ? (
                   <button type="button" onClick={() => setIsResponsibleModalOpen(true)} className={`${actionBtn} bg-orange-600 hover:bg-orange-500 text-white shadow-sm`}>
@@ -1299,6 +1328,22 @@ export const SstModule: React.FC = () => {
       )}
 
       {/* ============================================================== */}
+      {/* SUBTAB 10: EVALUACIÓN INICIAL DEL SG-SST (Dec. 1072 Art. 2.2.4.6.16) */}
+      {/* ============================================================== */}
+      {activeSubTab === 'EVALUATION' && (
+        <SstInitialEvaluationModule
+          initialSubTab={evaluationInitialTab}
+          onNavigateToModule={(tab) => {
+            if (tab === 'acpm') {
+              setActiveTab('acpm');
+            } else {
+              setActiveSubTab('STANDARDS');
+            }
+          }}
+        />
+      )}
+
+      {/* ============================================================== */}
       {/* MODALS */}
       {/* ============================================================== */}
 
@@ -1334,6 +1379,10 @@ export const SstModule: React.FC = () => {
         onOpenPolicy={(tab) => {
           setPolicyInitialTab(tab || 'POLICY');
           setActiveSubTab('POLICY');
+        }}
+        onOpenEvaluation={(tab) => {
+          setEvaluationInitialTab(tab || 'CHECKLIST');
+          setActiveSubTab('EVALUATION');
         }}
       />
 

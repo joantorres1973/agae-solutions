@@ -78,13 +78,18 @@ import {
   SstObjectiveFollowUp,
   SstObjectiveDeviationAction,
   SstPolicyRevisionRecord,
-  SstPolicyObjectivesState
+  SstPolicyObjectivesState,
+  InitialEvaluationState,
+  InitialEvaluationItem,
+  InitialEvaluationAction,
+  InitialEvaluationOverallStatus
 } from '@/types';
 import { initialPilaRecords } from './mock-pila-data';
 import { initialCopasstGlobalState } from './copasst-mock-data';
 import { initialCclGlobalState } from './ccl-mock-data';
 import { INITIAL_TRAINING_STATE } from './training-mock-data';
 import { INITIAL_SST_POLICY, INITIAL_SST_OBJECTIVES } from './policy-objectives-mock';
+import { INITIAL_EVALUATION_STATE, calculateInitialEvaluationMetrics } from './initial-evaluation-mock';
 import { initialMasterWorkers } from './worker-mock-data';
 import {
   initialOrganization,
@@ -375,6 +380,16 @@ interface AppContextType {
   addSstObjectiveFollowUp: (objectiveId: string, followUp: Omit<SstObjectiveFollowUp, 'id'>) => void;
   addSstObjectiveDeviation: (objectiveId: string, deviation: Omit<SstObjectiveDeviationAction, 'id' | 'registeredAt'>, sendDirectToAcpm?: boolean) => void;
 
+  // Evaluación Inicial del SG-SST (Decreto 1072/2015 Art. 2.2.4.6.16 & Estándar 2.1.3)
+  initialEvaluationState: InitialEvaluationState;
+  updateInitialEvaluationItem: (itemId: string, updates: Partial<InitialEvaluationItem>) => void;
+  addInitialEvaluationAction: (actionData: Omit<InitialEvaluationAction, 'id' | 'createdAt'>) => InitialEvaluationAction;
+  updateInitialEvaluationAction: (actionId: string, updates: Partial<InitialEvaluationAction>) => void;
+  setInitialEvaluationOverallStatus: (status: InitialEvaluationOverallStatus, approverName?: string) => void;
+  updateInitialEvaluationConclusions: (conclusions: string, recommendations: string) => void;
+  finalizeEvaluationSnapshot: () => void;
+  exportEvaluationActionToAcpm: (actionId: string) => void;
+
   // Global search & filters
   searchQuery: string;
   setSearchQuery: (q: string) => void;
@@ -439,6 +454,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     policy: INITIAL_SST_POLICY,
     objectives: INITIAL_SST_OBJECTIVES
   });
+
+  // Evaluación Inicial del SG-SST (Decreto 1072/2015 Art. 2.2.4.6.16)
+  const [initialEvaluationState, setInitialEvaluationState] = useState<InitialEvaluationState>(INITIAL_EVALUATION_STATE);
   // Caracterización Inteligente & Motor de Aplicabilidad
   // Saved draft (browser only). The public landing does not render characterization data, so there is no hydration mismatch.
   const [initialDraft] = useState(() => (typeof window === 'undefined' ? null : loadDraft()));
@@ -3795,6 +3813,164 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     );
   };
 
+  // Evaluación Inicial del SG-SST (Decreto 1072/2015 Art. 2.2.4.6.16 & Estándar 2.1.3)
+  const updateInitialEvaluationItem = (itemId: string, updates: Partial<InitialEvaluationItem>) => {
+    if (blockedByDemo()) return;
+    const now = new Date().toISOString().split('T')[0];
+    setInitialEvaluationState(prev => ({
+      ...prev,
+      updatedAt: now,
+      items: prev.items.map(it => it.id === itemId ? { ...it, ...updates, evaluationDate: now } : it)
+    }));
+    showNotification('Criterio de evaluación inicial actualizado', 'success');
+  };
+
+  const addInitialEvaluationAction = (actionData: Omit<InitialEvaluationAction, 'id' | 'createdAt'>): InitialEvaluationAction => {
+    const now = new Date().toISOString().split('T')[0];
+    const newActId = `act-eval-${Date.now()}`;
+    let acpmFindingId = actionData.acpmFindingId;
+
+    if (actionData.sentToAcpm && !acpmFindingId) {
+      const crit = initialEvaluationState.items.find(i => i.id === actionData.criterionId);
+      acpmFindingId = addFinding({
+        title: `Plan de Mejora Evaluación Inicial: ${actionData.criterionCode} - ${crit?.aspect?.slice(0, 50) || 'Brecha'}`,
+        description: `Brecha: ${actionData.gapDescription} | Acción requerida: ${actionData.requiredAction} | Recursos: ${actionData.resourcesNeeded || 'Asignados por SG-SST'}`,
+        originType: 'LEGAL_REQUIREMENT',
+        originModule: 'SST',
+        originDetail: `Evaluación Inicial SG-SST Art. 2.2.4.6.16 (${actionData.criterionCode})`,
+        processName: 'Evaluación y Diagnóstico SG-SST',
+        severity: 'MAYOR',
+        status: 'ABIERTO',
+        reportedBy: actionData.responsible,
+        siteName: organization.name,
+        legalCriterion: `Decreto 1072 de 2015 Art. 2.2.4.6.16 (${actionData.criterionCode})`
+      }, true);
+    }
+
+    const createdAction: InitialEvaluationAction = {
+      ...actionData,
+      id: newActId,
+      createdAt: now,
+      acpmFindingId
+    };
+
+    setInitialEvaluationState(prev => ({
+      ...prev,
+      updatedAt: now,
+      actions: [createdAction, ...prev.actions],
+      items: prev.items.map(it => it.id === actionData.criterionId ? { ...it, actionPlanId: newActId } : it)
+    }));
+
+    showNotification(
+      actionData.sentToAcpm 
+        ? 'Acción de mejora registrada y vinculada a la Matriz ACPM Central'
+        : 'Acción de mejora registrada en la Evaluación Inicial',
+      'success'
+    );
+    return createdAction;
+  };
+
+  const updateInitialEvaluationAction = (actionId: string, updates: Partial<InitialEvaluationAction>) => {
+    if (blockedByDemo()) return;
+    setInitialEvaluationState(prev => ({
+      ...prev,
+      updatedAt: new Date().toISOString().split('T')[0],
+      actions: prev.actions.map(a => a.id === actionId ? { ...a, ...updates } : a)
+    }));
+    showNotification('Acción de mejora actualizada', 'info');
+  };
+
+  const exportEvaluationActionToAcpm = (actionId: string) => {
+    const act = initialEvaluationState.actions.find(a => a.id === actionId);
+    if (!act || act.sentToAcpm) return;
+    const crit = initialEvaluationState.items.find(i => i.id === act.criterionId);
+    const findingId = addFinding({
+      title: `Plan de Mejora Evaluación Inicial: ${act.criterionCode} - ${crit?.aspect?.slice(0, 50) || 'Brecha'}`,
+      description: `Brecha: ${act.gapDescription} | Acción requerida: ${act.requiredAction}`,
+      originType: 'LEGAL_REQUIREMENT',
+      originModule: 'SST',
+      originDetail: `Evaluación Inicial SG-SST Art. 2.2.4.6.16 (${act.criterionCode})`,
+      processName: 'Evaluación y Diagnóstico SG-SST',
+      severity: 'MAYOR',
+      status: 'ABIERTO',
+      reportedBy: act.responsible,
+      siteName: organization.name,
+      legalCriterion: `Decreto 1072 de 2015 Art. 2.2.4.6.16 (${act.criterionCode})`
+    }, true);
+
+    setInitialEvaluationState(prev => ({
+      ...prev,
+      actions: prev.actions.map(a => a.id === actionId ? { ...a, sentToAcpm: true, acpmFindingId: findingId } : a)
+    }));
+    showNotification('Brecha transferida exitosamente a la Matriz ACPM Central', 'success');
+  };
+
+  const setInitialEvaluationOverallStatus = (newStatus: InitialEvaluationOverallStatus, approverName?: string) => {
+    if (blockedByDemo()) return;
+    const now = new Date().toISOString().split('T')[0];
+    setInitialEvaluationState(prev => ({
+      ...prev,
+      status: newStatus,
+      updatedAt: now,
+      approverName: approverName || prev.approverName,
+      finalizedAt: newStatus === 'FINALIZADA' ? now : prev.finalizedAt
+    }));
+
+    if (newStatus === 'FINALIZADA') {
+      updateStandardStatus(
+        'std-2.1.3',
+        'CUMPLE',
+        `Evaluación Inicial del SG-SST completada y formalizada bajo el Art. 2.2.4.6.16 del Decreto 1072 de 2015 por ${initialEvaluationState.evaluatorName} el ${now}.`
+      );
+      showNotification('Evaluación Inicial formalizada exitosamente. Estándar 2.1.3 calificado como CUMPLE.', 'success');
+    } else {
+      showNotification(`Estado de la Evaluación Inicial actualizado a: ${newStatus}`, 'info');
+    }
+  };
+
+  const updateInitialEvaluationConclusions = (conclusions: string, recommendations: string) => {
+    if (blockedByDemo()) return;
+    setInitialEvaluationState(prev => ({
+      ...prev,
+      technicalConclusions: conclusions,
+      technicalRecommendations: recommendations,
+      updatedAt: new Date().toISOString().split('T')[0]
+    }));
+    showNotification('Conclusiones y recomendaciones técnicas guardadas', 'success');
+  };
+
+  const finalizeEvaluationSnapshot = () => {
+    const metrics = calculateInitialEvaluationMetrics(initialEvaluationState.items);
+    const now = new Date().toISOString().split('T')[0];
+    const snapRecord = {
+      id: `hist-${Date.now()}`,
+      periodYear: initialEvaluationState.evaluationPeriod,
+      evaluationDate: now,
+      version: initialEvaluationState.version,
+      evaluatorName: initialEvaluationState.evaluatorName,
+      evaluatorRole: initialEvaluationState.evaluatorRole,
+      approverName: initialEvaluationState.approverName,
+      complianceScorePercentage: metrics.complianceScorePercentage,
+      totalGaps: metrics.totalGaps,
+      status: 'FINALIZADA' as const,
+      technicalConclusions: initialEvaluationState.technicalConclusions
+    };
+
+    setInitialEvaluationState(prev => ({
+      ...prev,
+      status: 'FINALIZADA',
+      finalizedAt: now,
+      history: [snapRecord, ...prev.history]
+    }));
+
+    updateStandardStatus(
+      'std-2.1.3',
+      'CUMPLE',
+      `Evaluación Inicial cerrada formalmente el ${now} con ${metrics.complianceScorePercentage}% de cumplimiento y ${metrics.totalGaps} brechas.`
+    );
+    showNotification('Evaluación Inicial cerrada y archivada en el historial inmutable', 'success');
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -3971,6 +4147,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         deleteSstObjective,
         addSstObjectiveFollowUp,
         addSstObjectiveDeviation,
+
+        // Evaluación Inicial del SG-SST (Decreto 1072/2015 Art. 2.2.4.6.16 & Estándar 2.1.3)
+        initialEvaluationState,
+        updateInitialEvaluationItem,
+        addInitialEvaluationAction,
+        updateInitialEvaluationAction,
+        setInitialEvaluationOverallStatus,
+        updateInitialEvaluationConclusions,
+        finalizeEvaluationSnapshot,
+        exportEvaluationActionToAcpm,
 
         searchQuery,
         setSearchQuery,
