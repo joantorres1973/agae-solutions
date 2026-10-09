@@ -4,6 +4,7 @@ export * from './worker';
 export * from './social-security';
 export * from './copasst';
 export * from './ccl';
+export * from './training';
 
 export type ModuleType = 
   | 'SST'

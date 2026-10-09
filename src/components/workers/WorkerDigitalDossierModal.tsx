@@ -1104,6 +1104,62 @@ export const WorkerDigitalDossierModal: React.FC<WorkerDigitalDossierModalProps>
                   </div>
                 </div>
 
+                {/* Formación y Capacitación (Alimentado automáticamente desde Programa Anual y Aula Virtual AGAE) */}
+                <div className="p-4 rounded-xl bg-white/80 border border-slate-200 space-y-2.5">
+                  <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+                    <h4 className="font-bold text-slate-900 text-xs flex items-center gap-2">
+                      <GraduationCap className="w-4 h-4 text-indigo-700" />
+                      <span>Formación y Capacitación (Programa Anual & Aula Virtual AGAE)</span>
+                    </h4>
+                    <span className="text-[10px] text-slate-600 font-mono">
+                      {worker.trainings.filter(t => t.approved).length} aprobadas • {worker.trainings.reduce((acc, t) => acc + t.hours, 0)} hrs
+                    </span>
+                  </div>
+
+                  <div className="space-y-2">
+                    {worker.trainings.length === 0 ? (
+                      <p className="text-slate-600 text-xs italic py-2 text-center">
+                        No registra capacitaciones completadas aún. Las asistencias registradas en el Programa Anual o el Aula Virtual se sincronizan aquí de forma automática.
+                      </p>
+                    ) : (
+                      <div className="divide-y divide-slate-100 rounded-lg border border-slate-200 overflow-hidden bg-slate-50/60 text-xs">
+                        {worker.trainings.map((trn, idx) => (
+                          <div key={trn.id || idx} className="p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 hover:bg-slate-50 transition-colors">
+                            <div className="space-y-0.5">
+                              <span className="font-bold text-slate-900 block">{trn.trainingTitle}</span>
+                              <div className="flex items-center gap-2 text-[11px] text-slate-600">
+                                <span>Fecha: {trn.date}</span>
+                                <span>•</span>
+                                <span>Duración: {trn.hours} hrs</span>
+                                <span>•</span>
+                                <span>Facilitador: {trn.trainerName}</span>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-2 shrink-0">
+                              {trn.score !== undefined && (
+                                <span className="font-mono text-[11px] font-bold text-slate-700 bg-white px-2 py-0.5 rounded border border-slate-200">
+                                  Nota: {trn.score}%
+                                </span>
+                              )}
+                              <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                                trn.approved ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
+                              }`}>
+                                {trn.approved ? 'APROBADO' : 'NO APROBADO'}
+                              </span>
+                              {trn.certificateFileName && (
+                                <span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200">
+                                  {trn.certificateFileName}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
                 {/* Dotaciones de EPP */}
                 <div className="p-4 rounded-xl bg-white/80 border border-slate-200 space-y-2.5">
                   <div className="flex items-center justify-between border-b border-slate-200 pb-2">

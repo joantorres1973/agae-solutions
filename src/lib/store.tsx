@@ -63,11 +63,20 @@ import {
   CclHearingRecord,
   CclFollowUpRecord,
   CclMeeting,
-  CclEvidenceAttachment
+  CclEvidenceAttachment,
+  TrainingGlobalState,
+  TrainingPlanActivity,
+  TrainingRescheduleHistoryEntry,
+  VirtualCourse,
+  VirtualCertificate,
+  InductionPackage,
+  AiTrainingSuggestion,
+  TrainingAttendanceEntry
 } from '@/types';
 import { initialPilaRecords } from './mock-pila-data';
 import { initialCopasstGlobalState } from './copasst-mock-data';
 import { initialCclGlobalState } from './ccl-mock-data';
+import { INITIAL_TRAINING_STATE } from './training-mock-data';
 import { initialMasterWorkers } from './worker-mock-data';
 import {
   initialOrganization,
@@ -316,6 +325,36 @@ interface AppContextType {
   updateCclRegulation: (newText: string) => void;
   updateCclDocumentNotes: (docType: string, notes: string) => void;
 
+  // Capacitación, Formación, Inducción y Aula Virtual (Estándar 1.2 - Res. 0312 / Dec. 1072 Art. 2.2.4.6.11)
+  trainingState: TrainingGlobalState;
+  addTrainingActivity: (activity: Omit<TrainingPlanActivity, 'id' | 'rescheduleHistory' | 'attendees' | 'attendeesCount' | 'attendanceRate' | 'createdAt' | 'updatedAt'>) => TrainingPlanActivity;
+  updateTrainingActivity: (activityId: string, updates: Partial<TrainingPlanActivity>, reason?: string, userName?: string) => void;
+  rescheduleTrainingActivity: (activityId: string, newDate: string, reason: string, userName?: string) => void;
+  markTrainingNotExecuted: (activityId: string, reason: string, observation?: string, rescheduleDecision?: string) => void;
+  recordTrainingExecution: (
+    activityId: string,
+    actualData: {
+      actualDate: string;
+      actualDurationHours: number;
+      attendees: TrainingAttendanceEntry[];
+      evidenceFileNames?: string[];
+      observations?: string;
+    }
+  ) => void;
+  completeVirtualCourseForWorker: (data: {
+    courseId: string;
+    workerDocNumber: string;
+    workerName: string;
+    scorePercentage: number;
+    answers: Record<string, number>;
+  }) => { success: boolean; certificate?: VirtualCertificate; message: string };
+  assignWorkerInduction: (workerId: string, type: 'INDUCCION' | 'REINDUCCION', dueDate: string) => void;
+  completeWorkerInduction: (inductionId: string, score: number, evaluatorName: string, evidenceFileName?: string) => void;
+  approveAiTrainingSuggestion: (suggestionId: string, scheduledMonth: number, scheduledDate: string) => void;
+  discardAiTrainingSuggestion: (suggestionId: string) => void;
+  addVirtualCourse: (course: Omit<VirtualCourse, 'id' | 'code' | 'version' | 'publicEnrollmentUrlToken'>) => VirtualCourse;
+  updateVirtualCourse: (courseId: string, updates: Partial<VirtualCourse>) => void;
+
   // Global search & filters
   searchQuery: string;
   setSearchQuery: (q: string) => void;
@@ -371,6 +410,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   // Comité de Convivencia Laboral - CCL (Estándar 1.1.8 - Resolución 3461 de 2025)
   const [cclState, setCclState] = useState<CclGlobalState>(initialCclGlobalState);
+
+  // Programa de Capacitación, Inducción y Aula Virtual (Estándar 1.2)
+  const [trainingState, setTrainingState] = useState<TrainingGlobalState>(INITIAL_TRAINING_STATE);
   // Caracterización Inteligente & Motor de Aplicabilidad
   // Saved draft (browser only). The public landing does not render characterization data, so there is no hydration mismatch.
   const [initialDraft] = useState(() => (typeof window === 'undefined' ? null : loadDraft()));
@@ -2961,6 +3003,532 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     showNotification('Observaciones y personalización del documento guardadas', 'success');
   };
 
+  // ==============================================================
+  // PROGRAMA ANUAL DE CAPACITACIÓN & AULA VIRTUAL (ESTÁNDAR 1.2)
+  // ==============================================================
+
+  const addTrainingActivity = (
+    activityData: Omit<TrainingPlanActivity, 'id' | 'rescheduleHistory' | 'attendees' | 'attendeesCount' | 'attendanceRate' | 'createdAt' | 'updatedAt'>
+  ): TrainingPlanActivity => {
+    const today = new Date().toISOString().split('T')[0];
+    const newId = `act-cap-${Date.now()}`;
+    const newActivity: TrainingPlanActivity = {
+      ...activityData,
+      id: newId,
+      attendeesCount: 0,
+      attendanceRate: 0,
+      rescheduleHistory: [],
+      attendees: [],
+      createdAt: today,
+      updatedAt: today
+    };
+
+    setTrainingState(prev => ({
+      ...prev,
+      planActivities: [newActivity, ...prev.planActivities]
+    }));
+
+    setTasks(prev => [
+      {
+        id: `tsk-cap-${Date.now()}`,
+        title: `Capacitación Programada: ${newActivity.topic}`,
+        module: 'SST',
+        type: 'CAPACITACION',
+        dueDate: newActivity.scheduledDate,
+        priority: 'MEDIA',
+        status: 'PENDIENTE',
+        responsible: newActivity.responsible,
+        siteName: organization.sites[0]?.name || 'Sede Principal',
+        linkedId: newActivity.code
+      },
+      ...prev
+    ]);
+
+    showNotification(`Capacitación "${newActivity.topic}" incorporada al Programa Anual`, 'success');
+    return newActivity;
+  };
+
+  const updateTrainingActivity = (
+    activityId: string,
+    updates: Partial<TrainingPlanActivity>,
+    reason = 'Actualización en el programa',
+    userName = 'Líder SG-SST'
+  ) => {
+    if (blockedByDemo()) return;
+    const today = new Date().toISOString().split('T')[0];
+
+    setTrainingState(prev => ({
+      ...prev,
+      planActivities: prev.planActivities.map(act => {
+        if (act.id !== activityId) return act;
+        return {
+          ...act,
+          ...updates,
+          updatedAt: today
+        };
+      })
+    }));
+
+    showNotification('Actividad de capacitación actualizada exitosamente');
+  };
+
+  const rescheduleTrainingActivity = (
+    activityId: string,
+    newDate: string,
+    reason: string,
+    userName = 'Líder SG-SST'
+  ) => {
+    if (blockedByDemo()) return;
+    const now = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    const today = now.substring(0, 10);
+    const newMonth = new Date(newDate).getMonth() + 1;
+
+    setTrainingState(prev => ({
+      ...prev,
+      planActivities: prev.planActivities.map(act => {
+        if (act.id !== activityId) return act;
+        const historyEntry: TrainingRescheduleHistoryEntry = {
+          id: `resc-${Date.now()}`,
+          originalDate: act.scheduledDate,
+          newDate,
+          reason,
+          registeredBy: userName,
+          registeredAt: now,
+          notes: `Reprogramado de ${act.scheduledDate} a ${newDate}. Motivo: ${reason}`
+        };
+
+        return {
+          ...act,
+          scheduledDate: newDate,
+          scheduledMonth: newMonth,
+          status: 'REPROGRAMADA',
+          rescheduleHistory: [historyEntry, ...act.rescheduleHistory],
+          updatedAt: today
+        };
+      })
+    }));
+
+    setTasks(prev =>
+      prev.map(t => {
+        const act = trainingState.planActivities.find(a => a.id === activityId);
+        if (act && t.linkedId === act.code) {
+          return { ...t, dueDate: newDate, title: `Capacitación (Reprogramada): ${act.topic}` };
+        }
+        return t;
+      })
+    );
+
+    showNotification(`Capacitación reprogramada para el ${newDate} con trazabilidad inmutable`, 'warning');
+  };
+
+  const markTrainingNotExecuted = (
+    activityId: string,
+    reason: string,
+    observation?: string,
+    rescheduleDecision?: string
+  ) => {
+    if (blockedByDemo()) return;
+    const today = new Date().toISOString().split('T')[0];
+
+    setTrainingState(prev => ({
+      ...prev,
+      planActivities: prev.planActivities.map(act => {
+        if (act.id !== activityId) return act;
+        return {
+          ...act,
+          status: 'NO_EJECUTADA',
+          notExecutedReason: reason,
+          notExecutedDecision: rescheduleDecision || 'Se evaluará pertinencia en la próxima revisión del programa',
+          observations: observation || act.observations,
+          updatedAt: today
+        };
+      })
+    }));
+
+    showNotification('Capacitación registrada como NO EJECUTADA. El indicador de cumplimiento ha sido actualizado.', 'info');
+  };
+
+  const recordTrainingExecution = (
+    activityId: string,
+    actualData: {
+      actualDate: string;
+      actualDurationHours: number;
+      attendees: TrainingAttendanceEntry[];
+      evidenceFileNames?: string[];
+      observations?: string;
+    }
+  ) => {
+    if (blockedByDemo()) return;
+    const today = new Date().toISOString().split('T')[0];
+
+    setTrainingState(prev => {
+      const act = prev.planActivities.find(a => a.id === activityId);
+      if (!act) return prev;
+
+      const attendedCount = actualData.attendees.filter(a => a.attended).length;
+      const totalScheduled = act.scheduledWorkerCount > 0 ? act.scheduledWorkerCount : actualData.attendees.length;
+      const rate = totalScheduled > 0 ? Math.round((attendedCount / totalScheduled) * 100) : 100;
+
+      const scores = actualData.attendees.filter(a => a.attended && a.evaluationScore !== undefined).map(a => a.evaluationScore!);
+      const avgScore = scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : undefined;
+
+      actualData.attendees.filter(a => a.attended).forEach(att => {
+        recordTrainingAttendance(att.workerId, {
+          trainingTitle: act.topic,
+          date: actualData.actualDate,
+          hours: actualData.actualDurationHours,
+          trainingType: act.activityType === 'PESV_SEGURIDAD_VIAL' ? 'PESV' : act.activityType === 'AMBIENTAL' ? 'AMBIENTAL' : 'SST',
+          trainerName: act.facilitator,
+          attendanceVerified: true,
+          score: att.evaluationScore,
+          approved: att.approved,
+          certificateFileName: att.certificateCode ? `${att.certificateCode}.pdf` : undefined
+        });
+      });
+
+      const updatedActivities = prev.planActivities.map(a => {
+        if (a.id !== activityId) return a;
+        return {
+          ...a,
+          status: 'EJECUTADA' as const,
+          actualDate: actualData.actualDate,
+          actualDurationHours: actualData.actualDurationHours,
+          attendeesCount: attendedCount,
+          attendanceRate: rate,
+          averageEvaluationScore: avgScore,
+          attendees: actualData.attendees,
+          evidenceFileNames: [...a.evidenceFileNames, ...(actualData.evidenceFileNames || [])],
+          observations: actualData.observations || a.observations,
+          updatedAt: today
+        };
+      });
+
+      return {
+        ...prev,
+        planActivities: updatedActivities
+      };
+    });
+
+    const targetActivity = trainingState.planActivities.find(a => a.id === activityId);
+    if (targetActivity) {
+      setTasks(prev =>
+        prev.map(t => (t.linkedId === targetActivity.code ? { ...t, status: 'COMPLETADA' } : t))
+      );
+    }
+
+    showNotification('Ejecución registrada, asistencias contabilizadas y perfiles de trabajadores actualizados automáticamente', 'success');
+  };
+
+  const completeVirtualCourseForWorker = (data: {
+    courseId: string;
+    workerDocNumber: string;
+    workerName: string;
+    scorePercentage: number;
+    answers: Record<string, number>;
+  }): { success: boolean; certificate?: VirtualCertificate; message: string } => {
+    const course = trainingState.virtualCourses.find(c => c.id === data.courseId);
+    if (!course) {
+      return { success: false, message: 'Curso no encontrado en el catálogo del Aula Virtual.' };
+    }
+
+    const passed = data.scorePercentage >= course.minPassingPercentage;
+    const today = new Date().toISOString().split('T')[0];
+    const matchedWorker = workers.find(w => w.docNumber.trim() === data.workerDocNumber.trim());
+
+    if (!passed) {
+      showNotification(`Evaluación completada con ${data.scorePercentage}%. No alcanzó el puntaje mínimo de ${course.minPassingPercentage}%. Puede reintentar.`, 'warning');
+      return {
+        success: false,
+        message: `No aprobado (${data.scorePercentage}%). Se requiere mínimo ${course.minPassingPercentage}%.`
+      };
+    }
+
+    const certIndex = (trainingState.certificates.length + 1).toString().padStart(6, '0');
+    const certCode = `AGA-CAP-${new Date().getFullYear()}-${certIndex}`;
+    const certUrl = `https://agae-solutions.com/certificados/verificar/${certCode}`;
+
+    const newCertificate: VirtualCertificate = {
+      id: `cert-${Date.now()}`,
+      code: certCode,
+      courseId: course.id,
+      courseTitle: course.title,
+      workerId: matchedWorker?.id,
+      workerName: matchedWorker ? `${matchedWorker.firstName} ${matchedWorker.lastName}` : data.workerName,
+      workerDocNumber: data.workerDocNumber.trim(),
+      companyName: organization.name,
+      issueDate: today,
+      hours: Math.round(course.durationMinutes / 60),
+      scorePercentage: data.scorePercentage,
+      status: 'VALIDO',
+      verificationUrl: certUrl,
+      facilitatorName: course.facilitatorName,
+      qrCodeData: certUrl,
+      registeredInMasterWorker: Boolean(matchedWorker)
+    };
+
+    if (matchedWorker) {
+      recordTrainingAttendance(matchedWorker.id, {
+        trainingTitle: `[Aula Virtual AGAE] ${course.title}`,
+        date: today,
+        hours: Math.round(course.durationMinutes / 60),
+        trainingType: course.category === 'SEGURIDAD_VIAL_PESV' ? 'PESV' : course.category === 'AMBIENTAL_RESIDUOS' ? 'AMBIENTAL' : 'SST',
+        trainerName: course.facilitatorName,
+        attendanceVerified: true,
+        score: data.scorePercentage,
+        approved: true,
+        certificateFileName: `${certCode}.pdf`
+      });
+    }
+
+    setTrainingState(prev => {
+      const updatedActivities = prev.planActivities.map(act => {
+        if (act.linkedVirtualCourseId !== course.id) return act;
+        const workerId = matchedWorker?.id || `ext-${data.workerDocNumber}`;
+        const alreadyInAttendees = act.attendees.some(a => a.workerDocNumber === data.workerDocNumber);
+
+        const newAttendeeEntry: TrainingAttendanceEntry = {
+          workerId,
+          workerName: newCertificate.workerName,
+          workerDocNumber: data.workerDocNumber,
+          workerPosition: matchedWorker?.position || 'Participante Aula Virtual',
+          attended: true,
+          evaluationScore: data.scorePercentage,
+          approved: true,
+          certificateCode: certCode,
+          registeredAt: today
+        };
+
+        const updatedAttendees = alreadyInAttendees
+          ? act.attendees.map(a => (a.workerDocNumber === data.workerDocNumber ? newAttendeeEntry : a))
+          : [...act.attendees, newAttendeeEntry];
+
+        const newCount = updatedAttendees.filter(a => a.attended).length;
+        const rate = act.scheduledWorkerCount > 0 ? Math.round((newCount / act.scheduledWorkerCount) * 100) : 100;
+
+        return {
+          ...act,
+          attendeesCount: newCount,
+          attendanceRate: rate,
+          attendees: updatedAttendees,
+          status: newCount >= act.scheduledWorkerCount ? ('EJECUTADA' as const) : act.status,
+          actualDate: act.actualDate || today
+        };
+      });
+
+      return {
+        ...prev,
+        certificates: [newCertificate, ...prev.certificates],
+        planActivities: updatedActivities
+      };
+    });
+
+    showNotification(`¡Aprobado con ${data.scorePercentage}%! Certificado digital ${certCode} emitido e incorporado al expediente laboral`, 'success');
+    return {
+      success: true,
+      certificate: newCertificate,
+      message: `¡Felicitaciones! Ha aprobado satisfactoriamente con ${data.scorePercentage}%. Su certificado ha sido emitido.`
+    };
+  };
+
+  const assignWorkerInduction = (workerId: string, type: 'INDUCCION' | 'REINDUCCION', dueDate: string) => {
+    if (blockedByDemo()) return;
+    const wrk = workers.find(w => w.id === workerId);
+    if (!wrk) return;
+
+    const today = new Date().toISOString().split('T')[0];
+    const newInduction: InductionPackage = {
+      id: `ind-${Date.now()}`,
+      workerId: wrk.id,
+      workerName: `${wrk.firstName} ${wrk.lastName}`,
+      workerDocNumber: wrk.docNumber,
+      workerPosition: wrk.position,
+      workerArea: wrk.area,
+      hireDate: wrk.hireDate,
+      type,
+      status: 'PENDIENTE',
+      assignedDate: today,
+      dueDate,
+      generalTopicsCovered: [
+        'Política del SG-SST, Objetivos y Compromiso Gerencial',
+        'Identificación de Peligros, Evaluación y Control de Riesgos',
+        'Conformación y Canales del COPASST y Comité de Convivencia',
+        'Plan de Prevención, Preparación y Respuesta ante Emergencias',
+        'Derechos y Deberes en el Sistema General de Riesgos Laborales'
+      ],
+      jobSpecificTopicsCovered: [
+        `Peligros y Controles específicos del cargo: ${wrk.position}`,
+        'Uso Obligatorio y Mantenimiento de EPP Dotados',
+        'Procedimientos de Trabajo Seguro y Reglas que Salvan Vidas'
+      ],
+      evaluatorName: 'Líder SG-SST',
+      isRegisteredInProfile: false
+    };
+
+    setTrainingState(prev => ({
+      ...prev,
+      inductions: [newInduction, ...prev.inductions]
+    }));
+
+    setTasks(prev => [
+      {
+        id: `tsk-ind-${Date.now()}`,
+        title: `Inducción SST Pendiente: ${wrk.firstName} ${wrk.lastName}`,
+        module: 'SST',
+        type: 'CAPACITACION',
+        dueDate,
+        priority: 'ALTA',
+        status: 'PENDIENTE',
+        responsible: 'Líder SST',
+        siteName: wrk.siteName,
+        linkedId: wrk.docNumber
+      },
+      ...prev
+    ]);
+
+    showNotification(`Inducción asignada a ${wrk.firstName} ${wrk.lastName} con vencimiento legal el ${dueDate}`);
+  };
+
+  const completeWorkerInduction = (
+    inductionId: string,
+    score: number,
+    evaluatorName: string,
+    evidenceFileName?: string
+  ) => {
+    if (blockedByDemo()) return;
+    const today = new Date().toISOString().split('T')[0];
+    const certCode = `AGA-IND-${new Date().getFullYear()}-${Date.now().toString().slice(-5)}`;
+
+    setTrainingState(prev => {
+      const targetInd = prev.inductions.find(i => i.id === inductionId);
+      if (!targetInd) return prev;
+
+      const wrk = workers.find(w => w.id === targetInd.workerId);
+      if (wrk) {
+        setWorkers(workersPrev =>
+          workersPrev.map(w => {
+            if (w.id !== wrk.id) return w;
+            return {
+              ...w,
+              inductions: [
+                {
+                  id: `ind-wrk-${Date.now()}`,
+                  type: targetInd.type,
+                  date: today,
+                  evaluationScore: score,
+                  approved: score >= 80,
+                  trainerName: evaluatorName,
+                  evidenceFileName: evidenceFileName || `${certCode}.pdf`,
+                  notes: `Inducción calificada con ${score}/100 conforme al Decreto 1072 de 2015.`
+                },
+                ...w.inductions
+              ]
+            };
+          })
+        );
+      }
+
+      return {
+        ...prev,
+        inductions: prev.inductions.map(i => {
+          if (i.id !== inductionId) return i;
+          return {
+            ...i,
+            status: score >= 80 ? ('EVALUADO_APROBADO' as const) : ('REPROBADO' as const),
+            completedDate: today,
+            evaluationScore: score,
+            evaluatorName,
+            evidenceFileName,
+            certificateCode: certCode,
+            isRegisteredInProfile: true
+          };
+        })
+      };
+    });
+
+    showNotification('Inducción calificada, certificada y archivada en el perfil del trabajador', 'success');
+  };
+
+  const approveAiTrainingSuggestion = (suggestionId: string, scheduledMonth: number, scheduledDate: string) => {
+    if (blockedByDemo()) return;
+    const sug = trainingState.aiSuggestions.find(s => s.id === suggestionId);
+    if (!sug) return;
+
+    const count = (trainingState.planActivities.length + 1).toString().padStart(3, '0');
+    const newCode = `CAP-${new Date().getFullYear()}-${count}`;
+
+    addTrainingActivity({
+      code: newCode,
+      topic: sug.proposedTopic,
+      objective: sug.objective,
+      activityType: 'RIESGO_ESPECIFICO',
+      targetAudienceType: 'GRUPO_RIESGO',
+      targetAudienceDetail: sug.recommendedTargetAudience,
+      targetWorkerIds: workers.slice(0, 10).map(w => w.id),
+      scheduledWorkerCount: 10,
+      responsible: 'Líder SG-SST / Especialista',
+      facilitator: 'ARL / Experto Técnico',
+      facilitatorEntity: 'ARL',
+      modality: 'HIBRIDA',
+      scheduledDate,
+      scheduledMonth,
+      estimatedDurationHours: sug.recommendedHours,
+      requiredResources: 'Sala de formación, material didáctico y evaluaciones',
+      locationOrLink: 'Sede Fontibón / Plataforma Virtual',
+      status: 'PROGRAMADA',
+      evaluationRequired: true,
+      passingScoreMin: 80,
+      evidenceFileNames: [],
+      observations: `Sugerencia de IA aprobada e incorporada al plan. Justificación: ${sug.rationale}`
+    });
+
+    setTrainingState(prev => ({
+      ...prev,
+      aiSuggestions: prev.aiSuggestions.map(s => (s.id === suggestionId ? { ...s, status: 'APROBADA' as const } : s))
+    }));
+
+    showNotification(`Sugerencia de IA aprobada e incorporada como ${newCode} en el Programa Anual`, 'success');
+  };
+
+  const discardAiTrainingSuggestion = (suggestionId: string) => {
+    if (blockedByDemo()) return;
+    setTrainingState(prev => ({
+      ...prev,
+      aiSuggestions: prev.aiSuggestions.map(s => (s.id === suggestionId ? { ...s, status: 'DESCARTADA' as const } : s))
+    }));
+    showNotification('Sugerencia descartada');
+  };
+
+  const addVirtualCourse = (
+    courseData: Omit<VirtualCourse, 'id' | 'code' | 'version' | 'publicEnrollmentUrlToken'>
+  ): VirtualCourse => {
+    const count = (trainingState.virtualCourses.length + 1).toString().padStart(3, '0');
+    const code = `CUR-AGAE-${count}`;
+    const newCourse: VirtualCourse = {
+      ...courseData,
+      id: code,
+      code,
+      version: '1.0',
+      publicEnrollmentUrlToken: `AGAE-TOKEN-${code}`
+    };
+
+    setTrainingState(prev => ({
+      ...prev,
+      virtualCourses: [newCourse, ...prev.virtualCourses]
+    }));
+
+    showNotification(`Curso virtual "${newCourse.title}" creado en el catálogo del Aula Virtual AGAE`, 'success');
+    return newCourse;
+  };
+
+  const updateVirtualCourse = (courseId: string, updates: Partial<VirtualCourse>) => {
+    if (blockedByDemo()) return;
+    setTrainingState(prev => ({
+      ...prev,
+      virtualCourses: prev.virtualCourses.map(c => (c.id === courseId ? { ...c, ...updates } : c))
+    }));
+    showNotification('Curso virtual actualizado');
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -3110,6 +3678,21 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         updateCclMeeting,
         updateCclRegulation,
         updateCclDocumentNotes,
+
+        // Capacitación, Formación, Inducción y Aula Virtual (Estándar 1.2 - Dec. 1072 & Res. 0312)
+        trainingState,
+        addTrainingActivity,
+        updateTrainingActivity,
+        rescheduleTrainingActivity,
+        markTrainingNotExecuted,
+        recordTrainingExecution,
+        completeVirtualCourseForWorker,
+        assignWorkerInduction,
+        completeWorkerInduction,
+        approveAiTrainingSuggestion,
+        discardAiTrainingSuggestion,
+        addVirtualCourse,
+        updateVirtualCourse,
 
         searchQuery,
         setSearchQuery,

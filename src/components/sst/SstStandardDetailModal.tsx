@@ -18,7 +18,8 @@ import {
   Users,
   Award,
   HeartHandshake,
-  FolderLock
+  FolderLock,
+  GraduationCap
 } from 'lucide-react';
 import { SstStandardDefinition, SstStandardStatus } from '@/types/sst';
 import { PilaSocialSecurityModal } from './PilaSocialSecurityModal';
@@ -32,6 +33,7 @@ interface SstStandardDetailModalProps {
   onNavigateToTab?: (tab: string) => void;
   onOpenCopasst?: (tab?: 'CONFORMATION' | 'TRAININGS') => void;
   onOpenCcl?: (tab?: string) => void;
+  onOpenTraining?: () => void;
 }
 
 export const SstStandardDetailModal: React.FC<SstStandardDetailModalProps> = ({
@@ -42,7 +44,8 @@ export const SstStandardDetailModal: React.FC<SstStandardDetailModalProps> = ({
   onOpenBudgetModal,
   onNavigateToTab,
   onOpenCopasst,
-  onOpenCcl
+  onOpenCcl,
+  onOpenTraining
 }) => {
   const {
     evidences,
@@ -63,6 +66,7 @@ export const SstStandardDetailModal: React.FC<SstStandardDetailModalProps> = ({
   const isPilaStandard = standard.code === '1.1.4' || standard.code === '1.1.5';
   const isCopasstStandard = standard.code === '1.1.6' || standard.code === '1.1.7';
   const isCclStandard = standard.code === '1.1.8';
+  const isTrainingStandard = standard.code === '1.2.1' || standard.code === '1.2.2' || standard.code === '1.2.3';
 
   const handleSave = () => {
     updateStandardStatus(standard.id, status, notes);
@@ -184,13 +188,15 @@ export const SstStandardDetailModal: React.FC<SstStandardDetailModalProps> = ({
           </div>
 
           {/* Quick Action Trigger if standard has specialized tool */}
-          {(standard.actionType || isPilaStandard || isCopasstStandard) && (
+          {(standard.actionType || isPilaStandard || isCopasstStandard || isCclStandard || isTrainingStandard) && (
             <div className="p-3.5 rounded-xl bg-gradient-to-r from-orange-50 via-white to-slate-50 border border-orange-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <span className="font-bold text-slate-900 block">Herramienta Integrada Disponible</span>
                 <span className="text-[11px] text-slate-600">
                   {isPilaStandard ? 'Gestione la carga de planillas PILA con fecha de pago, PIN y filtros por trabajador.' :
                    isCopasstStandard ? 'Gestione el flujo integral del COPASST o Vigía: elecciones, actas, compromisos y ACPM.' :
+                   isCclStandard ? 'Gestione casos confidenciales, actas, compromisos y mediación conforme a la Res. 3461 de 2025.' :
+                   isTrainingStandard ? 'Gestione el Programa Anual de Capacitación (Excel + Calendario), Inducciones y Aula Virtual AGAE.' :
                    standard.actionType === 'RESPONSIBLE' ? 'Gestione la hoja de vida, licencia y la Carta de Asignación formal generada en vivo.' :
                    standard.actionType === 'BUDGET' ? 'Configure el presupuesto integrado SST + Vial PESV con aprobación de gerencia.' :
                    standard.actionType === 'HAZARDS' ? 'Identifique peligros y valore riesgos según la matriz GTC 45.' :
@@ -207,6 +213,25 @@ export const SstStandardDetailModal: React.FC<SstStandardDetailModalProps> = ({
                 >
                   <FileCheck className="w-3.5 h-3.5" />
                   <span>Planillas PILA & Filtros</span>
+                </button>
+              )}
+
+              {isTrainingStandard && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    if (onOpenTraining) {
+                      onOpenTraining();
+                    } else if (onNavigateToTab) {
+                      onNavigateToTab('sst');
+                    }
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold transition-all shrink-0 shadow-sm"
+                >
+                  <GraduationCap className="w-3.5 h-3.5" />
+                  <span>Ir a Capacitación & Aula Virtual (1.2)</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               )}
 

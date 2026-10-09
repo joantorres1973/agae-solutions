@@ -26,7 +26,8 @@ import {
   FileCheck2,
   FileCheck,
   Award,
-  HeartHandshake
+  HeartHandshake,
+  GraduationCap
 } from 'lucide-react';
 import { SstStandardDefinition, SstStandardCycle, SstStandardStatus } from '@/types/sst';
 import { SstHazardItem } from '@/types';
@@ -37,6 +38,7 @@ import { SstStandardDetailModal } from './SstStandardDetailModal';
 import { PilaSocialSecurityModal } from './PilaSocialSecurityModal';
 import { CopasstVigiaModule } from './copasst/CopasstVigiaModule';
 import { CclModule } from './ccl/CclModule';
+import { TrainingModule } from './training/TrainingModule';
 
 export const SstModule: React.FC = () => {
   const {
@@ -58,7 +60,7 @@ export const SstModule: React.FC = () => {
 
   // Navigation subtabs
   const [activeSubTab, setActiveSubTab] = useState<
-    'STANDARDS' | 'RESPONSIBLE' | 'BUDGET' | 'MATRIX' | 'INSPECTIONS' | 'COMMITTEES' | 'CCL'
+    'STANDARDS' | 'RESPONSIBLE' | 'BUDGET' | 'MATRIX' | 'INSPECTIONS' | 'COMMITTEES' | 'CCL' | 'TRAINING'
   >('STANDARDS');
   const [copasstInitialTab, setCopasstInitialTab] = useState<
     'DASHBOARD' | 'CONFORMATION' | 'MEETINGS' | 'FINDINGS' | 'TRAININGS' | 'DOCUMENTS' | 'ELECTION' | 'VIGIA'
@@ -359,6 +361,16 @@ export const SstModule: React.FC = () => {
           >
             <HeartHandshake className="w-3.5 h-3.5" />
             <span>1.1.8 Convivencia (CCL)</span>
+          </button>
+
+          <button
+            onClick={() => setActiveSubTab('TRAINING')}
+            className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
+              activeSubTab === 'TRAINING' ? 'bg-orange-600 text-white shadow' : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <GraduationCap className="w-3.5 h-3.5" />
+            <span>1.2 Capacitación & Aula Virtual</span>
           </button>
         </div>
       </div>
@@ -1196,6 +1208,13 @@ export const SstModule: React.FC = () => {
       )}
 
       {/* ============================================================== */}
+      {/* SUBTAB 8: CAPACITACIÓN, FORMACIÓN, INDUCCIÓN & AULA VIRTUAL (1.2) */}
+      {/* ============================================================== */}
+      {activeSubTab === 'TRAINING' && (
+        <TrainingModule />
+      )}
+
+      {/* ============================================================== */}
       {/* MODALS */}
       {/* ============================================================== */}
 
@@ -1227,6 +1246,7 @@ export const SstModule: React.FC = () => {
           setCclInitialTab((tab as any) || 'DASHBOARD');
           setActiveSubTab('CCL');
         }}
+        onOpenTraining={() => setActiveSubTab('TRAINING')}
       />
 
       {/* 4. Modal Add Hazard GTC 45 */}
