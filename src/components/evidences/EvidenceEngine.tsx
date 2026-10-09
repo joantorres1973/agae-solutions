@@ -63,17 +63,17 @@ export const EvidenceEngine: React.FC = () => {
   return (
     <div className="space-y-5 animate-in fade-in duration-300">
       {/* Title & Stats */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 glass-card p-4 rounded-xl border border-slate-700/80">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 glass-card p-4 rounded-xl border border-slate-300">
         <div>
           <div className="flex items-center gap-2">
-            <span className="p-1.5 rounded-lg bg-blue-500/20 text-blue-400 border border-blue-500/30">
+            <span className="p-1.5 rounded-lg bg-blue-100 text-blue-700 border border-blue-200">
               <FileCheck2 className="w-5 h-5" />
             </span>
-            <h1 className="text-xl font-bold text-white">
+            <h1 className="text-xl font-bold text-slate-900">
               Motor Central de Evidencias Polimórfico
             </h1>
           </div>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-slate-500 mt-1">
             Principio: <strong>Carga única, uso múltiple</strong>. Un archivo (foto, acta, certificado) se almacena una sola vez y se vincula simultáneamente a inspecciones, ACPM, auditorías y requisitos legales sin duplicar espacio.
           </p>
         </div>
@@ -88,24 +88,24 @@ export const EvidenceEngine: React.FC = () => {
       </div>
 
       {/* Search and Filters */}
-      <div className="flex flex-wrap items-center justify-between gap-3 bg-slate-900/80 p-3 rounded-xl border border-slate-800 text-xs">
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs">
         <div className="flex items-center gap-3 flex-1 max-w-md">
-          <Search className="w-4 h-4 text-slate-400" />
+          <Search className="w-4 h-4 text-slate-500" />
           <input
             type="text"
             placeholder="Buscar por título, tag o nombre de archivo..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-500"
+            className="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-teal-500"
           />
         </div>
 
         <div className="flex items-center gap-2">
-          <Filter className="w-3.5 h-3.5 text-slate-400" />
+          <Filter className="w-3.5 h-3.5 text-slate-500" />
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
-            className="bg-slate-950 border border-slate-700 text-slate-200 rounded-lg px-2.5 py-1 text-xs"
+            className="bg-white border border-slate-300 text-slate-800 rounded-lg px-2.5 py-1 text-xs"
           >
             <option value="ALL">Todos los Tipos</option>
             <option value="IMAGE">Fotografías</option>
@@ -118,35 +118,35 @@ export const EvidenceEngine: React.FC = () => {
       {/* Evidences Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filtered.map(evidence => (
-          <div key={evidence.id} className="glass-card rounded-xl p-4 border border-slate-700/80 space-y-3 flex flex-col justify-between">
+          <div key={evidence.id} className="glass-card rounded-xl p-4 border border-slate-300 space-y-3 flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between mb-2">
-                <span className="flex items-center gap-1.5 text-[10px] font-bold text-cyan-400 bg-cyan-950/80 px-2 py-0.5 rounded border border-cyan-800">
+                <span className="flex items-center gap-1.5 text-[10px] font-bold text-teal-700 bg-teal-50 px-2 py-0.5 rounded border border-teal-200">
                   {evidence.fileType === 'IMAGE' ? <Image className="w-3 h-3" /> : <FileText className="w-3 h-3" />}
                   {evidence.fileType}
                 </span>
-                <span className="text-[10px] text-slate-400 font-mono">{evidence.fileSize}</span>
+                <span className="text-[10px] text-slate-500 font-mono">{evidence.fileSize}</span>
               </div>
 
-              <h2 className="text-xs font-bold text-slate-100 line-clamp-2 mb-1">{evidence.title}</h2>
-              <p className="text-[11px] text-slate-400 font-mono truncate">{evidence.fileName}</p>
+              <h2 className="text-xs font-bold text-slate-800 line-clamp-2 mb-1">{evidence.title}</h2>
+              <p className="text-[11px] text-slate-500 font-mono truncate">{evidence.fileName}</p>
 
               {/* Tags */}
               <div className="flex flex-wrap gap-1 mt-2.5">
                 {evidence.tags.map(tag => (
-                  <span key={tag} className="text-[9px] px-1.5 py-0.2 rounded bg-slate-800 text-slate-300 border border-slate-700 font-mono">
+                  <span key={tag} className="text-[9px] px-1.5 py-0.2 rounded bg-slate-100 text-slate-700 border border-slate-300 font-mono">
                     #{tag}
                   </span>
                 ))}
               </div>
             </div>
 
-            <div className="pt-3 border-t border-slate-800 text-[10px] text-slate-400 flex items-center justify-between">
+            <div className="pt-3 border-t border-slate-200 text-[10px] text-slate-500 flex items-center justify-between">
               <div>
                 <span>{evidence.uploadedBy.split(' ')[0]}</span>
-                <span className="block text-slate-400">{evidence.uploadedAt}</span>
+                <span className="block text-slate-500">{evidence.uploadedAt}</span>
               </div>
-              <div className="flex items-center gap-1.5 text-emerald-400 font-semibold bg-emerald-950/50 px-2 py-1 rounded border border-emerald-900/60">
+              <div className="flex items-center gap-1.5 text-emerald-700 font-semibold bg-emerald-50 px-2 py-1 rounded border border-emerald-200">
                 <Link2 className="w-3 h-3" />
                 <span>{evidence.linkedEntityCount} Vínculos Activos</span>
               </div>
@@ -158,32 +158,32 @@ export const EvidenceEngine: React.FC = () => {
       {/* Modal Upload */}
       {showUploadModal && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <form onSubmit={handleUpload} className="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full p-5 space-y-4 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h2 className="text-sm font-bold text-white">Cargar Nueva Evidencia Central</h2>
-              <button type="button" onClick={() => setShowUploadModal(false)} className="text-slate-400 hover:text-white">✕</button>
+          <form onSubmit={handleUpload} className="bg-slate-50 border border-slate-300 rounded-2xl max-w-lg w-full p-5 space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+              <h2 className="text-sm font-bold text-slate-900">Cargar Nueva Evidencia Central</h2>
+              <button type="button" onClick={() => setShowUploadModal(false)} className="text-slate-500 hover:text-slate-900">✕</button>
             </div>
 
             <div className="space-y-3 text-xs">
               <div>
-                <label className="font-semibold text-slate-300 block mb-1">Título Descriptivo *</label>
+                <label className="font-semibold text-slate-700 block mb-1">Título Descriptivo *</label>
                 <input
                   type="text"
                   required
                   value={eTitle}
                   onChange={(e) => setETitle(e.target.value)}
                   placeholder="Ej: Registro Fotográfico Cierre Extintor Bahía 2..."
-                  className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-slate-200"
+                  className="w-full bg-white border border-slate-300 rounded-lg p-2 text-slate-800"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="font-semibold text-slate-300 block mb-1">Tipo de Archivo</label>
+                  <label className="font-semibold text-slate-700 block mb-1">Tipo de Archivo</label>
                   <select
                     value={eType}
                     onChange={(e) => setEType(e.target.value as any)}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-slate-200"
+                    className="w-full bg-white border border-slate-300 rounded-lg p-2 text-slate-800"
                   >
                     <option value="IMAGE">Fotografía (JPG / PNG)</option>
                     <option value="DOCUMENT">Documento / Acta (PDF)</option>
@@ -191,35 +191,35 @@ export const EvidenceEngine: React.FC = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="font-semibold text-slate-300 block mb-1">Nombre de Archivo *</label>
+                  <label className="font-semibold text-slate-700 block mb-1">Nombre de Archivo *</label>
                   <input
                     type="text"
                     required
                     value={eFileName}
                     onChange={(e) => setEFileName(e.target.value)}
                     placeholder="Ej: evidencia_marzo_2026.pdf"
-                    className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-slate-200 font-mono"
+                    className="w-full bg-white border border-slate-300 rounded-lg p-2 text-slate-800 font-mono"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="font-semibold text-slate-300 block mb-1">Etiquetas (Separadas por coma)</label>
+                <label className="font-semibold text-slate-700 block mb-1">Etiquetas (Separadas por coma)</label>
                 <input
                   type="text"
                   value={eTags}
                   onChange={(e) => setETags(e.target.value)}
                   placeholder="Ej: SST, INSPECCION, EXTINTORES, BAHIA2"
-                  className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-slate-200"
+                  className="w-full bg-white border border-slate-300 rounded-lg p-2 text-slate-800"
                 />
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-800">
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-200">
               <button
                 type="button"
                 onClick={() => setShowUploadModal(false)}
-                className="px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 text-xs font-semibold"
+                className="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 text-xs font-semibold"
               >
                 Cancelar
               </button>

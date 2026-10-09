@@ -91,24 +91,24 @@ export const IsoModule: React.FC = () => {
   return (
     <div className="space-y-5 animate-in fade-in duration-300">
       {/* Module Title Banner */}
-      <div className="glass-card p-4 rounded-xl border border-slate-700/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="glass-card p-4 rounded-xl border border-slate-300 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
-            <span className="p-1.5 rounded-lg bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
+            <span className="p-1.5 rounded-lg bg-indigo-100 text-indigo-700 border border-indigo-200">
               <Award className="w-5 h-5" />
             </span>
-            <h1 className="text-xl font-bold text-white">
+            <h1 className="text-xl font-bold text-slate-900">
               Sistemas de Gestión ISO — Estructura HLS Integrada
             </h1>
           </div>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-slate-500 mt-1">
             Gestión armónica sin silos. Los requisitos comunes de <strong>ISO 9001</strong>, <strong>ISO 14001</strong> e <strong>ISO 45001</strong> se administran una sola vez bajo la Estructura de Alto Nivel.
           </p>
         </div>
 
         {/* Modular Subscription Switches */}
-        <div className="flex items-center gap-2 bg-slate-900/90 p-2 rounded-lg border border-slate-700 text-xs">
-          <span className="text-[10px] text-slate-400 font-bold uppercase mr-1">Normas Contratadas:</span>
+        <div className="flex items-center gap-2 bg-slate-50 p-2 rounded-lg border border-slate-300 text-xs">
+          <span className="text-[10px] text-slate-500 font-bold uppercase mr-1">Normas Contratadas:</span>
           
           <label className="flex items-center gap-1.5 cursor-pointer">
             <input
@@ -117,7 +117,7 @@ export const IsoModule: React.FC = () => {
               onChange={() => toggleModule('ISO_9001')}
               className="accent-indigo-500"
             />
-            <span className={is9001 ? 'text-indigo-300 font-bold' : 'text-slate-500'}>ISO 9001</span>
+            <span className={is9001 ? 'text-indigo-700 font-bold' : 'text-slate-500'}>ISO 9001</span>
           </label>
 
           <label className="flex items-center gap-1.5 cursor-pointer">
@@ -127,7 +127,7 @@ export const IsoModule: React.FC = () => {
               onChange={() => toggleModule('ISO_14001')}
               className="accent-emerald-500"
             />
-            <span className={is14001 ? 'text-emerald-300 font-bold' : 'text-slate-500'}>ISO 14001</span>
+            <span className={is14001 ? 'text-emerald-700 font-bold' : 'text-slate-500'}>ISO 14001</span>
           </label>
 
           <label className="flex items-center gap-1.5 cursor-pointer">
@@ -137,28 +137,28 @@ export const IsoModule: React.FC = () => {
               onChange={() => toggleModule('ISO_45001')}
               className="accent-orange-500"
             />
-            <span className={is45001 ? 'text-orange-300 font-bold' : 'text-slate-500'}>ISO 45001</span>
+            <span className={is45001 ? 'text-orange-700 font-bold' : 'text-slate-500'}>ISO 45001</span>
           </label>
         </div>
       </div>
 
       {/* Integration Philosophy Card */}
-      <div className="p-4 rounded-xl bg-gradient-to-r from-indigo-950/40 via-slate-900 to-cyan-950/30 border border-indigo-500/30 text-xs flex items-center justify-between gap-4">
+      <div className="p-4 rounded-xl bg-gradient-to-r from-indigo-50 via-white to-teal-50 border border-indigo-200 text-xs flex items-center justify-between gap-4">
         <div>
-          <span className="font-bold text-indigo-300 block mb-0.5">
+          <span className="font-bold text-indigo-700 block mb-0.5">
             Principio: Integración Tri-Norma sin Duplicidad
           </span>
-          <p className="text-slate-300 max-w-3xl leading-relaxed">
+          <p className="text-slate-700 max-w-3xl leading-relaxed">
             Un solo proceso operativo como <strong>"{organization.processes[0]?.name}"</strong> da cumplimiento simultáneamente al Capítulo 8 de ISO 9001 (Calidad en entrega), ISO 14001 (Control de emisiones y residuos) e ISO 45001 (Seguridad en cargue).
           </p>
         </div>
-        <div className="hidden lg:flex items-center gap-1 bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-700 text-cyan-400 font-mono text-[11px] font-bold shrink-0">
+        <div className="hidden lg:flex items-center gap-1 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-300 text-teal-700 font-mono text-[11px] font-bold shrink-0">
           <GitBranch className="w-3.5 h-3.5" /> 1 Registro → 3 Normas
         </div>
       </div>
 
       {/* HLS Chapter Tabs Navigation */}
-      <div className="flex flex-wrap gap-1.5 border-b border-slate-800 pb-2">
+      <div className="flex flex-wrap gap-1.5 border-b border-slate-200 pb-2">
         {hlsChapters.map(ch => (
           <button
             key={ch.num}
@@ -166,7 +166,7 @@ export const IsoModule: React.FC = () => {
             className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
               activeChapter === ch.num
                 ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
-                : 'bg-slate-900/60 text-slate-400 hover:text-slate-200 border border-slate-800'
+                : 'bg-slate-50 text-slate-500 hover:text-slate-800 border border-slate-200'
             }`}
           >
             Capítulo {ch.num}: {ch.title.split(' ')[0]}
@@ -175,16 +175,16 @@ export const IsoModule: React.FC = () => {
       </div>
 
       {/* Current Chapter View with 3-norm comparison */}
-      <div className="glass-card rounded-xl p-5 border border-slate-700/80 space-y-4">
-        <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+      <div className="glass-card rounded-xl p-5 border border-slate-300 space-y-4">
+        <div className="flex items-center justify-between pb-3 border-b border-slate-200">
           <div>
-            <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-wider">
+            <span className="text-[10px] font-bold text-indigo-700 uppercase tracking-wider">
               Estructura de Alto Nivel Integrada
             </span>
-            <h2 className="text-base font-bold text-white mt-0.5">
+            <h2 className="text-base font-bold text-slate-900 mt-0.5">
               Capítulo {currentCh.num} — {currentCh.title}
             </h2>
-            <p className="text-xs text-slate-400 mt-0.5">{currentCh.desc}</p>
+            <p className="text-xs text-slate-500 mt-0.5">{currentCh.desc}</p>
           </div>
         </div>
 
@@ -192,55 +192,55 @@ export const IsoModule: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
           {/* ISO 9001 */}
           <div className={`p-4 rounded-xl border transition-all ${
-            is9001 ? 'bg-slate-900/90 border-indigo-500/40' : 'bg-slate-900/30 border-slate-800 opacity-50'
+            is9001 ? 'bg-slate-50 border-indigo-200' : 'bg-slate-50 border-slate-200 opacity-50'
           }`}>
             <div className="flex items-center justify-between mb-2">
-              <span className="font-bold text-indigo-300">ISO 9001:2015 (Calidad)</span>
+              <span className="font-bold text-indigo-700">ISO 9001:2015 (Calidad)</span>
               {is9001 ? (
-                <span className="text-[10px] px-1.5 py-0.2 rounded bg-indigo-950 text-indigo-400 font-bold border border-indigo-800">Activo</span>
+                <span className="text-[10px] px-1.5 py-0.2 rounded bg-indigo-50 text-indigo-700 font-bold border border-indigo-200">Activo</span>
               ) : (
                 <span className="text-[10px] text-slate-500">Inactivo</span>
               )}
             </div>
-            <p className="text-slate-300 leading-relaxed mt-2">{currentCh.iso9001}</p>
-            <div className="mt-4 pt-2 border-t border-slate-800 text-[10px] text-slate-400">
-              Cumplimiento: <strong className="text-emerald-400">92.4%</strong>
+            <p className="text-slate-700 leading-relaxed mt-2">{currentCh.iso9001}</p>
+            <div className="mt-4 pt-2 border-t border-slate-200 text-[10px] text-slate-500">
+              Cumplimiento: <strong className="text-emerald-700">92.4%</strong>
             </div>
           </div>
 
           {/* ISO 14001 */}
           <div className={`p-4 rounded-xl border transition-all ${
-            is14001 ? 'bg-slate-900/90 border-emerald-500/40' : 'bg-slate-900/30 border-slate-800 opacity-50'
+            is14001 ? 'bg-slate-50 border-emerald-200' : 'bg-slate-50 border-slate-200 opacity-50'
           }`}>
             <div className="flex items-center justify-between mb-2">
-              <span className="font-bold text-emerald-300">ISO 14001:2015 (Ambiental)</span>
+              <span className="font-bold text-emerald-700">ISO 14001:2015 (Ambiental)</span>
               {is14001 ? (
-                <span className="text-[10px] px-1.5 py-0.2 rounded bg-emerald-950 text-emerald-400 font-bold border border-emerald-800">Activo</span>
+                <span className="text-[10px] px-1.5 py-0.2 rounded bg-emerald-50 text-emerald-700 font-bold border border-emerald-200">Activo</span>
               ) : (
                 <span className="text-[10px] text-slate-500">Inactivo</span>
               )}
             </div>
-            <p className="text-slate-300 leading-relaxed mt-2">{currentCh.iso14001}</p>
-            <div className="mt-4 pt-2 border-t border-slate-800 text-[10px] text-slate-400">
-              Cumplimiento: <strong className="text-emerald-400">90.1%</strong>
+            <p className="text-slate-700 leading-relaxed mt-2">{currentCh.iso14001}</p>
+            <div className="mt-4 pt-2 border-t border-slate-200 text-[10px] text-slate-500">
+              Cumplimiento: <strong className="text-emerald-700">90.1%</strong>
             </div>
           </div>
 
           {/* ISO 45001 */}
           <div className={`p-4 rounded-xl border transition-all ${
-            is45001 ? 'bg-slate-900/90 border-orange-500/40' : 'bg-slate-900/30 border-slate-800 opacity-50'
+            is45001 ? 'bg-slate-50 border-orange-200' : 'bg-slate-50 border-slate-200 opacity-50'
           }`}>
             <div className="flex items-center justify-between mb-2">
-              <span className="font-bold text-orange-300">ISO 45001:2018 (SST)</span>
+              <span className="font-bold text-orange-700">ISO 45001:2018 (SST)</span>
               {is45001 ? (
-                <span className="text-[10px] px-1.5 py-0.2 rounded bg-orange-950 text-orange-400 font-bold border border-orange-800">Activo</span>
+                <span className="text-[10px] px-1.5 py-0.2 rounded bg-orange-50 text-orange-700 font-bold border border-orange-200">Activo</span>
               ) : (
                 <span className="text-[10px] text-slate-500">Inactivo</span>
               )}
             </div>
-            <p className="text-slate-300 leading-relaxed mt-2">{currentCh.iso45001}</p>
-            <div className="mt-4 pt-2 border-t border-slate-800 text-[10px] text-slate-400">
-              Cumplimiento: <strong className="text-emerald-400">89.5%</strong>
+            <p className="text-slate-700 leading-relaxed mt-2">{currentCh.iso45001}</p>
+            <div className="mt-4 pt-2 border-t border-slate-200 text-[10px] text-slate-500">
+              Cumplimiento: <strong className="text-emerald-700">89.5%</strong>
             </div>
           </div>
         </div>

@@ -1,9 +1,14 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Outfit } from "next/font/google";
 import "./globals.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+const outfit = Outfit({
+  variable: "--font-display",
   subsets: ["latin"],
 });
 
@@ -23,8 +28,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col bg-[#0b1120] text-slate-100 font-sans selection:bg-cyan-500 selection:text-white">
+    <html lang="es" className={`${geistSans.variable} ${geistMono.variable} ${outfit.variable} h-full antialiased`}>
+      <body className="min-h-full flex flex-col bg-[#f4f8f6] text-slate-800 font-sans selection:bg-teal-500 selection:text-white">
         {children}
       </body>
     </html>

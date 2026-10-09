@@ -1,4 +1,6 @@
 export * from './sst';
+export * from './characterization';
+export * from './worker';
 
 export type ModuleType = 
   | 'SST'
@@ -7,6 +9,7 @@ export type ModuleType =
   | 'ISO_9001'
   | 'ISO_14001'
   | 'ISO_45001'
+  | 'HUELLA_CARBONO'
   | 'TRANSVERSAL';
 
 export type PesvLevel = 'BASICO' | 'ESTANDAR' | 'AVANZADO';
@@ -42,6 +45,8 @@ export interface Organization {
   pesvLevel: PesvLevel;
   sstStandardCount: SstStandardCount;
   activeModules: ModuleType[];
+  /** Calculadora de huella de carbono habilitada en el plan (undefined = plan anterior, se asume habilitada). */
+  huellaCarbonoHabilitada?: boolean;
   logoUrl?: string;
 }
 

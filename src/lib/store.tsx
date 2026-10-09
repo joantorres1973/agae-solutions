@@ -1,6 +1,9 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useAuth } from './auth';
+import { clearDraft, loadDraft, saveDraft } from './characterization-draft';
+import { hasEnvironmentalCore, huellaCarbonoEnPlan, isTabOutsidePlan, MODULE_LABELS, planName, tabModuleLabel } from './plan-rules';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import {
   Organization,
   SharedAsset,
@@ -24,8 +27,26 @@ import {
   SstBudgetState,
   SimulatedRole,
   DigitalSignatureInfo,
-  CopasstBudgetReview
+  CopasstBudgetReview,
+  CompanyCharacterization,
+  ValidationDecision,
+  CharacterizationVersion,
+  ModuleEvaluation,
+  RequirementEvaluation,
+  CommercialProposal,
+  ApplicabilityStatus,
+  PortalView,
+  ActivationEmailData,
+  MasterWorker,
+  WorkerLaborHistoryEntry,
+  WorkerDigitalDocument,
+  WorkerEppDeliveryRecord,
+  WorkerTrainingRecord,
+  WorkerCommitteeParticipation,
+  WorkerOccupationalExam,
+  WorkerAuditEntry
 } from '@/types';
+import { initialMasterWorkers } from './worker-mock-data';
 import {
   initialOrganization,
   initialSharedAssets,
@@ -46,8 +67,60 @@ import {
   initialSstBudgetItems,
   initialSstBudgetState
 } from './sst-standards-data';
+import {
+  defaultCompanyCharacterization,
+  characterizationArchetypes,
+  initialValidationDecisions,
+  initialCharacterizationHistory
+} from './characterization-mock';
+import {
+  extractStructuredVariables,
+  calculateSstStandardsCount,
+  withDerivedValues,
+  calculatePesvLevel,
+  evaluateApplicability,
+  detectCharacterizationDiffs
+} from './applicability-engine';
 
 interface AppContextType {
+  // Caracterización Inteligente & Motor de Aplicabilidad
+  characterization: CompanyCharacterization;
+  applicabilityProfile: {
+    evaluations: ModuleEvaluation[];
+    allRequirements: RequirementEvaluation[];
+    proposal: CommercialProposal;
+  };
+  validationDecisions: ValidationDecision[];
+  characterizationHistory: CharacterizationVersion[];
+  updateCharacterization: (newValues: Partial<CompanyCharacterization>, author?: string, reason?: string) => void;
+  applyCharacterizationToPlatform: (selectedModules: ModuleType[]) => void;
+  addValidationDecision: (decision: Omit<ValidationDecision, 'id' | 'timestamp'>) => void;
+  loadCharacterizationArchetype: (archetypeId: string) => void;
+  isCharacterizationWizardOpen: boolean;
+  setIsCharacterizationWizardOpen: (open: boolean) => void;
+  activeWizardStep: number;
+  setActiveWizardStep: (step: number) => void;
+
+  // Borrador de la caracterización (guardado automático en el navegador)
+  draftSavedAt: string | null;
+  /** Cambia cuando se restaura o reinicia el borrador, para que el cuestionario se resincronice. */
+  draftVersion: number;
+  restoredDraftStep: number | null;
+  saveWizardModules: (modules: ModuleType[]) => void;
+  resetCharacterizationDraft: () => void;
+
+  // Portal View (Página Principal / Landing / Wizard / Demo / App)
+  portalView: PortalView;
+  setPortalView: (view: PortalView) => void;
+
+  // Checkout & Correo de Activación con Credenciales
+  lastActivationEmail: ActivationEmailData | null;
+  sendActivationEmail: (data: ActivationEmailData) => void;
+  isEmailModalOpen: boolean;
+  setIsEmailModalOpen: (open: boolean) => void;
+  isCheckoutModalOpen: boolean;
+  setIsCheckoutModalOpen: (open: boolean) => void;
+
   // Organization
   organization: Organization;
   updateOrganization: (org: Partial<Organization>) => void;
@@ -121,6 +194,48 @@ interface AppContextType {
   currentSimulatedRole: SimulatedRole;
   setCurrentSimulatedRole: (role: SimulatedRole) => void;
 
+  // Base Maestra de Trabajadores (Expediente Digital Transversal 360°)
+  workers: MasterWorker[];
+  addWorker: (
+    workerData: Omit<MasterWorker, 'id' | 'createdAt' | 'updatedAt' | 'auditTrail' | 'laborHistory'> & { initialLaborNotes?: string },
+    userName?: string
+  ) => MasterWorker;
+  updateWorker: (id: string, updates: Partial<MasterWorker>, reason?: string, userName?: string) => void;
+  recordLaborChange: (
+    workerId: string,
+    entry: Omit<WorkerLaborHistoryEntry, 'id' | 'registeredBy'>,
+    userName?: string
+  ) => void;
+  addWorkerDocument: (
+    workerId: string,
+    doc: Omit<WorkerDigitalDocument, 'id' | 'uploadedAt' | 'status'>,
+    userName?: string
+  ) => void;
+  recordEppDelivery: (
+    workerId: string,
+    delivery: Omit<WorkerEppDeliveryRecord, 'id'>,
+    userName?: string
+  ) => void;
+  recordTrainingAttendance: (
+    workerId: string,
+    training: Omit<WorkerTrainingRecord, 'id'>,
+    userName?: string
+  ) => void;
+  recordCommitteeAssignment: (
+    workerId: string,
+    committee: Omit<WorkerCommitteeParticipation, 'id'>,
+    userName?: string
+  ) => void;
+  recordOccupationalExam: (
+    workerId: string,
+    exam: Omit<WorkerOccupationalExam, 'id'>,
+    userName?: string
+  ) => void;
+  deleteWorker: (id: string, reason?: string, userName?: string) => void;
+  getWorkerById: (id: string) => MasterWorker | undefined;
+  getWorkerByDoc: (docNumber: string) => MasterWorker | undefined;
+  assignWorkerAsSstResponsible: (workerId: string) => void;
+
   // Global search & filters
   searchQuery: string;
   setSearchQuery: (q: string) => void;
@@ -133,6 +248,21 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
+  // Demo accounts (Portal Clientes): a few actions and some locked sections, then an invitation to hire AGAE.
+  const { isDemo, consumeDemoAction, isTabLocked, openUpsell } = useAuth();
+  // Also blocks changes inside modules that are not part of the contracted plan (they are shown as a preview).
+  const blockedByDemo = () => {
+    if (isTabOutsidePlan(activeTab, organization.activeModules)) {
+      openUpsell(`El módulo ${tabModuleLabel(activeTab)} no está incluido en tu ${planName(organization.activeModules)}. Puedes explorarlo como demostración.`);
+      return true;
+    }
+    return isDemo && !consumeDemoAction();
+  };
+  const guardedSetActiveTab = (tab: string) => {
+    if (isTabLocked(tab)) openUpsell('Esta sección está disponible para clientes de AGAE SOLUTIONS.');
+    else setActiveTab(tab);
+  };
+
   const [organization, setOrganization] = useState<Organization>(initialOrganization);
   const [activeTab, setActiveTab] = useState<string>('dashboard');
   const [assets, setAssets] = useState<SharedAsset[]>(initialSharedAssets);
@@ -144,6 +274,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [ghgRecords, setGhgRecords] = useState<GhgEmissionRecord[]>(initialGhgRecords);
   const [pesvVehicles, setPesvVehicles] = useState<PesvVehicle[]>(initialPesvVehicles);
   const [pesvDrivers, setPesvDrivers] = useState<PesvDriver[]>(initialPesvDrivers);
+  const [workers, setWorkers] = useState<MasterWorker[]>(initialMasterWorkers);
   const [pgirsRecords, setPgirsRecords] = useState<PgirsRecord[]>(initialPgirsRecords);
   const [sstHazards, setSstHazards] = useState<SstHazardItem[]>(initialSstHazards);
   const [sstStandards, setSstStandards] = useState<SstStandardDefinition[]>(master60Standards);
@@ -151,6 +282,59 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [sstBudgetItems, setSstBudgetItems] = useState<SstBudgetItem[]>(initialSstBudgetItems);
   const [sstBudgetState, setSstBudgetState] = useState<SstBudgetState>(initialSstBudgetState);
   const [currentSimulatedRole, setCurrentSimulatedRole] = useState<SimulatedRole>('LIDER_SST');
+  // Caracterización Inteligente & Motor de Aplicabilidad
+  // Saved draft (browser only). The public landing does not render characterization data, so there is no hydration mismatch.
+  const [initialDraft] = useState(() => (typeof window === 'undefined' ? null : loadDraft()));
+  const [characterization, setCharacterization] = useState<CompanyCharacterization>(() =>
+    initialDraft ? withDerivedValues({ ...defaultCompanyCharacterization, ...initialDraft.characterization }) : defaultCompanyCharacterization
+  );
+  const [applicabilityProfile, setApplicabilityProfile] = useState(() => evaluateApplicability(characterization));
+  const [validationDecisions, setValidationDecisions] = useState<ValidationDecision[]>(initialValidationDecisions);
+  const [characterizationHistory, setCharacterizationHistory] = useState<CharacterizationVersion[]>(initialCharacterizationHistory);
+  const [isCharacterizationWizardOpen, setIsCharacterizationWizardOpen] = useState(false);
+  const [activeWizardStep, setActiveWizardStep] = useState(initialDraft?.step || 1);
+
+  // --- Characterization draft: autosave every change ---
+  const [draftSavedAt, setDraftSavedAt] = useState<string | null>(initialDraft?.savedAt ?? null);
+  const [draftVersion, setDraftVersion] = useState(0);
+  const [restoredDraftStep, setRestoredDraftStep] = useState<number | null>(initialDraft ? initialDraft.step || 1 : null);
+  const draftReady = useRef(typeof window !== 'undefined');
+
+  useEffect(() => {
+    if (!draftReady.current) return;
+    const t = setTimeout(() => {
+      const savedAt = saveDraft({ characterization, step: activeWizardStep });
+      if (savedAt) setDraftSavedAt(savedAt);
+    }, 400);
+    return () => clearTimeout(t);
+  }, [characterization, activeWizardStep]);
+
+  const saveWizardModules = (modules: ModuleType[]) => {
+    if (draftReady.current) saveDraft({ characterization, step: activeWizardStep, selectedModules: modules });
+  };
+
+  const resetCharacterizationDraft = () => {
+    clearDraft();
+    setCharacterization(defaultCompanyCharacterization);
+    setApplicabilityProfile(evaluateApplicability(defaultCompanyCharacterization));
+    setActiveWizardStep(1);
+    setRestoredDraftStep(null);
+    setDraftSavedAt(null);
+    setDraftVersion(v => v + 1);
+  };
+
+  // Portal View (Página Principal / Landing / Wizard / Demo / App)
+  const [portalView, setPortalView] = useState<PortalView>('landing');
+  const [lastActivationEmail, setLastActivationEmail] = useState<ActivationEmailData | null>(null);
+  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+  const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
+
+  const sendActivationEmail = (data: ActivationEmailData) => {
+    setLastActivationEmail(data);
+    setIsEmailModalOpen(true);
+    showNotification(`✓ Credenciales generadas y enviadas a ${data.email}`, 'success');
+  };
+
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'info' | 'warning' } | null>(null);
 
@@ -159,23 +343,231 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setTimeout(() => setNotification(null), 4500);
   };
 
+  // Motor de actualización de Caracterización y re-evaluación
+  const updateCharacterization = (
+    newValues: Partial<CompanyCharacterization>,
+    author = 'Marcela Rincón (Líder HSEQ)',
+    reason = 'Ajuste en variables de la caracterización'
+  ) => {
+    if (blockedByDemo()) return;
+    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    
+    setCharacterization(prev => {
+      const merged: CompanyCharacterization = {
+        ...prev,
+        ...newValues,
+        identification: { ...prev.identification, ...(newValues.identification || {}) },
+        size: { ...prev.size, ...(newValues.size || {}) },
+        operational: { ...prev.operational, ...(newValues.operational || {}) },
+        highRisk: { ...prev.highRisk, ...(newValues.highRisk || {}) },
+        workforceExposure: { ...prev.workforceExposure, ...(newValues.workforceExposure || {}) },
+        sst: { ...prev.sst, ...(newValues.sst || {}) },
+        environmental: { ...prev.environmental, ...(newValues.environmental || {}) },
+        pesv: { ...prev.pesv, ...(newValues.pesv || {}) },
+        iso: { ...prev.iso, ...(newValues.iso || {}) },
+        sites: newValues.sites || prev.sites,
+        lastUpdatedAt: timestamp
+      };
+
+      // Recalcular variables estructuradas
+      Object.assign(merged, withDerivedValues(merged));
+
+      // Re-evaluar motor de aplicabilidad
+      const newEval = evaluateApplicability(merged);
+      setApplicabilityProfile(newEval);
+
+      // Detectar diferencias con la versión anterior para historial
+      const diff = detectCharacterizationDiffs(prev.structuredVariables, merged.structuredVariables);
+      if (diff.reEvaluationRequired) {
+        const nextVersionNumber = prev.version + 1;
+        merged.version = nextVersionNumber;
+
+        const newVersionEntry: CharacterizationVersion = {
+          version: nextVersionNumber,
+          timestamp,
+          author,
+          reason,
+          variablesSnapshot: merged.structuredVariables,
+          impactedModules: diff.impactedModules,
+          changesSummary: diff.changesSummary
+        };
+
+        setCharacterizationHistory(hPrev => [newVersionEntry, ...hPrev]);
+      }
+
+      return merged;
+    });
+
+    showNotification('Variables analizadas por el Motor de Aplicabilidad de AGAE');
+  };
+
+  // Transición posterior a la compra: La caracterización autoconfigura la plataforma sin volver a pedir datos
+  const applyCharacterizationToPlatform = (selectedModules: ModuleType[]) => {
+    if (blockedByDemo()) return;
+    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+
+    // 1. Adaptar Organization general
+    setOrganization(prev => ({
+      ...prev,
+      name: characterization.identification.razonSocial || prev.name,
+      nit: characterization.identification.nit || prev.nit,
+      ciiu: `${characterization.identification.codigoCiiu} - ${characterization.identification.actividadEconomicaPrincipal}`,
+      economicActivity: characterization.identification.actividadEconomicaPrincipal,
+      riskLevelArl: characterization.sst.claseRiesgoArl,
+      employeeCount: characterization.size.totalTrabajadores,
+      contractorCount: characterization.size.contratistas,
+      sstStandardCount: characterization.calculatedSstStandards,
+      pesvLevel: characterization.calculatedPesvLevel === 'NO_APLICA' ? 'BASICO' : characterization.calculatedPesvLevel,
+      activeModules: selectedModules,
+      huellaCarbonoHabilitada: huellaCarbonoEnPlan(selectedModules).habilitada,
+      sites: characterization.sites.map(s => ({
+        id: s.id,
+        name: s.nombre,
+        city: s.ciudad,
+        address: s.ubicacion,
+        workerCount: s.numeroTrabajadores
+      }))
+    }));
+
+    // 2. Marcar caracterización como configurada
+    setCharacterization(prev => ({
+      ...prev,
+      isPlatformConfigured: true,
+      configuredAt: timestamp
+    }));
+
+    // 3. Generar tareas iniciales de habilitación en el centro "¿Qué tengo pendiente?"
+    const newTasks: Task[] = [];
+    if (selectedModules.includes('SST')) {
+      newTasks.push({
+        id: `task-onb-sst-${Date.now()}`,
+        title: `Revisar y validar autoevaluación inicial de ${characterization.calculatedSstStandards} Estándares Mínimos (Res. 0312)`,
+        module: 'SST',
+        type: 'INSPECCION',
+        dueDate: new Date(Date.now() + 10 * 86400000).toISOString().split('T')[0],
+        responsible: 'Líder SG-SST',
+        priority: 'CRITICA',
+        status: 'PENDIENTE',
+        siteName: characterization.sites[0]?.nombre || 'Sede Principal'
+      });
+    }
+
+    if (selectedModules.includes('PESV') && characterization.pesv.utilizaVehiculosParaActividades) {
+      newTasks.push({
+        id: `task-onb-pesv-${Date.now()}`,
+        title: `Cargar expedientes y certificados de idoneidad para ${characterization.pesv.detallesPesv?.numeroConductoresTotal || 0} conductores`,
+        module: 'PESV',
+        type: 'AUDITORIA',
+        dueDate: new Date(Date.now() + 15 * 86400000).toISOString().split('T')[0],
+        responsible: 'Coordinador PESV',
+        priority: 'ALTA',
+        status: 'PENDIENTE',
+        siteName: characterization.sites[0]?.nombre || 'Sede Principal'
+      });
+    }
+
+    if (selectedModules.includes('ENVIRONMENTAL') && characterization.environmental.generaResiduosPeligrosos) {
+      newTasks.push({
+        id: `task-onb-env-${Date.now()}`,
+        title: 'Verificar certificados de disposición final con gestor ambiental autorizado (RESPEL)',
+        module: 'ENVIRONMENTAL',
+        type: 'RESIDUOS',
+        dueDate: new Date(Date.now() + 12 * 86400000).toISOString().split('T')[0],
+        responsible: 'Responsable Ambiental',
+        priority: 'ALTA',
+        status: 'PENDIENTE',
+        siteName: characterization.sites[0]?.nombre || 'Sede Principal'
+      });
+    }
+
+    setTasks(prev => [...newTasks, ...prev]);
+
+    showNotification(
+      `✓ Plataforma AGAE configurada y adaptada exitosamente con base en la caracterización (${selectedModules.length} módulos habilitados).`,
+      'success'
+    );
+  };
+
+  // Registrar decisión formal de validación / No Aplicabilidad
+  const addValidationDecision = (decisionData: Omit<ValidationDecision, 'id' | 'timestamp'>) => {
+    if (blockedByDemo()) return;
+    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    const newDecision: ValidationDecision = {
+      ...decisionData,
+      id: `val-dec-${Date.now()}`,
+      timestamp
+    };
+
+    setValidationDecisions(prev => [newDecision, ...prev]);
+
+    // Actualizar estado del requisito en el perfil de aplicabilidad
+    setApplicabilityProfile(prev => ({
+      ...prev,
+      allRequirements: prev.allRequirements.map(req => {
+        if (req.id !== decisionData.requirementId) return req;
+        const newStatus: ApplicabilityStatus = decisionData.finalDecision === 'NO_APLICA' 
+          ? 'NO_APLICA' 
+          : decisionData.finalDecision === 'REQUIERE_REVISION'
+          ? 'REQUIERE_VALIDACION'
+          : 'APLICA';
+        return {
+          ...req,
+          status: newStatus,
+          reason: `${decisionData.justification} (Validado por ${decisionData.userName})`
+        };
+      })
+    }));
+
+    showNotification(`Decisión registrada para ${decisionData.requirementCode}: ${decisionData.finalDecision}`);
+  };
+
+  // Cargar arquetipo de prueba rápida
+  const loadCharacterizationArchetype = (archetypeId: string) => {
+    const found = characterizationArchetypes.find(a => a.id === archetypeId);
+    if (!found) return;
+
+    const base = defaultCompanyCharacterization;
+    const merged: CompanyCharacterization = {
+      ...base,
+      ...found.template,
+      identification: { ...base.identification, ...(found.template.identification || {}) },
+      size: { ...base.size, ...(found.template.size || {}) },
+      operational: { ...base.operational, ...(found.template.operational || {}) },
+      highRisk: { ...base.highRisk, ...(found.template.highRisk || {}) },
+      workforceExposure: { ...base.workforceExposure, ...(found.template.workforceExposure || {}) },
+      sst: { ...base.sst, ...(found.template.sst || {}) },
+      environmental: { ...base.environmental, ...(found.template.environmental || {}) },
+      pesv: { ...base.pesv, ...(found.template.pesv || {}) },
+      iso: { ...base.iso, ...(found.template.iso || {}) },
+      sites: found.template.sites || base.sites,
+      lastUpdatedAt: new Date().toISOString().replace('T', ' ').substring(0, 16)
+    };
+
+    Object.assign(merged, withDerivedValues(merged));
+
+    setCharacterization(merged);
+    setApplicabilityProfile(evaluateApplicability(merged));
+
+    showNotification(`Arquetipo cargado: ${found.name}`);
+  };
+
   const updateOrganization = (newValues: Partial<Organization>) => {
+    if (blockedByDemo()) return;
     setOrganization(prev => ({ ...prev, ...newValues }));
     showNotification('Caracterización empresarial actualizada satisfactoriamente');
   };
 
+  // Modules come from the contracted plan: clients cannot switch them on or off themselves.
   const toggleModule = (module: ModuleType) => {
-    setOrganization(prev => {
-      const exists = prev.activeModules.includes(module);
-      const updated = exists 
-        ? prev.activeModules.filter(m => m !== module)
-        : [...prev.activeModules, module];
-      return { ...prev, activeModules: updated };
-    });
-    showNotification(`Módulo ${module} ${organization.activeModules.includes(module) ? 'desactivado' : 'activado'}`);
+    if (organization.activeModules.includes(module)) {
+      showNotification('Para retirar un módulo de tu plan comunícate con AGAE SOLUTIONS.', 'info');
+    } else {
+      openUpsell(`El módulo ${MODULE_LABELS[module]} no está incluido en tu ${planName(organization.activeModules)}.`);
+    }
   };
 
   const addAsset = (assetData: Omit<SharedAsset, 'id'>) => {
+    if (blockedByDemo()) return;
     const newAsset: SharedAsset = {
       ...assetData,
       id: `asset-${Date.now()}`
@@ -186,6 +578,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   // Motor Central de Hallazgos -> Viaja automáticamente a ACPM si se requiere
   const addFinding = (findingData: Omit<Finding, 'id' | 'code' | 'createdAt'>, sendDirectToAcpm = true): string => {
+    if (blockedByDemo()) return '';
     const findingId = `find-${Date.now()}`;
     const findingCode = `H-${findingData.originModule}-${String(findings.length + 1).padStart(3, '0')}`;
     const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
@@ -257,6 +650,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   const updateAcpmStatus = (id: string, newStatus: AcpmStatus, comment?: string) => {
+    if (blockedByDemo()) return;
     const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
     setAcpmActions(prev => prev.map(acpm => {
       if (acpm.id !== id) return acpm;
@@ -279,6 +673,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   const addAcpmRootCause = (id: string, method: '5_WHY' | 'ISHIKAWA' | 'ARBOL_CAUSAS', causes: string[]) => {
+    if (blockedByDemo()) return;
     const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
     setAcpmActions(prev => prev.map(acpm => {
       if (acpm.id !== id) return acpm;
@@ -303,6 +698,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   const attachEvidenceToAcpm = (acpmId: string, evidenceId: string) => {
+    if (blockedByDemo()) return;
     const evidence = evidences.find(e => e.id === evidenceId);
     if (!evidence) return;
     const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
@@ -333,6 +729,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   // Verificación de eficacia profesional: no se cierra solo con cambiar de estado
   const verifyAcpmEfficacy = (acpmId: string, result: 'EFICAZ' | 'NO_EFICAZ', notes: string, verifierName: string) => {
+    if (blockedByDemo()) return;
     const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
     const newStatus: AcpmStatus = result === 'EFICAZ' ? 'CERRADA' : 'REABIERTA';
 
@@ -382,6 +779,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   const createManualAcpm = (actionData: Omit<AcpmAction, 'id' | 'code' | 'history'>) => {
+    if (blockedByDemo()) return;
     const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
     const code = `ACPM-${new Date().getFullYear()}-${String(acpmActions.length + 1).padStart(3, '0')}`;
     const newAction: AcpmAction = {
@@ -416,6 +814,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   const toggleTaskStatus = (taskId: string) => {
+    if (blockedByDemo()) return;
     setTasks(prev => prev.map(t => {
       if (t.id !== taskId) return t;
       const nextStatus = t.status === 'COMPLETADA' ? 'PENDIENTE' : 'COMPLETADA';
@@ -424,6 +823,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   const addTask = (taskData: Omit<Task, 'id'>) => {
+    if (blockedByDemo()) return;
     const newTask: Task = {
       ...taskData,
       id: `task-${Date.now()}`
@@ -433,6 +833,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   const updateAuditChecklistItem = (auditId: string, itemId: string, status: AuditChecklistStatus, notes: string) => {
+    if (blockedByDemo()) return;
     setAudits(prev => prev.map(a => {
       if (a.id !== auditId) return a;
       const updatedChecklist = a.checklist.map(item => {
@@ -444,6 +845,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   const generateFindingFromAuditItem = (auditId: string, itemId: string, findingData: Partial<Finding>) => {
+    if (blockedByDemo()) return;
     const audit = audits.find(a => a.id === auditId);
     const item = audit?.checklist.find(i => i.id === itemId);
     if (!audit || !item) return;
@@ -474,6 +876,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   const addGhgRecord = (recordData: Omit<GhgEmissionRecord, 'id' | 'totalKgCO2eq'>) => {
+    if (blockedByDemo()) return;
+    if (organization.huellaCarbonoHabilitada === false) {
+      openUpsell('La calculadora de huella de carbono no está incluida en tu plan. Se incluye con Gestión Ambiental + otro módulo o con ISO 14001, y también se vende sola.');
+      return;
+    }
     const totalKgCO2eq = Number((recordData.consumptionValue * recordData.emissionFactor).toFixed(2));
     const newRecord: GhgEmissionRecord = {
       ...recordData,
@@ -485,6 +892,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   const addPgirsRecord = (recordData: Omit<PgirsRecord, 'id'>) => {
+    if (blockedByDemo()) return;
+    if (!hasEnvironmentalCore(organization.activeModules)) {
+      openUpsell(`La gestión de residuos (PGIRS) no está incluida en tu ${planName(organization.activeModules)}. Contrata el módulo de Gestión Ambiental.`);
+      return;
+    }
     const newRecord: PgirsRecord = {
       ...recordData,
       id: `pg-${Date.now()}`
@@ -494,6 +906,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   const addPesvVehicle = (vehicleData: Omit<PesvVehicle, 'id'>) => {
+    if (blockedByDemo()) return;
     const newVehicle: PesvVehicle = {
       ...vehicleData,
       id: `v-${Date.now()}`
@@ -503,6 +916,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   const addPesvDriver = (driverData: Omit<PesvDriver, 'id'>) => {
+    if (blockedByDemo()) return;
     const newDriver: PesvDriver = {
       ...driverData,
       id: `d-${Date.now()}`
@@ -511,7 +925,448 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     showNotification(`Conductor ${newDriver.fullName} registrado en el PESV`);
   };
 
+  // -------------------------------------------------------------
+  // BASE MAESTRA DE TRABAJADORES (Expediente Digital Transversal 360°)
+  // -------------------------------------------------------------
+  const addWorker = (
+    workerData: Omit<MasterWorker, 'id' | 'createdAt' | 'updatedAt' | 'auditTrail' | 'laborHistory'> & { initialLaborNotes?: string },
+    userName = 'Talento Humano / HSEQ'
+  ): MasterWorker => {
+    if (blockedByDemo()) throw new Error('Acción bloqueada en modo demostración');
+
+    // Validar unicidad de documento
+    const cleanDoc = workerData.docNumber.replace(/\D/g, '');
+    const existing = workers.find(w => w.docNumber.replace(/\D/g, '') === cleanDoc);
+    if (existing) {
+      showNotification(
+        `El documento ${workerData.docNumber} ya está registrado para ${existing.firstName} ${existing.lastName}. Principio: UN TRABAJADOR = UN PERFIL ÚNICO.`,
+        'warning'
+      );
+      return existing;
+    }
+
+    const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
+    const today = now.substring(0, 10);
+    const workerId = `wrk-${Date.now()}`;
+
+    const initialHistoryEntry: WorkerLaborHistoryEntry = {
+      id: `lh-${Date.now()}-1`,
+      changeDate: workerData.hireDate || today,
+      newPosition: workerData.position,
+      newArea: workerData.area,
+      reason: 'INGRESO',
+      registeredBy: userName,
+      notes: workerData.initialLaborNotes || 'Creación inicial del expediente del trabajador en la Base Maestra.'
+    };
+
+    const newWorker: MasterWorker = {
+      ...workerData,
+      id: workerId,
+      laborHistory: [initialHistoryEntry],
+      academicRecords: workerData.academicRecords || [],
+      certifications: workerData.certifications || [],
+      licenses: workerData.licenses || [],
+      digitalDocuments: workerData.digitalDocuments || [],
+      inductions: workerData.inductions || [],
+      trainings: workerData.trainings || [],
+      eppDeliveries: workerData.eppDeliveries || [],
+      committeeParticipations: workerData.committeeParticipations || [],
+      occupationalExams: workerData.occupationalExams || [],
+      incidentParticipations: workerData.incidentParticipations || [],
+      inspections: workerData.inspections || [],
+      auditTrail: [
+        {
+          id: `aud-${Date.now()}-1`,
+          timestamp: now,
+          userName,
+          action: 'CREACION',
+          reason: 'Registro en la Base Maestra Central de AGAE SOLUTIONS.'
+        }
+      ],
+      createdAt: today,
+      updatedAt: today
+    };
+
+    setWorkers(prev => [newWorker, ...prev]);
+    showNotification(
+      `Trabajador(a) ${newWorker.firstName} ${newWorker.lastName} registrado(a) exitosamente en la Base Maestra`,
+      'success'
+    );
+    return newWorker;
+  };
+
+  const updateWorker = (
+    id: string,
+    updates: Partial<MasterWorker>,
+    reason = 'Actualización de expediente',
+    userName = 'Responsable HSEQ'
+  ) => {
+    if (blockedByDemo()) return;
+    const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
+    const today = now.substring(0, 10);
+
+    setWorkers(prev =>
+      prev.map(w => {
+        if (w.id !== id) return w;
+
+        const auditEntries: WorkerAuditEntry[] = [
+          {
+            id: `aud-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+            timestamp: now,
+            userName,
+            action: 'ACTUALIZACION_DATOS',
+            reason
+          },
+          ...w.auditTrail
+        ];
+
+        return {
+          ...w,
+          ...updates,
+          auditTrail: auditEntries,
+          updatedAt: today
+        };
+      })
+    );
+    showNotification('Expediente del trabajador actualizado correctamente');
+  };
+
+  const recordLaborChange = (
+    workerId: string,
+    entry: Omit<WorkerLaborHistoryEntry, 'id' | 'registeredBy'>,
+    userName = 'Gerencia / HSEQ'
+  ) => {
+    if (blockedByDemo()) return;
+    const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
+    const today = now.substring(0, 10);
+
+    setWorkers(prev =>
+      prev.map(w => {
+        if (w.id !== workerId) return w;
+
+        const historyEntry: WorkerLaborHistoryEntry = {
+          ...entry,
+          id: `lh-${Date.now()}`,
+          previousPosition: entry.previousPosition || w.position,
+          previousArea: entry.previousArea || w.area,
+          registeredBy: userName
+        };
+
+        const auditEntry: WorkerAuditEntry = {
+          id: `aud-${Date.now()}`,
+          timestamp: now,
+          userName,
+          action: 'CAMBIO_CARGO',
+          fieldChanged: 'position / area',
+          previousValue: `${w.position} (${w.area})`,
+          newValue: `${entry.newPosition} (${entry.newArea})`,
+          reason: entry.notes || `Movimiento laboral por motivo: ${entry.reason}`
+        };
+
+        return {
+          ...w,
+          position: entry.newPosition,
+          area: entry.newArea,
+          laborHistory: [historyEntry, ...w.laborHistory],
+          auditTrail: [auditEntry, ...w.auditTrail],
+          updatedAt: today
+        };
+      })
+    );
+
+    showNotification(`Movimiento laboral registrado: nuevo cargo "${entry.newPosition}"`);
+  };
+
+  const addWorkerDocument = (
+    workerId: string,
+    doc: Omit<WorkerDigitalDocument, 'id' | 'uploadedAt' | 'status'>,
+    userName = 'HSEQ / Talento Humano'
+  ) => {
+    if (blockedByDemo()) return;
+    const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
+    const today = now.substring(0, 10);
+
+    let status: WorkerDigitalDocument['status'] = 'NO_EXPIRA';
+    if (doc.expiryDate) {
+      const exp = new Date(doc.expiryDate).getTime();
+      const current = new Date().getTime();
+      const diffDays = Math.ceil((exp - current) / (1000 * 60 * 60 * 24));
+      if (diffDays < 0) status = 'VENCIDO';
+      else if (diffDays <= 30) status = 'POR_VENCER';
+      else status = 'VIGENTE';
+    } else {
+      status = 'VIGENTE';
+    }
+
+    const newDoc: WorkerDigitalDocument = {
+      ...doc,
+      id: `doc-${Date.now()}`,
+      uploadedAt: today,
+      status,
+      uploadedBy: userName
+    };
+
+    setWorkers(prev =>
+      prev.map(w => {
+        if (w.id !== workerId) return w;
+        return {
+          ...w,
+          digitalDocuments: [newDoc, ...w.digitalDocuments],
+          auditTrail: [
+            {
+              id: `aud-${Date.now()}`,
+              timestamp: now,
+              userName,
+              action: 'DOCUMENTO_CARGADO',
+              reason: `Carga de soporte: ${doc.title} (${doc.type})`
+            },
+            ...w.auditTrail
+          ],
+          updatedAt: today
+        };
+      })
+    );
+
+    showNotification(`Documento "${doc.title}" archivado en la Hoja de Vida Digital`);
+  };
+
+  const recordEppDelivery = (
+    workerId: string,
+    delivery: Omit<WorkerEppDeliveryRecord, 'id'>,
+    userName = 'Almacén Central / HSEQ'
+  ) => {
+    if (blockedByDemo()) return;
+    const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
+    const today = now.substring(0, 10);
+
+    const newDelivery: WorkerEppDeliveryRecord = {
+      ...delivery,
+      id: `epp-${Date.now()}`
+    };
+
+    setWorkers(prev =>
+      prev.map(w => {
+        if (w.id !== workerId) return w;
+        return {
+          ...w,
+          eppDeliveries: [newDelivery, ...w.eppDeliveries],
+          auditTrail: [
+            {
+              id: `aud-${Date.now()}`,
+              timestamp: now,
+              userName,
+              action: 'EPP_ENTREGADO',
+              reason: `Entrega de dotación: ${delivery.quantity}x ${delivery.elementName} (${delivery.deliveryReason})`
+            },
+            ...w.auditTrail
+          ],
+          updatedAt: today
+        };
+      })
+    );
+
+    showNotification(`Dotación de EPP registrada automáticamente en el expediente`);
+  };
+
+  const recordTrainingAttendance = (
+    workerId: string,
+    training: Omit<WorkerTrainingRecord, 'id'>,
+    userName = 'Capacitador / Líder SST'
+  ) => {
+    if (blockedByDemo()) return;
+    const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
+    const today = now.substring(0, 10);
+
+    const newTraining: WorkerTrainingRecord = {
+      ...training,
+      id: `trn-${Date.now()}`
+    };
+
+    setWorkers(prev =>
+      prev.map(w => {
+        if (w.id !== workerId) return w;
+        return {
+          ...w,
+          trainings: [newTraining, ...w.trainings],
+          auditTrail: [
+            {
+              id: `aud-${Date.now()}`,
+              timestamp: now,
+              userName,
+              action: 'CAPACITACION_REGISTRADA',
+              reason: `Registro de asistencia a "${training.trainingTitle}" (${training.hours}h)`
+            },
+            ...w.auditTrail
+          ],
+          updatedAt: today
+        };
+      })
+    );
+
+    showNotification(`Capacitación registrada en el expediente del trabajador`);
+  };
+
+  const recordCommitteeAssignment = (
+    workerId: string,
+    committee: Omit<WorkerCommitteeParticipation, 'id'>,
+    userName = 'Gerencia / Mesa Electoral'
+  ) => {
+    if (blockedByDemo()) return;
+    const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
+    const today = now.substring(0, 10);
+
+    const newCommittee: WorkerCommitteeParticipation = {
+      ...committee,
+      id: `com-${Date.now()}`
+    };
+
+    setWorkers(prev =>
+      prev.map(w => {
+        if (w.id !== workerId) return w;
+        return {
+          ...w,
+          committeeParticipations: [newCommittee, ...w.committeeParticipations],
+          auditTrail: [
+            {
+              id: `aud-${Date.now()}`,
+              timestamp: now,
+              userName,
+              action: 'COMITE_ASIGNADO',
+              reason: `Designación en ${committee.committeeType} con rol ${committee.role}`
+            },
+            ...w.auditTrail
+          ],
+          updatedAt: today
+        };
+      })
+    );
+
+    showNotification(`Designación de comité incorporada al perfil del trabajador`);
+  };
+
+  const recordOccupationalExam = (
+    workerId: string,
+    exam: Omit<WorkerOccupationalExam, 'id'>,
+    userName = 'Médico Laboral / SST'
+  ) => {
+    if (blockedByDemo()) return;
+    const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
+    const today = now.substring(0, 10);
+
+    const newExam: WorkerOccupationalExam = {
+      ...exam,
+      id: `med-${Date.now()}`
+    };
+
+    setWorkers(prev =>
+      prev.map(w => {
+        if (w.id !== workerId) return w;
+        return {
+          ...w,
+          occupationalExams: [newExam, ...w.occupationalExams],
+          auditTrail: [
+            {
+              id: `aud-${Date.now()}`,
+              timestamp: now,
+              userName,
+              action: 'EXAMEN_REGISTRADO',
+              reason: `Evaluación médica ocupacional ${exam.type} (${exam.concept})`
+            },
+            ...w.auditTrail
+          ],
+          updatedAt: today
+        };
+      })
+    );
+
+    showNotification(`Evaluación médica ocupacional registrada con reserva de confidencialidad`);
+  };
+
+  const deleteWorker = (id: string, reason = 'Retiro o desvinculación', userName = 'Talento Humano') => {
+    if (blockedByDemo()) return;
+    const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
+    const today = now.substring(0, 10);
+
+    setWorkers(prev =>
+      prev.map(w => {
+        if (w.id !== id) return w;
+        return {
+          ...w,
+          status: 'INACTIVO',
+          terminationDate: today,
+          auditTrail: [
+            {
+              id: `aud-${Date.now()}`,
+              timestamp: now,
+              userName,
+              action: 'CAMBIO_ESTADO',
+              fieldChanged: 'status',
+              previousValue: w.status,
+              newValue: 'INACTIVO',
+              reason
+            },
+            ...w.auditTrail
+          ],
+          updatedAt: today
+        };
+      })
+    );
+    showNotification('Trabajador marcado como INACTIVO en la Base Maestra');
+  };
+
+  const getWorkerById = (id: string) => workers.find(w => w.id === id);
+  const getWorkerByDoc = (docNumber: string) => {
+    const clean = docNumber.replace(/\D/g, '');
+    return workers.find(w => w.docNumber.replace(/\D/g, '') === clean);
+  };
+
+  const assignWorkerAsSstResponsible = (workerId: string) => {
+    if (blockedByDemo()) return;
+    const worker = workers.find(w => w.id === workerId);
+    if (!worker) return;
+
+    const sstLic = worker.licenses.find(l => l.type === 'LICENCIA_SST');
+    const c50 = worker.certifications.find(c => c.title.includes('50 Horas'));
+    const c20 = worker.certifications.find(c => c.title.includes('20 Horas'));
+
+    setSstResponsible(prev => ({
+      ...prev,
+      fullName: `${worker.firstName} ${worker.lastName}`,
+      docType: worker.docType === 'PASAPORTE' ? 'PASAPORTE' : worker.docType === 'CE' ? 'CE' : 'CC',
+      docNumber: worker.docNumber,
+      profession: worker.academicRecords[0]?.degreeTitle || worker.position,
+      licenseNumber: sstLic?.number || prev.licenseNumber,
+      licenseExpDate: sstLic?.expiryDate || prev.licenseExpDate,
+      course50hDate: c50?.issueDate || prev.course50hDate,
+      course20hDate: c20?.issueDate || prev.course20hDate,
+      isFormallyAssigned: true
+    }));
+
+    const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
+    setWorkers(prev =>
+      prev.map(w => {
+        if (w.id !== workerId) return w;
+        return {
+          ...w,
+          auditTrail: [
+            {
+              id: `aud-${Date.now()}`,
+              timestamp: now,
+              userName: 'Gerencia General',
+              action: 'ACTUALIZACION_DATOS',
+              reason: 'Asignado oficialmente como Responsable del SG-SST (Estándar 1.1.1 Res. 0312)'
+            },
+            ...w.auditTrail
+          ]
+        };
+      })
+    );
+
+    showNotification(`Datos de ${worker.firstName} ${worker.lastName} sincronizados en el Estándar 1.1.1`);
+  };
+
   const addSstHazard = (hazardData: Omit<SstHazardItem, 'id'>) => {
+    if (blockedByDemo()) return;
     const newHazard: SstHazardItem = {
       ...hazardData,
       id: `haz-${Date.now()}`
@@ -521,6 +1376,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   const updateStandardStatus = (standardId: string, status: SstStandardStatus, notes?: string) => {
+    if (blockedByDemo()) return;
     setSstStandards(prev => prev.map(s => {
       if (s.id !== standardId) return s;
       return { ...s, status, notes: notes !== undefined ? notes : s.notes };
@@ -529,6 +1385,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   const attachEvidenceToStandard = (standardId: string, evidenceId: string) => {
+    if (blockedByDemo()) return;
     setSstStandards(prev => prev.map(s => {
       if (s.id !== standardId) return s;
       if (s.evidenceIds.includes(evidenceId)) return s;
@@ -538,11 +1395,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   const updateSstResponsible = (profileUpdate: Partial<SstResponsibleProfile>) => {
+    if (blockedByDemo()) return;
     setSstResponsible(prev => ({ ...prev, ...profileUpdate }));
     showNotification('Perfil del Responsable SG-SST actualizado satisfactoriamente');
   };
 
   const addSstBudgetItem = (itemData: Omit<SstBudgetItem, 'id'>) => {
+    if (blockedByDemo()) return;
     const newItem: SstBudgetItem = {
       ...itemData,
       id: `b-${itemData.system.toLowerCase()}-${Date.now()}`
@@ -552,11 +1411,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   const updateSstBudgetItem = (id: string, itemData: Partial<SstBudgetItem>) => {
+    if (blockedByDemo()) return;
     setSstBudgetItems(prev => prev.map(i => i.id === id ? { ...i, ...itemData } : i));
     showNotification('Rubro presupuestal modificado');
   };
 
   const deleteSstBudgetItem = (id: string) => {
+    if (blockedByDemo()) return;
     setSstBudgetItems(prev => prev.filter(i => i.id !== id));
     showNotification('Rubro presupuestal eliminado');
   };
@@ -567,6 +1428,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     role: SimulatedRole = currentSimulatedRole,
     userName = 'Usuario Autorizado'
   ) => {
+    if (blockedByDemo()) return;
     const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
     setSstBudgetState(prev => {
       const historyEntry = {
@@ -596,6 +1458,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   const flagBudgetItemObservation = (itemId: string, comment: string) => {
+    if (blockedByDemo()) return;
     setSstBudgetItems(prev => prev.map(item => {
       if (item.id !== itemId) return item;
       return {
@@ -627,6 +1490,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   const resolveBudgetItemObservation = (itemId: string) => {
+    if (blockedByDemo()) return;
     const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
     setSstBudgetItems(prev => prev.map(item => {
       if (item.id !== itemId) return item;
@@ -658,6 +1522,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signBudgetParty = (party: 'manager' | 'financial' | 'sstLeader', signerData: DigitalSignatureInfo) => {
+    if (blockedByDemo()) return;
     setSstBudgetState(prev => {
       const updatedSignatures = {
         ...prev.signatures,
@@ -689,6 +1554,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   const addCopasstBudgetReview = (reviewData: Omit<CopasstBudgetReview, 'id' | 'timestamp'>) => {
+    if (blockedByDemo()) return;
     const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
     const newReview: CopasstBudgetReview = {
       ...reviewData,
@@ -716,6 +1582,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   const updateFinancialOfficerConfig = (title: string, name: string, doc: string) => {
+    if (blockedByDemo()) return;
     setSstBudgetState(prev => ({
       ...prev,
       financialRoleTitle: title,
@@ -728,11 +1595,41 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   return (
     <AppContext.Provider
       value={{
+        // Caracterización Inteligente & Motor de Aplicabilidad
+        characterization,
+        applicabilityProfile,
+        validationDecisions,
+        characterizationHistory,
+        updateCharacterization,
+        applyCharacterizationToPlatform,
+        addValidationDecision,
+        loadCharacterizationArchetype,
+        isCharacterizationWizardOpen,
+        setIsCharacterizationWizardOpen,
+        activeWizardStep,
+        setActiveWizardStep,
+
+        draftSavedAt,
+        draftVersion,
+        restoredDraftStep,
+        saveWizardModules,
+        resetCharacterizationDraft,
+
+        // Portal View, Checkout & Email
+        portalView,
+        setPortalView,
+        lastActivationEmail,
+        sendActivationEmail,
+        isEmailModalOpen,
+        setIsEmailModalOpen,
+        isCheckoutModalOpen,
+        setIsCheckoutModalOpen,
+
         organization,
         updateOrganization,
         toggleModule,
         activeTab,
-        setActiveTab,
+        setActiveTab: guardedSetActiveTab,
         assets,
         addAsset,
         findings,
@@ -759,6 +1656,22 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         pesvDrivers,
         addPesvVehicle,
         addPesvDriver,
+
+        // Base Maestra de Trabajadores
+        workers,
+        addWorker,
+        updateWorker,
+        recordLaborChange,
+        addWorkerDocument,
+        recordEppDelivery,
+        recordTrainingAttendance,
+        recordCommitteeAssignment,
+        recordOccupationalExam,
+        deleteWorker,
+        getWorkerById,
+        getWorkerByDoc,
+        assignWorkerAsSstResponsible,
+
         sstHazards,
         addSstHazard,
         sstStandards,

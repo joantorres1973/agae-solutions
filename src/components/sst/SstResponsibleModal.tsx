@@ -14,9 +14,12 @@ import {
   X,
   Building,
   Check,
-  Paperclip
+  Paperclip,
+  Users
 } from 'lucide-react';
 import { SstResponsibleProfile } from '@/types/sst';
+import { MasterWorker } from '@/types/worker';
+import { WorkerSelector } from '@/components/workers/WorkerSelector';
 
 interface SstResponsibleModalProps {
   isOpen: boolean;
@@ -36,6 +39,25 @@ export const SstResponsibleModal: React.FC<SstResponsibleModalProps> = ({ isOpen
   const [activeTab, setActiveTab] = useState<'PROFILE' | 'LETTER'>('PROFILE');
   const [formData, setFormData] = useState<SstResponsibleProfile>({ ...sstResponsible });
   const [isSigning, setIsSigning] = useState(false);
+
+  const handleSelectMasterWorker = (w: MasterWorker | null) => {
+    if (!w) return;
+    const sstLic = w.licenses.find(l => l.type === 'LICENCIA_SST');
+    const c50 = w.certifications.find(c => c.title.includes('50 Horas'));
+    const c20 = w.certifications.find(c => c.title.includes('20 Horas'));
+    setFormData(prev => ({
+      ...prev,
+      fullName: `${w.firstName} ${w.lastName}`,
+      docType: w.docType === 'PASAPORTE' ? 'PASAPORTE' : w.docType === 'CE' ? 'CE' : 'CC',
+      docNumber: w.docNumber,
+      profession: w.academicRecords[0]?.degreeTitle || w.position,
+      licenseNumber: sstLic?.number || prev.licenseNumber,
+      licenseExpDate: sstLic?.expiryDate || prev.licenseExpDate,
+      course50hDate: c50?.issueDate || prev.course50hDate,
+      course20hDate: c20?.issueDate || prev.course20hDate
+    }));
+    showNotification(`Datos de ${w.firstName} ${w.lastName} vinculados desde la Base Maestra`, 'success');
+  };
 
   if (!isOpen) return null;
 
@@ -123,36 +145,36 @@ export const SstResponsibleModal: React.FC<SstResponsibleModalProps> = ({ isOpen
 
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-5 overflow-y-auto">
-      <div className="bg-slate-900 border border-slate-700 rounded-2xl max-w-4xl w-full max-h-[94vh] flex flex-col shadow-2xl overflow-hidden animate-in zoom-in-95">
+      <div className="bg-slate-50 border border-slate-300 rounded-2xl max-w-4xl w-full max-h-[94vh] flex flex-col shadow-2xl overflow-hidden animate-in zoom-in-95">
         
         {/* Modal Header */}
-        <div className="p-4 sm:p-5 border-b border-slate-800 flex items-center justify-between bg-slate-950/60 shrink-0">
+        <div className="p-4 sm:p-5 border-b border-slate-200 flex items-center justify-between bg-white/80 shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-orange-500/20 text-orange-400 border border-orange-500/30 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-orange-100 text-orange-700 border border-orange-200 flex items-center justify-center">
               <UserCheck className="w-5 h-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-orange-400 bg-orange-950/80 px-2 py-0.5 rounded border border-orange-800">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-orange-700 bg-orange-50 px-2 py-0.5 rounded border border-orange-200">
                   Estándar 1.1.1 (Res. 0312)
                 </span>
-                <span className="text-[10px] font-semibold text-slate-400">
+                <span className="text-[10px] font-semibold text-slate-500">
                   Decreto 1072 de 2015 Art. 2.2.4.6.8 Par. 1 y Art. 2.2.4.6.35
                 </span>
               </div>
-              <h2 className="text-base font-bold text-white mt-0.5">
+              <h2 className="text-base font-bold text-slate-900 mt-0.5">
                 Asignación del Responsable del SG-SST & Carta Oficial
               </h2>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
-            <div className="flex bg-slate-900 rounded-lg p-0.5 border border-slate-700">
+            <div className="flex bg-slate-50 rounded-lg p-0.5 border border-slate-300">
               <button
                 type="button"
                 onClick={() => setActiveTab('PROFILE')}
                 className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
-                  activeTab === 'PROFILE' ? 'bg-orange-600 text-white' : 'text-slate-400 hover:text-white'
+                  activeTab === 'PROFILE' ? 'bg-orange-600 text-white' : 'text-slate-500 hover:text-slate-900'
                 }`}
               >
                 Perfil y Documentos
@@ -161,20 +183,20 @@ export const SstResponsibleModal: React.FC<SstResponsibleModalProps> = ({ isOpen
                 type="button"
                 onClick={() => setActiveTab('LETTER')}
                 className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all flex items-center gap-1.5 ${
-                  activeTab === 'LETTER' ? 'bg-orange-600 text-white' : 'text-slate-400 hover:text-white'
+                  activeTab === 'LETTER' ? 'bg-orange-600 text-white' : 'text-slate-500 hover:text-slate-900'
                 }`}
               >
                 <FileText className="w-3.5 h-3.5" />
                 <span>Carta de Asignación Formal</span>
                 {formData.signedByManager && (
-                  <Check className="w-3.5 h-3.5 text-emerald-300" />
+                  <Check className="w-3.5 h-3.5 text-emerald-700" />
                 )}
               </button>
             </div>
 
             <button
               onClick={onClose}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors ml-2"
+              className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors ml-2"
             >
               <X className="w-5 h-5" />
             </button>
@@ -187,39 +209,59 @@ export const SstResponsibleModal: React.FC<SstResponsibleModalProps> = ({ isOpen
             <form onSubmit={handleSaveProfile} className="space-y-5">
               
               {/* Legal Reference Alert */}
-              <div className="p-3.5 rounded-xl bg-orange-950/30 border border-orange-500/30 text-xs text-orange-200 flex items-start gap-3">
-                <Shield className="w-4 h-4 text-orange-400 shrink-0 mt-0.5" />
+              <div className="p-3.5 rounded-xl bg-orange-50 border border-orange-200 text-xs text-orange-800 flex items-start gap-3">
+                <Shield className="w-4 h-4 text-orange-700 shrink-0 mt-0.5" />
                 <div>
-                  <strong className="font-semibold block text-orange-300">Criterio Legal Resolución 0312 de 2019:</strong>
+                  <strong className="font-semibold block text-orange-700">Criterio Legal Resolución 0312 de 2019:</strong>
                   La persona designada debe contar con licencia vigente en Seguridad y Salud en el Trabajo y acreditar el curso de capacitación virtual de 50 horas de SST (o actualización de 20 horas). La asignación debe formalizarse por escrito con funciones y responsabilidades claras.
                 </div>
               </div>
 
               {/* Personal and Professional Identification */}
-              <div className="glass-card p-4 rounded-xl border border-slate-700/80 space-y-4">
-                <h3 className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
-                  <UserCheck className="w-4 h-4 text-cyan-400" />
-                  1. Datos del Profesional Asignado
-                </h3>
+              <div className="glass-card p-4 rounded-xl border border-slate-300 space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-2">
+                  <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                    <UserCheck className="w-4 h-4 text-teal-700" />
+                    1. Datos del Profesional Asignado
+                  </h3>
+                  <span className="text-[10px] text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 font-semibold flex items-center gap-1">
+                    <Users className="w-3 h-3" />
+                    <span>Conexión Base Maestra</span>
+                  </span>
+                </div>
+
+                {/* Selección rápida desde la Base Maestra */}
+                <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-200 space-y-1.5">
+                  <label className="text-[11px] font-bold text-emerald-800 flex items-center gap-1.5">
+                    <span>⚡ Vincular trabajador desde la Base Maestra Central:</span>
+                  </label>
+                  <WorkerSelector
+                    onChange={handleSelectMasterWorker}
+                    placeholder="Buscar y seleccionar trabajador de la Base Maestra..."
+                  />
+                  <p className="text-[10px] text-emerald-800">
+                    Al seleccionar un trabajador, se autocompletan su nombre, documento, licencia SST y cursos de 50h/20h sin doble digitación.
+                  </p>
+                </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                   <div className="sm:col-span-2">
-                    <label className="font-semibold text-slate-300 block mb-1">Nombre Completo del Responsable *</label>
+                    <label className="font-semibold text-slate-700 block mb-1">Nombre Completo del Responsable *</label>
                     <input
                       type="text"
                       required
                       value={formData.fullName}
                       onChange={(e) => handleInputChange('fullName', e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-slate-100 focus:outline-none focus:border-orange-500"
+                      className="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-slate-800 focus:outline-none focus:border-orange-500"
                     />
                   </div>
 
                   <div>
-                    <label className="font-semibold text-slate-300 block mb-1">Tipo de Documento</label>
+                    <label className="font-semibold text-slate-700 block mb-1">Tipo de Documento</label>
                     <select
                       value={formData.docType}
                       onChange={(e) => handleInputChange('docType', e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-slate-100 focus:outline-none focus:border-orange-500"
+                      className="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-slate-800 focus:outline-none focus:border-orange-500"
                     >
                       <option value="CC">Cédula de Ciudadanía (C.C.)</option>
                       <option value="CE">Cédula de Extranjería (C.E.)</option>
@@ -228,22 +270,22 @@ export const SstResponsibleModal: React.FC<SstResponsibleModalProps> = ({ isOpen
                   </div>
 
                   <div>
-                    <label className="font-semibold text-slate-300 block mb-1">Número de Identificación *</label>
+                    <label className="font-semibold text-slate-700 block mb-1">Número de Identificación *</label>
                     <input
                       type="text"
                       required
                       value={formData.docNumber}
                       onChange={(e) => handleInputChange('docNumber', e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-slate-100 focus:outline-none focus:border-orange-500 font-mono"
+                      className="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-slate-800 focus:outline-none focus:border-orange-500 font-mono"
                     />
                   </div>
 
                   <div>
-                    <label className="font-semibold text-slate-300 block mb-1">Nivel Profesional SST *</label>
+                    <label className="font-semibold text-slate-700 block mb-1">Nivel Profesional SST *</label>
                     <select
                       value={formData.professionalRole}
                       onChange={(e) => handleInputChange('professionalRole', e.target.value as any)}
-                      className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-slate-100 focus:outline-none focus:border-orange-500"
+                      className="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-slate-800 focus:outline-none focus:border-orange-500"
                     >
                       <option value="TECNICO">Técnico en SST</option>
                       <option value="TECNOLOGO">Tecnólogo en SST</option>
@@ -253,106 +295,106 @@ export const SstResponsibleModal: React.FC<SstResponsibleModalProps> = ({ isOpen
                   </div>
 
                   <div>
-                    <label className="font-semibold text-slate-300 block mb-1">Título / Profesión de Base</label>
+                    <label className="font-semibold text-slate-700 block mb-1">Título / Profesión de Base</label>
                     <input
                       type="text"
                       value={formData.profession}
                       onChange={(e) => handleInputChange('profession', e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-slate-100 focus:outline-none focus:border-orange-500"
+                      className="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-slate-800 focus:outline-none focus:border-orange-500"
                     />
                   </div>
                 </div>
               </div>
 
               {/* License and 50h Course Credentials */}
-              <div className="glass-card p-4 rounded-xl border border-slate-700/80 space-y-4">
-                <h3 className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
-                  <Award className="w-4 h-4 text-emerald-400" />
+              <div className="glass-card p-4 rounded-xl border border-slate-300 space-y-4">
+                <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                  <Award className="w-4 h-4 text-emerald-700" />
                   2. Licencia de SST y Certificación de Capacitación
                 </h3>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                   <div>
-                    <label className="font-semibold text-slate-300 block mb-1">Número de Licencia de SST *</label>
+                    <label className="font-semibold text-slate-700 block mb-1">Número de Licencia de SST *</label>
                     <input
                       type="text"
                       required
                       value={formData.licenseNumber}
                       onChange={(e) => handleInputChange('licenseNumber', e.target.value)}
                       placeholder="Ej: LIC-SST-2023-08941"
-                      className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-slate-100 focus:outline-none focus:border-orange-500 font-mono"
+                      className="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-slate-800 focus:outline-none focus:border-orange-500 font-mono"
                     />
                   </div>
 
                   <div>
-                    <label className="font-semibold text-slate-300 block mb-1">Vencimiento de Licencia *</label>
+                    <label className="font-semibold text-slate-700 block mb-1">Vencimiento de Licencia *</label>
                     <input
                       type="date"
                       required
                       value={formData.licenseExpDate}
                       onChange={(e) => handleInputChange('licenseExpDate', e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-slate-100 focus:outline-none focus:border-orange-500"
+                      className="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-slate-800 focus:outline-none focus:border-orange-500"
                     />
                   </div>
 
                   <div>
-                    <label className="font-semibold text-slate-300 block mb-1">Fecha Curso 50 Horas SST *</label>
+                    <label className="font-semibold text-slate-700 block mb-1">Fecha Curso 50 Horas SST *</label>
                     <input
                       type="date"
                       required
                       value={formData.course50hDate}
                       onChange={(e) => handleInputChange('course50hDate', e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-slate-100 focus:outline-none focus:border-orange-500"
+                      className="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-slate-800 focus:outline-none focus:border-orange-500"
                     />
                   </div>
 
                   <div>
-                    <label className="font-semibold text-slate-300 block mb-1">Fecha Curso Actualización 20h</label>
+                    <label className="font-semibold text-slate-700 block mb-1">Fecha Curso Actualización 20h</label>
                     <input
                       type="date"
                       value={formData.course20hDate}
                       onChange={(e) => handleInputChange('course20hDate', e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-slate-100 focus:outline-none focus:border-orange-500"
+                      className="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-slate-800 focus:outline-none focus:border-orange-500"
                     />
                   </div>
 
                   <div className="sm:col-span-2">
-                    <label className="font-semibold text-slate-300 block mb-1">Entidad Certificadora del Curso</label>
+                    <label className="font-semibold text-slate-700 block mb-1">Entidad Certificadora del Curso</label>
                     <input
                       type="text"
                       value={formData.courseEntity}
                       onChange={(e) => handleInputChange('courseEntity', e.target.value)}
                       placeholder="Ej: SENA / ARL Sura / Ministerio del Trabajo"
-                      className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-slate-100 focus:outline-none focus:border-orange-500"
+                      className="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-slate-800 focus:outline-none focus:border-orange-500"
                     />
                   </div>
                 </div>
               </div>
 
               {/* Evidence Upload Section: HV, License, Course */}
-              <div className="glass-card p-4 rounded-xl border border-slate-700/80 space-y-4">
-                <h3 className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
-                  <Paperclip className="w-4 h-4 text-purple-400" />
+              <div className="glass-card p-4 rounded-xl border border-slate-300 space-y-4">
+                <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                  <Paperclip className="w-4 h-4 text-purple-700" />
                   3. Cargue de Documentos y Hoja de Vida (Soportes para Auditoría)
                 </h3>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                   {/* Hoja de Vida */}
-                  <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 flex flex-col justify-between space-y-3">
+                  <div className="p-3.5 rounded-xl bg-white border border-slate-200 flex flex-col justify-between space-y-3">
                     <div>
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
                         Hoja de Vida
                       </span>
-                      <p className="text-xs font-semibold text-white mt-1">
+                      <p className="text-xs font-semibold text-slate-900 mt-1">
                         HV del Responsable
                       </p>
-                      <p className="text-[11px] text-slate-400 mt-0.5">
+                      <p className="text-[11px] text-slate-500 mt-0.5">
                         Con soportes de experiencia y formación académica.
                       </p>
                     </div>
 
                     {formData.hvEvidenceId ? (
-                      <div className="flex items-center gap-2 text-xs text-emerald-400 bg-emerald-950/60 p-2 rounded-lg border border-emerald-800">
+                      <div className="flex items-center gap-2 text-xs text-emerald-700 bg-emerald-50 p-2 rounded-lg border border-emerald-200">
                         <CheckCircle2 className="w-4 h-4 shrink-0" />
                         <span className="truncate">Cargada satisfactoriamente</span>
                       </div>
@@ -360,30 +402,30 @@ export const SstResponsibleModal: React.FC<SstResponsibleModalProps> = ({ isOpen
                       <button
                         type="button"
                         onClick={() => handleSimulateFileUpload('HV')}
-                        className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold border border-slate-700 transition-colors"
+                        className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-900 text-xs font-semibold border border-slate-300 transition-colors"
                       >
-                        <Upload className="w-3.5 h-3.5 text-cyan-400" />
+                        <Upload className="w-3.5 h-3.5 text-teal-700" />
                         <span>Cargar Hoja de Vida</span>
                       </button>
                     )}
                   </div>
 
                   {/* Fotocopia Licencia */}
-                  <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 flex flex-col justify-between space-y-3">
+                  <div className="p-3.5 rounded-xl bg-white border border-slate-200 flex flex-col justify-between space-y-3">
                     <div>
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
                         Licencia SST
                       </span>
-                      <p className="text-xs font-semibold text-white mt-1">
+                      <p className="text-xs font-semibold text-slate-900 mt-1">
                         Fotocopia de Licencia Vigente
                       </p>
-                      <p className="text-[11px] text-slate-400 mt-0.5">
+                      <p className="text-[11px] text-slate-500 mt-0.5">
                         Resolución emitida por la Seccional de Salud.
                       </p>
                     </div>
 
                     {formData.licenseEvidenceId ? (
-                      <div className="flex items-center gap-2 text-xs text-emerald-400 bg-emerald-950/60 p-2 rounded-lg border border-emerald-800">
+                      <div className="flex items-center gap-2 text-xs text-emerald-700 bg-emerald-50 p-2 rounded-lg border border-emerald-200">
                         <CheckCircle2 className="w-4 h-4 shrink-0" />
                         <span className="truncate">Cargada ({formData.licenseNumber})</span>
                       </div>
@@ -391,30 +433,30 @@ export const SstResponsibleModal: React.FC<SstResponsibleModalProps> = ({ isOpen
                       <button
                         type="button"
                         onClick={() => handleSimulateFileUpload('LICENCIA')}
-                        className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold border border-slate-700 transition-colors"
+                        className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-900 text-xs font-semibold border border-slate-300 transition-colors"
                       >
-                        <Upload className="w-3.5 h-3.5 text-emerald-400" />
+                        <Upload className="w-3.5 h-3.5 text-emerald-700" />
                         <span>Cargar Licencia SST</span>
                       </button>
                     )}
                   </div>
 
                   {/* Certificado Curso 50h */}
-                  <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 flex flex-col justify-between space-y-3">
+                  <div className="p-3.5 rounded-xl bg-white border border-slate-200 flex flex-col justify-between space-y-3">
                     <div>
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
                         Capacitación Virtual
                       </span>
-                      <p className="text-xs font-semibold text-white mt-1">
+                      <p className="text-xs font-semibold text-slate-900 mt-1">
                         Certificado 50h / 20h
                       </p>
-                      <p className="text-[11px] text-slate-400 mt-0.5">
+                      <p className="text-[11px] text-slate-500 mt-0.5">
                         Resolución 4927 de 2016 del Ministerio del Trabajo.
                       </p>
                     </div>
 
                     {formData.courseEvidenceId ? (
-                      <div className="flex items-center gap-2 text-xs text-emerald-400 bg-emerald-950/60 p-2 rounded-lg border border-emerald-800">
+                      <div className="flex items-center gap-2 text-xs text-emerald-700 bg-emerald-50 p-2 rounded-lg border border-emerald-200">
                         <CheckCircle2 className="w-4 h-4 shrink-0" />
                         <span className="truncate">Certificado Vinculado</span>
                       </div>
@@ -422,9 +464,9 @@ export const SstResponsibleModal: React.FC<SstResponsibleModalProps> = ({ isOpen
                       <button
                         type="button"
                         onClick={() => handleSimulateFileUpload('CURSO50')}
-                        className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold border border-slate-700 transition-colors"
+                        className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-900 text-xs font-semibold border border-slate-300 transition-colors"
                       >
-                        <Upload className="w-3.5 h-3.5 text-purple-400" />
+                        <Upload className="w-3.5 h-3.5 text-purple-700" />
                         <span>Cargar Certificado 50h</span>
                       </button>
                     )}
@@ -433,33 +475,33 @@ export const SstResponsibleModal: React.FC<SstResponsibleModalProps> = ({ isOpen
               </div>
 
               {/* Employer / Manager Details */}
-              <div className="glass-card p-4 rounded-xl border border-slate-700/80 space-y-4">
-                <h3 className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
-                  <Building className="w-4 h-4 text-sky-400" />
+              <div className="glass-card p-4 rounded-xl border border-slate-300 space-y-4">
+                <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                  <Building className="w-4 h-4 text-sky-700" />
                   4. Datos del Representante Legal que Otorga la Asignación
                 </h3>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                   <div>
-                    <label className="font-semibold text-slate-300 block mb-1">Nombre del Representante Legal *</label>
+                    <label className="font-semibold text-slate-700 block mb-1">Nombre del Representante Legal *</label>
                     <input
                       type="text"
                       required
                       value={formData.managerName}
                       onChange={(e) => handleInputChange('managerName', e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-slate-100 focus:outline-none focus:border-orange-500"
+                      className="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-slate-800 focus:outline-none focus:border-orange-500"
                     />
                   </div>
 
                   <div>
-                    <label className="font-semibold text-slate-300 block mb-1">Cédula y Lugar de Expedición *</label>
+                    <label className="font-semibold text-slate-700 block mb-1">Cédula y Lugar de Expedición *</label>
                     <input
                       type="text"
                       required
                       value={formData.managerDocNumber}
                       onChange={(e) => handleInputChange('managerDocNumber', e.target.value)}
                       placeholder="Ej: 79.845.120 de Bogotá D.C."
-                      className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-slate-100 focus:outline-none focus:border-orange-500"
+                      className="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-slate-800 focus:outline-none focus:border-orange-500"
                     />
                   </div>
                 </div>
@@ -470,9 +512,9 @@ export const SstResponsibleModal: React.FC<SstResponsibleModalProps> = ({ isOpen
                 <button
                   type="button"
                   onClick={() => setActiveTab('LETTER')}
-                  className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold flex items-center gap-2 transition-colors"
+                  className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-900 text-xs font-semibold flex items-center gap-2 transition-colors"
                 >
-                  <FileText className="w-4 h-4 text-orange-400" />
+                  <FileText className="w-4 h-4 text-orange-700" />
                   <span>Generar Vista Previa de la Carta</span>
                 </button>
 
@@ -480,7 +522,7 @@ export const SstResponsibleModal: React.FC<SstResponsibleModalProps> = ({ isOpen
                   <button
                     type="button"
                     onClick={onClose}
-                    className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition-colors"
+                    className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors"
                   >
                     Cerrar
                   </button>
@@ -497,10 +539,10 @@ export const SstResponsibleModal: React.FC<SstResponsibleModalProps> = ({ isOpen
             /* LETTER TAB: Live Official Assignment Letter Generator */
             <div className="space-y-4">
               {/* Action Toolbar */}
-              <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-xl bg-slate-950 border border-slate-800">
+              <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-xl bg-white border border-slate-200">
                 <div className="text-xs">
-                  <span className="font-bold text-white block">Documento Legal Vigente:</span>
-                  <span className="text-slate-400 text-[11px]">
+                  <span className="font-bold text-slate-900 block">Documento Legal Vigente:</span>
+                  <span className="text-slate-500 text-[11px]">
                     {formData.letterSignedAt
                       ? `Firmado digitalmente el ${formData.letterSignedAt}`
                       : 'Borrador generado automáticamente con datos empresariales'}
@@ -511,7 +553,7 @@ export const SstResponsibleModal: React.FC<SstResponsibleModalProps> = ({ isOpen
                   <button
                     type="button"
                     onClick={handlePrint}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition-colors"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold border border-slate-300 transition-colors"
                   >
                     <Printer className="w-3.5 h-3.5" />
                     <span>Imprimir / PDF</span>
@@ -528,7 +570,7 @@ export const SstResponsibleModal: React.FC<SstResponsibleModalProps> = ({ isOpen
                       <span>{isSigning ? 'Firmando y Guardando...' : 'Firmar Electrónicamente & Guardar en Evidencias'}</span>
                     </button>
                   ) : (
-                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-950 text-emerald-300 border border-emerald-800 text-xs font-bold">
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold">
                       <CheckCircle2 className="w-3.5 h-3.5" />
                       <span>Carta Firmada y en Custodia</span>
                     </div>
@@ -540,7 +582,7 @@ export const SstResponsibleModal: React.FC<SstResponsibleModalProps> = ({ isOpen
               <div className="bg-white text-slate-900 rounded-2xl p-6 sm:p-10 shadow-2xl font-serif text-sm leading-relaxed border border-slate-300 print:shadow-none print:border-none print:p-0">
                 
                 {/* Header */}
-                <div className="border-b-2 border-slate-800 pb-4 mb-6 flex justify-between items-start">
+                <div className="border-b-2 border-slate-200 pb-4 mb-6 flex justify-between items-start">
                   <div>
                     <h1 className="text-lg font-black tracking-tight uppercase text-slate-950">
                       {organization.name}
@@ -616,14 +658,14 @@ export const SstResponsibleModal: React.FC<SstResponsibleModalProps> = ({ isOpen
                 <div className="grid grid-cols-2 gap-8 pt-12 mt-8 border-t border-slate-300 font-sans text-xs">
                   {/* Employer Signature */}
                   <div className="space-y-2">
-                    <div className="border-b border-slate-800 pb-1">
+                    <div className="border-b border-slate-200 pb-1">
                       {formData.signedByManager ? (
                         <div className="font-mono text-emerald-800 font-bold text-xs">
                           ✓ FIRMADO DIGITALMENTE POR EMPLEADOR<br />
                           <span className="text-[10px] text-slate-500 font-sans">Huella criptográfica SHA-256 validada</span>
                         </div>
                       ) : (
-                        <div className="h-8 flex items-end text-slate-400 italic">Pendiente de firma</div>
+                        <div className="h-8 flex items-end text-slate-500 italic">Pendiente de firma</div>
                       )}
                     </div>
                     <p className="font-bold text-slate-900 leading-tight">{formData.managerName}</p>
@@ -634,14 +676,14 @@ export const SstResponsibleModal: React.FC<SstResponsibleModalProps> = ({ isOpen
 
                   {/* Responsible Signature */}
                   <div className="space-y-2">
-                    <div className="border-b border-slate-800 pb-1">
+                    <div className="border-b border-slate-200 pb-1">
                       {formData.signedByResponsible ? (
                         <div className="font-mono text-emerald-800 font-bold text-xs">
                           ✓ ACEPTADO Y FIRMADO DIGITALMENTE<br />
                           <span className="text-[10px] text-slate-500 font-sans">Aceptación de funciones y responsabilidades</span>
                         </div>
                       ) : (
-                        <div className="h-8 flex items-end text-slate-400 italic">Pendiente de aceptación</div>
+                        <div className="h-8 flex items-end text-slate-500 italic">Pendiente de aceptación</div>
                       )}
                     </div>
                     <p className="font-bold text-slate-900 leading-tight">{formData.fullName}</p>
@@ -652,7 +694,7 @@ export const SstResponsibleModal: React.FC<SstResponsibleModalProps> = ({ isOpen
                 </div>
 
                 {/* Footer notes */}
-                <div className="mt-8 pt-3 border-t border-slate-200 text-[10px] text-slate-400 flex justify-between font-sans">
+                <div className="mt-8 pt-3 border-t border-slate-200 text-[10px] text-slate-500 flex justify-between font-sans">
                   <span>Documento soporte de cumplimiento Estándar 1.1.1 Resolución 0312 de 2019</span>
                   <span>Custodia digital: Archivo central 20 años (Dec. 1072 Art. 2.2.4.6.13)</span>
                 </div>
