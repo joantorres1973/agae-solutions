@@ -150,10 +150,10 @@ export const SstResponsibleModal: React.FC<SstResponsibleModalProps> = ({ isOpen
 
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-5 overflow-y-auto">
-      <div className="bg-slate-50 border border-slate-300 rounded-2xl max-w-4xl w-full max-h-[94vh] flex flex-col shadow-2xl overflow-hidden animate-in zoom-in-95">
+      <div className="bg-slate-50 border border-slate-300 rounded-2xl max-w-4xl w-full max-h-[94vh] flex flex-col shadow-2xl overflow-hidden animate-in zoom-in-95 print:max-h-none print:h-auto print:border-none print:shadow-none print:bg-white print:overflow-visible">
         
         {/* Modal Header */}
-        <div className="p-4 sm:p-5 border-b border-slate-200 flex items-center justify-between bg-white/80 shrink-0">
+        <div className="p-4 sm:p-5 border-b border-slate-200 flex items-center justify-between bg-white/80 shrink-0 print:hidden">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-orange-100 text-orange-700 border border-orange-200 flex items-center justify-center">
               <UserCheck className="w-5 h-5" />
@@ -555,7 +555,7 @@ export const SstResponsibleModal: React.FC<SstResponsibleModalProps> = ({ isOpen
             /* LETTER TAB: Live Official Assignment Letter Generator */
             <div className="space-y-4">
               {/* Action Toolbar */}
-              <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-xl bg-white border border-slate-200">
+              <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-xl bg-white border border-slate-200 print:hidden">
                 <div className="text-xs">
                   <span className="font-bold text-slate-900 block">Documento Legal Vigente:</span>
                   <span className="text-slate-600 text-[11px]">
@@ -595,7 +595,7 @@ export const SstResponsibleModal: React.FC<SstResponsibleModalProps> = ({ isOpen
               </div>
 
               {/* Printable Official Formal Letter Document Paper */}
-              <div className="bg-white text-slate-900 rounded-2xl p-6 sm:p-10 shadow-2xl font-serif text-sm leading-relaxed border border-slate-300 print:shadow-none print:border-none print:p-0">
+              <div id="printable-document" className="bg-white text-slate-900 rounded-2xl p-6 sm:p-10 shadow-2xl font-serif text-sm leading-relaxed border border-slate-300 print:shadow-none print:border-none print:p-0 print:m-0">
                 
                 {/* Header */}
                 <div className="border-b-2 border-slate-200 pb-4 mb-6 flex justify-between items-start">

@@ -251,7 +251,7 @@ export const SstModule: React.FC = () => {
     <div className="space-y-5 animate-in fade-in duration-300">
       
       {/* Top Banner & Module Header */}
-      <div className="glass-card p-5 rounded-2xl flex flex-col gap-4">
+      <div className="glass-card p-5 rounded-2xl flex flex-col gap-4 print:hidden">
         <div>
           <div className="flex flex-wrap items-center gap-2.5">
             <span className="p-2 rounded-xl bg-orange-100 text-orange-700 border border-orange-200">
@@ -408,7 +408,7 @@ export const SstModule: React.FC = () => {
       </div>
 
       {/* TOP KPI CARDS: Legal Scoring, Applicability & Role Bar */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 print:hidden">
         {/* Card 1: Official Res. 0312 Compliance Score */}
         <div className="glass-card p-4 rounded-xl border border-slate-300 flex flex-col justify-between">
           <div>

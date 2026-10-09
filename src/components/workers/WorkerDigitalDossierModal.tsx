@@ -172,7 +172,7 @@ export const WorkerDigitalDossierModal: React.FC<WorkerDigitalDossierModalProps>
   return (
     <>
       <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
-        <div className="bg-slate-50 border border-slate-300 w-full max-w-5xl rounded-2xl shadow-2xl overflow-hidden flex flex-col h-[92vh] max-h-[900px]">
+        <div className="bg-slate-50 border border-slate-300 w-full max-w-5xl rounded-2xl shadow-2xl overflow-hidden flex flex-col h-[92vh] max-h-[900px] print:h-auto print:max-h-none print:shadow-none print:border-none print:bg-white print:overflow-visible">
           {/* Header del Expediente Digital */}
           <div className="p-4 sm:p-5 border-b border-slate-200 bg-gradient-to-r from-white via-white to-emerald-50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
@@ -276,7 +276,7 @@ export const WorkerDigitalDossierModal: React.FC<WorkerDigitalDossierModalProps>
           </div>
 
           {/* Navigation Subtabs */}
-          <div className="flex border-b border-slate-200 bg-white/80 px-4 text-xs font-semibold overflow-x-auto select-none no-scrollbar">
+          <div className="flex border-b border-slate-200 bg-white/80 px-4 text-xs font-semibold overflow-x-auto select-none no-scrollbar print:hidden">
             <button
               onClick={() => setActiveTab('SUMMARY')}
               className={`py-3 px-3.5 border-b-2 flex items-center gap-2 shrink-0 transition-colors ${
@@ -377,7 +377,7 @@ export const WorkerDigitalDossierModal: React.FC<WorkerDigitalDossierModalProps>
           </div>
 
           {/* Dossier Content Body */}
-          <div className="flex-1 overflow-y-auto p-5 space-y-5 text-xs">
+          <div className="flex-1 overflow-y-auto p-5 space-y-5 text-xs print:overflow-visible print:p-0 print:h-auto">
             {/* ============================================================ */}
             {/* PESTAÑA: RESUMEN 360° */}
             {/* ============================================================ */}

@@ -182,7 +182,7 @@ export const SstInitialEvaluationModule: React.FC<SstInitialEvaluationModuleProp
   return (
     <div className="space-y-6">
       {/* Header Banner */}
-      <div className="p-5 rounded-2xl bg-gradient-to-r from-teal-900 via-slate-900 to-emerald-950 text-white shadow-xl flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+      <div className="p-5 rounded-2xl bg-gradient-to-r from-teal-900 via-slate-900 to-emerald-950 text-white shadow-xl flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 print:hidden">
         <div>
           <div className="flex items-center gap-2 mb-1.5 flex-wrap">
             <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-teal-500/20 text-teal-300 border border-teal-400/30 flex items-center gap-1">
@@ -225,7 +225,7 @@ export const SstInitialEvaluationModule: React.FC<SstInitialEvaluationModuleProp
       </div>
 
       {/* Disclaimers & Regulatory Boundary Alert */}
-      <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-start gap-3">
+      <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-start gap-3 print:hidden">
         <Shield className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
         <div className="leading-relaxed">
           <strong className="font-semibold block text-amber-950">
@@ -236,7 +236,7 @@ export const SstInitialEvaluationModule: React.FC<SstInitialEvaluationModuleProp
       </div>
 
       {/* Navigation Subtabs Bar */}
-      <div className="flex items-center gap-1.5 p-1.5 bg-slate-100 rounded-xl border border-slate-200 overflow-x-auto text-xs font-semibold">
+      <div className="flex items-center gap-1.5 p-1.5 bg-slate-100 rounded-xl border border-slate-200 overflow-x-auto text-xs font-semibold print:hidden">
         <button
           onClick={() => setActiveTabLocal('CHECKLIST')}
           className={`px-3.5 py-2 rounded-lg transition-all flex items-center gap-2 shrink-0 ${

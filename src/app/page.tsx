@@ -27,6 +27,7 @@ import { LandingPage } from '@/components/public/LandingPage';
 import { InteractiveDemoPreview } from '@/components/public/InteractiveDemoPreview';
 import { CheckoutModal } from '@/components/public/CheckoutModal';
 import { WelcomeEmailModal } from '@/components/public/WelcomeEmailModal';
+import { PublicCoursePlayer } from '@/components/sst/training/PublicCoursePlayer';
 
 function WorkspaceContent() {
   const { activeTab } = useApp();
@@ -65,22 +66,32 @@ function WorkspaceContent() {
 
   return (
     <div className="min-h-screen flex flex-col bg-[linear-gradient(180deg,#ffffff_0%,#f2faf5_45%,#ecf8f1_100%)]">
-      <DemoBanner />
+      <div className="print:hidden">
+        <DemoBanner />
+      </div>
 
       {/* Top Navbar */}
-      <Navbar onOpenCompanyModal={() => setIsCompanyModalOpen(true)} />
+      <div className="print:hidden">
+        <Navbar onOpenCompanyModal={() => setIsCompanyModalOpen(true)} />
+      </div>
 
       {/* Main Body */}
       <div className="flex-1 flex overflow-hidden">
         {/* Left Sidebar */}
-        <Sidebar onOpenCompanyModal={() => setIsCompanyModalOpen(true)} />
+        <div className="print:hidden">
+          <Sidebar onOpenCompanyModal={() => setIsCompanyModalOpen(true)} />
+        </div>
 
         {/* Dynamic Content Panel */}
-        <main className="flex-1 overflow-y-auto p-4 lg:p-6 pb-20">
-          <div className="max-w-7xl mx-auto">
-            <PlanPreviewBanner />
+        <main className="flex-1 overflow-y-auto p-4 lg:p-6 pb-20 print:p-0 print:overflow-visible">
+          <div className="max-w-7xl mx-auto print:max-w-full">
+            <div className="print:hidden">
+              <PlanPreviewBanner />
+            </div>
             {renderActiveView()}
-            <ProfessionalDisclaimer variant="compact" className="mt-10 pt-4 border-t border-slate-200 text-slate-600" />
+            <div className="print:hidden">
+              <ProfessionalDisclaimer variant="compact" className="mt-10 pt-4 border-t border-slate-200 text-slate-600" />
+            </div>
           </div>
         </main>
       </div>
@@ -117,14 +128,37 @@ function ClientPortal() {
 
 function PortalRouter() {
   const { portalView, setPortalView } = useApp();
+  const [publicCourseCode, setPublicCourseCode] = useState<string | null>(null);
 
-  // Links from other pages (e.g. /soluciones/...) arrive as /?vista=wizard|demo|app
+  // Links from other pages or external workers:
+  // 1. ?aula=CUR-BIO-001 or ?curso=CUR-BIO-001 opens public worker course player without login!
+  // 2. /?vista=wizard|demo|app
   useEffect(() => {
-    const target = new URLSearchParams(window.location.search).get('vista');
+    const params = new URLSearchParams(window.location.search);
+    const aula = params.get('aula') || params.get('curso');
+    if (aula) {
+      setPublicCourseCode(aula);
+      return;
+    }
+
+    const target = params.get('vista');
     if (target !== 'wizard' && target !== 'demo' && target !== 'app') return;
     setPortalView(target);
     window.history.replaceState(null, '', '/');
   }, [setPortalView]);
+
+  // Si se abre mediante un enlace público de capacitación para colaboradores
+  if (publicCourseCode) {
+    return (
+      <PublicCoursePlayer
+        courseCode={publicCourseCode}
+        onClose={() => {
+          setPublicCourseCode(null);
+          window.history.replaceState(null, '', '/');
+        }}
+      />
+    );
+  }
 
   return (
     <>

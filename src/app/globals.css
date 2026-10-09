@@ -84,3 +84,99 @@ body {
 .font-display {
   font-family: var(--font-display), var(--font-geist-sans), system-ui, sans-serif;
 }
+
+/* ==========================================================================
+   ARQUITECTURA DE IMPRESIÓN LIMPIA Y EXPORTACIÓN EN PDF (@media print)
+   ========================================================================== */
+@media print {
+  @page {
+    size: letter portrait;
+    margin: 10mm 12mm;
+  }
+
+  /* 1. Ocultar todos los elementos de navegación y herramientas que no forman parte del documento */
+  nav,
+  aside,
+  header:not(.print-header),
+  footer:not(.print-footer),
+  button,
+  input[type="button"],
+  input[type="submit"],
+  .no-print,
+  .print-hidden,
+  [data-print="hidden"] {
+    display: none !important;
+  }
+
+  /* 2. Reseteo general de cuerpo: Fondo blanco, texto nítido, sin desbordes */
+  html, body {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    font-size: 11pt !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* 3. Desactivar overlays oscuros, backdrop blurs y posicionamiento fixed de modales */
+  .fixed,
+  .backdrop-blur-md,
+  .backdrop-blur-sm,
+  [class*="backdrop-blur"],
+  [class*="bg-black/"],
+  [class*="bg-slate-900/"] {
+    position: static !important;
+    background: transparent !important;
+    background-color: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    inset: auto !important;
+  }
+
+  /* 4. Quitar sombras y efectos visuales pesados */
+  .shadow-2xl,
+  .shadow-xl,
+  .shadow-lg,
+  .shadow-md,
+  .glass-card,
+  .glass-panel {
+    box-shadow: none !important;
+    border-color: #cbd5e1 !important;
+  }
+
+  /* 5. Aislamiento perfecto del Certificado Digital (#printable-certificate) */
+  #printable-certificate {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 auto !important;
+    padding: 24px !important;
+    border: 4px solid #047857 !important;
+    border-radius: 12px !important;
+    background: #ffffff !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* 6. Aislamiento de Informes Técnicos (#printable-initial-evaluation, .printable-document) */
+  #printable-initial-evaluation,
+  .printable-document {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    background: #ffffff !important;
+  }
+}

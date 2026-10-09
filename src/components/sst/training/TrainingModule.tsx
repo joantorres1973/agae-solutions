@@ -54,6 +54,8 @@ import {
   AiTrainingSuggestion,
   TrainingAttendanceEntry
 } from '@/types/training';
+import { NewVirtualCourseModal } from './NewVirtualCourseModal';
+import { PublicCoursePlayer } from './PublicCoursePlayer';
 
 export const TrainingModule: React.FC = () => {
   const {
@@ -109,6 +111,11 @@ export const TrainingModule: React.FC = () => {
   const [simVideoWatchedPercent, setSimVideoWatchedPercent] = useState(0);
   const [simQuizAnswers, setSimQuizAnswers] = useState<Record<string, number>>({});
   const [simQuizResult, setSimQuizResult] = useState<{ score: number; passed: boolean; cert?: VirtualCertificate } | null>(null);
+
+  // Virtual Course Creator & Public Link Sharing
+  const [isNewCourseModalOpen, setIsNewCourseModalOpen] = useState(false);
+  const [shareModalCourse, setShareModalCourse] = useState<VirtualCourse | null>(null);
+  const [testPlayerCourseCode, setTestPlayerCourseCode] = useState<string | null>(null);
 
   // Certificate Viewer Modal
   const [viewingCertificate, setViewingCertificate] = useState<VirtualCertificate | null>(null);
@@ -966,10 +973,11 @@ export const TrainingModule: React.FC = () => {
 
             <div className="flex items-center gap-2 shrink-0">
               <button
-                onClick={() => showNotification('Función de creador de cursos virtuales para Administrador AGAE habilitada')}
-                className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-sm"
+                onClick={() => setIsNewCourseModalOpen(true)}
+                className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-sm flex items-center gap-1.5 transition-all hover:scale-[1.02]"
               >
-                + Crear Nuevo Curso AGAE
+                <Plus className="w-3.5 h-3.5" />
+                <span>+ Crear Nuevo Curso AGAE</span>
               </button>
             </div>
           </div>
@@ -988,7 +996,7 @@ export const TrainingModule: React.FC = () => {
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent" />
                     <span className="absolute top-2 left-2 px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-600 text-white">
-                      {course.category.replace('_', ' ')}
+                      {course.category.replace(/_/g, ' ')}
                     </span>
                     <span className="absolute bottom-2 right-2 px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-black/70 text-white flex items-center gap-1">
                       <Clock className="w-3 h-3" />
@@ -1016,21 +1024,18 @@ export const TrainingModule: React.FC = () => {
                   <div className="flex items-center justify-between gap-2">
                     {/* Botón Simular / Tomar Curso como Trabajador */}
                     <button
-                      onClick={() => handleStartSimulatedCourse(course)}
+                      onClick={() => setTestPlayerCourseCode(course.code)}
                       className="flex-1 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm transition-all"
                     >
                       <Play className="w-3.5 h-3.5" />
                       <span>Ingresar / Probar Curso</span>
                     </button>
 
-                    {/* Botón Copiar Enlace Público */}
+                    {/* Botón Copiar / Compartir Enlace Público */}
                     <button
-                      onClick={() => {
-                        navigator.clipboard?.writeText(`https://agae-solutions.com/aula/${course.code}?t=${course.publicEnrollmentUrlToken}`);
-                        showNotification(`✓ Enlace público de "${course.title}" copiado al portapapeles. ¡Listo para compartir a los colaboradores!`, 'success');
-                      }}
-                      title="Copiar Enlace Público para Trabajadores"
-                      className="p-1.5 rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-100"
+                      onClick={() => setShareModalCourse(course)}
+                      title="Compartir Enlace Público para Trabajadores (Sin Login)"
+                      className="p-1.5 rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 hover:text-indigo-600 transition-colors"
                     >
                       <Share2 className="w-4 h-4" />
                     </button>
@@ -2477,11 +2482,14 @@ export const TrainingModule: React.FC = () => {
       {/* MODAL 8: VISUALIZADOR OFICIAL DE CERTIFICADO DIGITAL AGAE */}
       {/* ============================================================== */}
       {viewingCertificate && (
-        <div className="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-3xl max-w-2xl w-full p-8 shadow-2xl border-4 border-emerald-600 space-y-6 my-8 animate-fadeIn text-center relative">
+        <div className="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto print:p-0 print:static print:bg-white print:overflow-visible">
+          <div
+            id="printable-certificate"
+            className="bg-white rounded-3xl max-w-2xl w-full p-8 shadow-2xl border-4 border-emerald-600 space-y-6 my-8 animate-fadeIn text-center relative print:m-0 print:border-4 print:shadow-none print:w-full print:max-w-full"
+          >
             <button
               onClick={() => setViewingCertificate(null)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600"
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 print:hidden"
             >
               <X className="w-6 h-6" />
             </button>
@@ -2539,7 +2547,7 @@ export const TrainingModule: React.FC = () => {
               </div>
             </div>
 
-            <div className="pt-4 flex items-center justify-center gap-3">
+            <div className="pt-4 flex items-center justify-center gap-3 print:hidden">
               <button
                 onClick={() => {
                   window.print?.();
@@ -2786,6 +2794,128 @@ export const TrainingModule: React.FC = () => {
               </div>
             </div>
           </div>
+        </div>
+      )}
+      {/* ============================================================== */}
+      {/* MODAL 12: CREAR NUEVO CURSO VIRTUAL AGAE */}
+      {/* ============================================================== */}
+      <NewVirtualCourseModal
+        isOpen={isNewCourseModalOpen}
+        onClose={() => setIsNewCourseModalOpen(false)}
+        onSave={(courseData) => {
+          addVirtualCourse(courseData);
+        }}
+      />
+
+      {/* ============================================================== */}
+      {/* MODAL 13: COMPARTIR ENLACE PÚBLICO PARA TRABAJADORES (SIN LOGIN) */}
+      {/* ============================================================== */}
+      {shareModalCourse && (
+        <div className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-2xl border border-slate-200 space-y-5 animate-fadeIn">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2.5">
+                <span className="p-2 rounded-xl bg-indigo-100 text-indigo-700">
+                  <Share2 className="w-5 h-5" />
+                </span>
+                <div>
+                  <h3 className="font-black text-slate-900 text-sm">Enlace Público de Capacitación</h3>
+                  <span className="text-[10px] text-slate-500 font-mono font-bold block">{shareModalCourse.code}</span>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setShareModalCourse(null)}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-2">
+              <h4 className="font-bold text-slate-900 text-sm">{shareModalCourse.title}</h4>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Comparta este enlace directo con sus colaboradores. El trabajador podrá ingresar <strong>únicamente con su Nombre y Cédula</strong>, ver el video y responder la evaluación <strong>sin requerir usuario ni contraseña</strong>.
+              </p>
+            </div>
+
+            {/* Enlace para copiar */}
+            {(() => {
+              const origin = typeof window !== 'undefined' ? window.location.origin : 'https://agae-solutions.com';
+              const publicUrl = `${origin}/?aula=${shareModalCourse.code}`;
+              return (
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-700 block mb-1">
+                      Enlace Directo para los Colaboradores:
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        readOnly
+                        value={publicUrl}
+                        className="flex-1 px-3 py-2 rounded-xl border border-slate-300 text-xs font-mono text-slate-800 bg-slate-50"
+                      />
+                      <button
+                        onClick={() => {
+                          navigator.clipboard?.writeText(publicUrl);
+                          showNotification('✓ ¡Enlace público copiado al portapapeles! Listo para enviar.', 'success');
+                        }}
+                        className="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm shrink-0"
+                      >
+                        <Copy className="w-3.5 h-3.5" />
+                        <span>Copiar</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const msg = encodeURIComponent(`Hola, por favor ingresa al siguiente enlace para realizar la capacitación obligatoria "${shareModalCourse.title}": ${publicUrl}`);
+                        window.open(`https://wa.me/?text=${msg}`, '_blank');
+                      }}
+                      className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm"
+                    >
+                      <span>WhatsApp</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setTestPlayerCourseCode(shareModalCourse.code);
+                        setShareModalCourse(null);
+                      }}
+                      className="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm"
+                    >
+                      <Play className="w-3.5 h-3.5" />
+                      <span>Probar como Trabajador</span>
+                    </button>
+                  </div>
+                </div>
+              );
+            })()}
+
+            <div className="p-3 rounded-xl bg-indigo-50 border border-indigo-200 text-[11px] text-indigo-900 flex items-start gap-2">
+              <CheckCircle2 className="w-4 h-4 text-indigo-700 shrink-0 mt-0.5" />
+              <span>
+                Al aprobar, el sistema emitirá el <strong>Certificado Digital</strong> en PDF y registrará automáticamente la asistencia en el plan anual de la empresa.
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================== */}
+      {/* MODAL 14: REPRODUCTOR PÚBLICO INTEGRADO (PRUEBA EN VIVO PARA LÍDER) */}
+      {/* ============================================================== */}
+      {testPlayerCourseCode && (
+        <div className="fixed inset-0 z-50 bg-slate-900/90 overflow-y-auto">
+          <PublicCoursePlayer
+            courseCode={testPlayerCourseCode}
+            onClose={() => setTestPlayerCourseCode(null)}
+          />
         </div>
       )}
     </div>
