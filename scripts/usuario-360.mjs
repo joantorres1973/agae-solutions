@@ -48,7 +48,7 @@ switch (cmd) {
     const [password, nombre, empresa, cargo = ''] = rest;
     if (!user || !password || !nombre || !empresa) fail('Uso: crear <usuario> <clave> "<Nombre>" "<Empresa>" ["<Cargo>"]');
     if (find(user)) fail(`El usuario "${user}" ya existe.`);
-    if (password.length < 8) fail('La clave debe tener al menos 8 caracteres.');
+    if (password.length < 6) fail('La clave debe tener al menos 6 caracteres.');
     data.usuarios.push({ usuario: user.toLowerCase(), clave: hashPassword(password), nombre, empresa, cargo, rol: 'cliente', activo: true });
     save(data);
     console.log(`✓ Usuario "${user}" creado para ${empresa}.`);
@@ -57,7 +57,7 @@ switch (cmd) {
   case 'clave': {
     const u = find(user);
     if (!u || !rest[0]) fail('Uso: clave <usuario> <nueva-clave>');
-    if (u.rol !== 'demo' && rest[0].length < 8) fail('La clave debe tener al menos 8 caracteres.');
+    if (u.rol !== 'demo' && rest[0].length < 6) fail('La clave debe tener al menos 6 caracteres.');
     u.clave = hashPassword(rest[0]);
     save(data);
     console.log(`✓ Clave de "${user}" actualizada.`);
