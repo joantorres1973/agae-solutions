@@ -9,6 +9,7 @@ export * from './policy-objectives';
 export * from './initial-evaluation';
 export * from './document-management';
 export * from './accountability';
+export * from './legal-matrix';
 
 export type ModuleType = 
   | 'SST'

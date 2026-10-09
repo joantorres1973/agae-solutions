@@ -30,7 +30,8 @@ import {
   GraduationCap,
   Target,
   ClipboardCheck,
-  FolderArchive
+  FolderArchive,
+  Scale
 } from 'lucide-react';
 import { SstStandardDefinition, SstStandardCycle, SstStandardStatus } from '@/types/sst';
 import { SstHazardItem } from '@/types';
@@ -46,6 +47,7 @@ import { SstPolicyObjectivesModule } from './policy/SstPolicyObjectivesModule';
 import { SstInitialEvaluationModule } from './evaluation/SstInitialEvaluationModule';
 import { DocumentManagementModule } from './documents/DocumentManagementModule';
 import { AccountabilityModule } from './accountability/AccountabilityModule';
+import { LegalMatrixModule } from './legal/LegalMatrixModule';
 
 export const SstModule: React.FC = () => {
   const {
@@ -67,7 +69,7 @@ export const SstModule: React.FC = () => {
 
   // Navigation subtabs
   const [activeSubTab, setActiveSubTab] = useState<
-    'STANDARDS' | 'RESPONSIBLE' | 'BUDGET' | 'MATRIX' | 'INSPECTIONS' | 'COMMITTEES' | 'CCL' | 'TRAINING' | 'POLICY' | 'EVALUATION' | 'DOCUMENTATION' | 'ACCOUNTABILITY'
+    'STANDARDS' | 'RESPONSIBLE' | 'BUDGET' | 'MATRIX' | 'INSPECTIONS' | 'COMMITTEES' | 'CCL' | 'TRAINING' | 'POLICY' | 'EVALUATION' | 'DOCUMENTATION' | 'ACCOUNTABILITY' | 'LEGAL_MATRIX'
   >('STANDARDS');
   const [copasstInitialTab, setCopasstInitialTab] = useState<
     'DASHBOARD' | 'CONFORMATION' | 'MEETINGS' | 'FINDINGS' | 'TRAININGS' | 'DOCUMENTS' | 'ELECTION' | 'VIGIA'
@@ -431,6 +433,16 @@ export const SstModule: React.FC = () => {
             <FileCheck className="w-3.5 h-3.5" />
             <span>2.3.1 Rendición de Cuentas</span>
           </button>
+
+          <button
+            onClick={() => setActiveSubTab('LEGAL_MATRIX')}
+            className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
+              activeSubTab === 'LEGAL_MATRIX' ? 'bg-indigo-700 text-white shadow' : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <Scale className="w-3.5 h-3.5" />
+            <span>2.4.1 Matriz Legal</span>
+          </button>
         </div>
       </div>
 
@@ -667,6 +679,7 @@ export const SstModule: React.FC = () => {
               const isEvaluationStandard = std.code === '2.1.3' || std.actionType === 'INITIAL_EVALUATION';
               const isDocumentationStandard = std.code === '2.2.1' || std.actionType === 'DOCUMENTATION';
               const isAccountabilityStandard = std.code === '2.3.1' || std.actionType === 'ACCOUNTABILITY';
+              const isLegalMatrixStandard = std.code === '2.4.1' || std.actionType === 'LEGAL_MATRIX';
 
               const action =
                 isPilaStandard ? (
@@ -799,6 +812,17 @@ export const SstModule: React.FC = () => {
                   >
                     <FileCheck className="w-3.5 h-3.5" />
                     <span>2.3.1 Rendición de Cuentas</span>
+                  </button>
+                ) : isLegalMatrixStandard ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveSubTab('LEGAL_MATRIX');
+                    }}
+                    className={`${actionBtn} bg-indigo-700 hover:bg-indigo-600 text-white shadow-sm`}
+                  >
+                    <Scale className="w-3.5 h-3.5" />
+                    <span>2.4.1 Matriz Legal</span>
                   </button>
                 ) : std.actionType === 'RESPONSIBLE' ? (
                   <button type="button" onClick={() => setIsResponsibleModalOpen(true)} className={`${actionBtn} bg-orange-600 hover:bg-orange-500 text-white shadow-sm`}>
@@ -1427,6 +1451,21 @@ export const SstModule: React.FC = () => {
       )}
 
       {/* ============================================================== */}
+      {/* SUBTAB 13: MATRIZ DE REQUISITOS LEGALES (Estándar 2.4.1) */}
+      {/* ============================================================== */}
+      {activeSubTab === 'LEGAL_MATRIX' && (
+        <LegalMatrixModule
+          onNavigateToTab={(tab) => {
+            if (tab === 'acpm') {
+              setActiveTab('acpm');
+            } else {
+              setActiveSubTab('STANDARDS');
+            }
+          }}
+        />
+      )}
+
+      {/* ============================================================== */}
       {/* MODALS */}
       {/* ============================================================== */}
 
@@ -1472,6 +1511,7 @@ export const SstModule: React.FC = () => {
           setActiveSubTab('DOCUMENTATION');
         }}
         onOpenAccountability={() => setActiveSubTab('ACCOUNTABILITY')}
+        onOpenLegalMatrix={() => setActiveSubTab('LEGAL_MATRIX')}
       />
 
       {/* 4. Modal Add Hazard GTC 45 */}

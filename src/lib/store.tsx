@@ -92,7 +92,13 @@ import {
   AccountabilityReport,
   AccountabilityConsolidatedReport,
   AnnualPlanActivity,
-  WorkerPatMetrics
+  WorkerPatMetrics,
+  LegalMatrixState,
+  LegalRequirementItem,
+  LegalRequirementsProcedure,
+  LegalProcedureSection,
+  LegalChangeAlert,
+  LegalMatrixMetrics
 } from '@/types';
 import { initialPilaRecords } from './mock-pila-data';
 import { initialCopasstGlobalState } from './copasst-mock-data';
@@ -111,6 +117,11 @@ import {
   calculateWorkerPatMetrics,
   generateAccountabilityDocCode
 } from './accountability-mock';
+import {
+  INITIAL_LEGAL_MATRIX_STATE,
+  calculateLegalMatrixMetrics,
+  DEFAULT_LEGAL_PROCEDURE
+} from './legal-matrix-mock';
 import { initialMasterWorkers } from './worker-mock-data';
 import {
   initialOrganization,
@@ -462,6 +473,25 @@ interface AppContextType {
   generateConsolidatedAccountabilityReport: (period: string, managerName?: string) => AccountabilityConsolidatedReport;
   registerAccountabilityReportInRepository: (reportId: string) => void;
 
+  // Matriz de Requisitos Legales (Estándar 2.4.1, Dec. 1072 Art. 2.2.4.6.8 Num. 2 y Art. 2.2.4.6.12 Num. 15)
+  legalMatrixState: LegalMatrixState;
+  updateLegalRequirement: (requirementId: string, updates: Partial<LegalRequirementItem>) => void;
+  addLegalRequirement: (item: Omit<LegalRequirementItem, 'id' | 'createdAt' | 'updatedAt'>) => void;
+  deleteLegalRequirement: (requirementId: string) => void;
+  evaluateLegalRequirement: (requirementId: string, evaluation: {
+    complianceStatus: LegalRequirementItem['complianceStatus'];
+    evidenceExisting: string;
+    evidenceEvaluationNotes: string;
+    evaluatorName: string;
+    evaluationDate?: string;
+    findings?: string;
+    improvementAction?: string;
+  }) => void;
+  updateLegalProcedureSection: (sectionId: string, content: string) => void;
+  resetLegalProcedureSectionToDefault: (sectionId: string) => void;
+  approveLegalProcedure: (approverName: string, approverPosition: string) => void;
+  registerLegalMatrixInRepository: (type: 'MATRIZ' | 'PROCEDIMIENTO' | 'DIAGNOSTICO') => void;
+
   // Global search & filters
   searchQuery: string;
   setSearchQuery: (q: string) => void;
@@ -535,6 +565,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   // Rendición de Cuentas sobre el Desempeño en SST (Estándar 2.3.1, Dec. 1072 Art. 2.2.4.6.8 Num. 3)
   const [accountabilityState, setAccountabilityState] = useState<AccountabilityState>(INITIAL_ACCOUNTABILITY_STATE);
+
+  // Matriz de Requisitos Legales (Estándar 2.4.1, Dec. 1072 Art. 2.2.4.6.8 Num. 2 y Art. 2.2.4.6.12 Num. 15)
+  const [legalMatrixState, setLegalMatrixState] = useState<LegalMatrixState>(INITIAL_LEGAL_MATRIX_STATE);
   // Caracterización Inteligente & Motor de Aplicabilidad
   // Saved draft (browser only). The public landing does not render characterization data, so there is no hydration mismatch.
   const [initialDraft] = useState(() => (typeof window === 'undefined' ? null : loadDraft()));
@@ -4759,6 +4792,368 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     showNotification(`Documento ${docCode} registrado exitosamente en el Repositorio Central`, 'success');
   };
 
+  // --- Matriz de Requisitos Legales (2.4.1) ---
+  const updateLegalRequirement = (requirementId: string, updates: Partial<LegalRequirementItem>) => {
+    setLegalMatrixState(prev => {
+      const updatedReqs = prev.requirements.map(req => {
+        if (req.id !== requirementId) return req;
+        const nowIso = new Date().toISOString().substring(0, 10);
+        return {
+          ...req,
+          ...updates,
+          updatedAt: nowIso,
+          historyLog: [
+            ...(req.historyLog || []),
+            {
+              id: `h-${Date.now()}`,
+              date: nowIso,
+              action: 'Actualización de datos del requisito legal',
+              author: updates.evaluatorName || 'Responsable SG-SST'
+            }
+          ]
+        };
+      });
+      return {
+        ...prev,
+        requirements: updatedReqs,
+        metrics: calculateLegalMatrixMetrics(updatedReqs)
+      };
+    });
+    showNotification('Requisito legal actualizado correctamente', 'success');
+  };
+
+  const addLegalRequirement = (item: Omit<LegalRequirementItem, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const nowIso = new Date().toISOString().substring(0, 10);
+    const newId = `leg-${Date.now()}`;
+    const newRequirement: LegalRequirementItem = {
+      ...item,
+      id: newId,
+      createdAt: nowIso,
+      updatedAt: nowIso,
+      historyLog: [
+        {
+          id: `h-${Date.now()}`,
+          date: nowIso,
+          action: 'Incorporación formal a la matriz de requisitos legales',
+          author: item.evaluatorName || 'Responsable SG-SST'
+        }
+      ]
+    };
+
+    setLegalMatrixState(prev => {
+      const updatedReqs = [newRequirement, ...prev.requirements];
+      return {
+        ...prev,
+        requirements: updatedReqs,
+        metrics: calculateLegalMatrixMetrics(updatedReqs)
+      };
+    });
+    showNotification(`Requisito ${newRequirement.internalCode} agregado a la matriz`, 'success');
+  };
+
+  const deleteLegalRequirement = (requirementId: string) => {
+    setLegalMatrixState(prev => {
+      const updatedReqs = prev.requirements.filter(r => r.id !== requirementId);
+      return {
+        ...prev,
+        requirements: updatedReqs,
+        metrics: calculateLegalMatrixMetrics(updatedReqs)
+      };
+    });
+    showNotification('Requisito eliminado de la matriz', 'info');
+  };
+
+  const evaluateLegalRequirement = (
+    requirementId: string,
+    evaluation: {
+      complianceStatus: LegalRequirementItem['complianceStatus'];
+      evidenceExisting: string;
+      evidenceEvaluationNotes: string;
+      evaluatorName: string;
+      evaluationDate?: string;
+      findings?: string;
+      improvementAction?: string;
+    }
+  ) => {
+    const evalDate = evaluation.evaluationDate || new Date().toISOString().substring(0, 10);
+    const nextRev = new Date();
+    nextRev.setDate(nextRev.getDate() + 90);
+    const nextReviewStr = nextRev.toISOString().substring(0, 10);
+
+    setLegalMatrixState(prev => {
+      const updatedReqs = prev.requirements.map(req => {
+        if (req.id !== requirementId) return req;
+        return {
+          ...req,
+          complianceStatus: evaluation.complianceStatus,
+          existingEvidenceDescription: evaluation.evidenceExisting || req.existingEvidenceDescription,
+          evidenceEvaluationNotes: evaluation.evidenceEvaluationNotes,
+          evaluatorName: evaluation.evaluatorName,
+          lastEvaluationDate: evalDate,
+          nextReviewDate: nextReviewStr,
+          findingsOrObservations: evaluation.findings || req.findingsOrObservations,
+          improvementActionDescription: evaluation.improvementAction || req.improvementActionDescription,
+          historyLog: [
+            ...(req.historyLog || []),
+            {
+              id: `h-${Date.now()}`,
+              date: evalDate,
+              action: `Evaluación de cumplimiento legal: ${evaluation.complianceStatus}`,
+              author: evaluation.evaluatorName,
+              note: evaluation.evidenceEvaluationNotes
+            }
+          ]
+        };
+      });
+
+      return {
+        ...prev,
+        requirements: updatedReqs,
+        lastFullEvaluationDate: evalDate,
+        metrics: calculateLegalMatrixMetrics(updatedReqs)
+      };
+    });
+
+    // Certificar estándar 2.4.1 como CUMPLE
+    setSstStandards(prev => prev.map(s => {
+      if (s.code === '2.4.1' || s.id === 'std-2.4.1') {
+        return {
+          ...s,
+          status: 'CUMPLE',
+          evidenceIds: Array.from(new Set([...s.evidenceIds, 'evi-matriz-legal-2026', 'evi-procedimiento-legal-001']))
+        };
+      }
+      return s;
+    }));
+
+    showNotification('Evaluación de cumplimiento legal registrada exitosamente', 'success');
+  };
+
+  const updateLegalProcedureSection = (sectionId: string, content: string) => {
+    setLegalMatrixState(prev => {
+      const updatedSections = prev.procedure.sections.map(s => {
+        if (s.id !== sectionId) return s;
+        return {
+          ...s,
+          content,
+          isCustomized: true,
+          lastModifiedAt: new Date().toISOString().substring(0, 10)
+        };
+      });
+
+      return {
+        ...prev,
+        procedure: {
+          ...prev.procedure,
+          sections: updatedSections,
+          updatedAt: new Date().toISOString().substring(0, 10)
+        }
+      };
+    });
+  };
+
+  const resetLegalProcedureSectionToDefault = (sectionId: string) => {
+    const defaultSection = DEFAULT_LEGAL_PROCEDURE.sections.find(s => s.id === sectionId);
+    if (!defaultSection) return;
+
+    setLegalMatrixState(prev => {
+      const updatedSections = prev.procedure.sections.map(s => {
+        if (s.id !== sectionId) return s;
+        return {
+          ...s,
+          content: defaultSection.content,
+          isCustomized: false,
+          lastModifiedAt: new Date().toISOString().substring(0, 10)
+        };
+      });
+
+      return {
+        ...prev,
+        procedure: {
+          ...prev.procedure,
+          sections: updatedSections,
+          updatedAt: new Date().toISOString().substring(0, 10)
+        }
+      };
+    });
+    showNotification('Sección restablecida al texto normativo institucional', 'info');
+  };
+
+  const approveLegalProcedure = (approverName: string, approverPosition: string) => {
+    const nowIso = new Date().toISOString().substring(0, 10);
+    setLegalMatrixState(prev => ({
+      ...prev,
+      procedure: {
+        ...prev.procedure,
+        status: 'VIGENTE',
+        approvedBy: approverName,
+        approvedPosition: approverPosition,
+        approvedDate: nowIso,
+        updatedAt: nowIso
+      }
+    }));
+
+    // Auto-registrar en repositorio central (2.2.1)
+    const docCode = legalMatrixState.procedure.code;
+    const exists = documentManagementState.documents.some(d => d.code === docCode);
+    if (!exists) {
+      const procDoc: ControlledDocument = {
+        id: `doc-proc-leg-${Date.now()}`,
+        code: docCode,
+        title: legalMatrixState.procedure.title,
+        description: 'Procedimiento documentado institucional para la identificación, actualización continua y evaluación periódica del cumplimiento de requisitos legales (Decreto 1072/15 Art. 2.2.4.6.12 Num. 15).',
+        system: 'SGSST',
+        processCode: 'LEG',
+        processId: 'LEG',
+        processName: 'Gestión Jurídica y Normativa',
+        typeCode: 'PR',
+        documentTypeId: 'PR',
+        typeName: 'Procedimiento',
+        originModule: 'SST',
+        isControlledDocument: true,
+        responsibleRole: legalMatrixState.procedure.responsibleRole || 'Líder HSEQ & Coordinadora SG-SST',
+        responsible: legalMatrixState.procedure.reviewedBy || 'Marcela Rincón Ortiz',
+        authorName: legalMatrixState.procedure.preparedBy || 'Marcela Rincón Ortiz',
+        status: 'VIGENTE',
+        storageSupport: 'DIGITAL_CLOUD',
+        currentVersion: legalMatrixState.procedure.version,
+        versionHistory: [],
+        retentionYears: 20,
+        retentionLegalBasis: 'Decreto 1072 de 2015 Art. 2.2.4.6.13 Numeral 1 (Retención 20 años para procedimientos y registros)',
+        retentionBasis: 'Decreto 1072 de 2015 Art. 2.2.4.6.13',
+        retentionStartEvent: 'FECHA_EMISION',
+        isMandatory20Years: true,
+        confidentiality: 'INTERNO',
+        physicalLocation: 'Repositorio Documental Central AGAE SOLUTIONS',
+        approvedDate: nowIso,
+        approvedAt: nowIso,
+        approvedBy: approverName,
+        createdDate: legalMatrixState.procedure.preparedDate || nowIso,
+        createdAt: legalMatrixState.procedure.preparedDate || nowIso,
+        lastUpdatedDate: nowIso,
+        updatedAt: nowIso
+      };
+
+      setDocumentManagementState(dPrev => {
+        const docs = [procDoc, ...dPrev.documents];
+        return {
+          ...dPrev,
+          documents: docs,
+          metrics: calculateDocumentMetrics(docs)
+        };
+      });
+    }
+
+    // Actualizar estándar 2.4.1 a CUMPLE
+    setSstStandards(prev => prev.map(s => {
+      if (s.code === '2.4.1' || s.id === 'std-2.4.1') {
+        return {
+          ...s,
+          status: 'CUMPLE',
+          evidenceIds: Array.from(new Set([...s.evidenceIds, 'evi-procedimiento-legal-001']))
+        };
+      }
+      return s;
+    }));
+
+    showNotification(`Procedimiento ${docCode} aprobado y archivado en el Repositorio Documental Central`, 'success');
+  };
+
+  const registerLegalMatrixInRepository = (type: 'MATRIZ' | 'PROCEDIMIENTO' | 'DIAGNOSTICO') => {
+    const nowIso = new Date().toISOString().substring(0, 10);
+    let docCode = '';
+    let docTitle = '';
+    let docType = 'MT';
+    let docTypeName = 'Matriz';
+    let description = '';
+
+    if (type === 'MATRIZ') {
+      docCode = 'MT-SGSST-LEG-001';
+      docTitle = 'Matriz de Requisitos Legales y Normativos en SST, Ambiente y Seguridad Vial';
+      docType = 'MT';
+      docTypeName = 'Matriz';
+      description = 'Matriz viva y estructurada de requisitos normativos aplicables conforme al Decreto 1072/15 Art. 2.2.4.6.8 y Res. 0312/19 Estándar 2.4.1.';
+    } else if (type === 'PROCEDIMIENTO') {
+      docCode = legalMatrixState.procedure.code;
+      docTitle = legalMatrixState.procedure.title;
+      docType = 'PR';
+      docTypeName = 'Procedimiento';
+      description = 'Procedimiento institucional documentado de 18 secciones para identificación, actualización y evaluación legal.';
+    } else {
+      docCode = 'IF-SGSST-LEG-001';
+      docTitle = `Informe Diagnóstico de Cumplimiento Legal SG-SST - ${nowIso}`;
+      docType = 'IF';
+      docTypeName = 'Informe';
+      description = `Informe diagnóstico de cumplimiento de requisitos legales con porcentaje real: ${legalMatrixState.metrics.complianceDisplay}.`;
+    }
+
+    const exists = documentManagementState.documents.some(d => d.code === docCode);
+    if (exists) {
+      showNotification(`El documento ${docCode} ya se encuentra registrado en el repositorio`, 'info');
+      return;
+    }
+
+    const newDoc: ControlledDocument = {
+      id: `doc-leg-${type.toLowerCase()}-${Date.now()}`,
+      code: docCode,
+      title: docTitle,
+      description,
+      system: 'SGSST',
+      processCode: 'LEG',
+      processId: 'LEG',
+      processName: 'Gestión Jurídica y Normativa',
+      typeCode: docType,
+      documentTypeId: docType,
+      typeName: docTypeName,
+      originModule: 'SST',
+      isControlledDocument: true,
+      responsibleRole: 'Responsable SG-SST / Asesor Jurídico',
+      responsible: 'Marcela Rincón Ortiz',
+      authorName: 'Marcela Rincón Ortiz',
+      status: 'VIGENTE',
+      storageSupport: 'DIGITAL_CLOUD',
+      currentVersion: '001',
+      versionHistory: [],
+      retentionYears: 20,
+      retentionLegalBasis: 'Decreto 1072 de 2015 Art. 2.2.4.6.13 Numeral 1 y Numeral 15',
+      retentionBasis: 'Decreto 1072 de 2015 Art. 2.2.4.6.13',
+      retentionStartEvent: 'FECHA_EMISION',
+      isMandatory20Years: true,
+      confidentiality: 'INTERNO',
+      physicalLocation: 'Repositorio Documental Central AGAE SOLUTIONS',
+      approvedDate: nowIso,
+      approvedAt: nowIso,
+      approvedBy: 'Fernando Ortiz Salazar',
+      createdDate: nowIso,
+      createdAt: nowIso,
+      lastUpdatedDate: nowIso,
+      updatedAt: nowIso
+    };
+
+    setDocumentManagementState(prev => {
+      const updated = [newDoc, ...prev.documents];
+      return {
+        ...prev,
+        documents: updated,
+        metrics: calculateDocumentMetrics(updated)
+      };
+    });
+
+    // Actualizar estándar 2.4.1
+    setSstStandards(prev => prev.map(s => {
+      if (s.code === '2.4.1' || s.id === 'std-2.4.1') {
+        return {
+          ...s,
+          status: 'CUMPLE',
+          evidenceIds: Array.from(new Set([...s.evidenceIds, 'evi-matriz-legal-2026']))
+        };
+      }
+      return s;
+    }));
+
+    showNotification(`Documento ${docCode} registrado exitosamente en el Repositorio Documental Central`, 'success');
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -4969,6 +5364,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         reviewAndFinalizeAccountability,
         generateConsolidatedAccountabilityReport,
         registerAccountabilityReportInRepository,
+
+        // Matriz de Requisitos Legales (Estándar 2.4.1, Dec. 1072 Art. 2.2.4.6.8 Num. 2 y Art. 2.2.4.6.12 Num. 15)
+        legalMatrixState,
+        updateLegalRequirement,
+        addLegalRequirement,
+        deleteLegalRequirement,
+        evaluateLegalRequirement,
+        updateLegalProcedureSection,
+        resetLegalProcedureSectionToDefault,
+        approveLegalProcedure,
+        registerLegalMatrixInRepository,
 
         searchQuery,
         setSearchQuery,

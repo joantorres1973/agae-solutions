@@ -601,8 +601,8 @@ export const master60Standards: SstStandardDefinition[] = [
     applicableIn60: true,
     modeOfVerification: 'Revisar la matriz legal en SST con evidencia de evaluación de cumplimiento periódica.',
     status: 'CUMPLE',
-    evidenceIds: [],
-    actionType: 'GENERAL'
+    evidenceIds: ['evi-matriz-legal-2026', 'evi-procedimiento-legal-001'],
+    actionType: 'LEGAL_MATRIX'
   },
   {
     id: 'std-2.5.1',

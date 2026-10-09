@@ -22,7 +22,8 @@ import {
   GraduationCap,
   Target,
   ClipboardCheck,
-  FolderArchive
+  FolderArchive,
+  Scale
 } from 'lucide-react';
 import { SstStandardDefinition, SstStandardStatus } from '@/types/sst';
 import { PilaSocialSecurityModal } from './PilaSocialSecurityModal';
@@ -41,6 +42,7 @@ interface SstStandardDetailModalProps {
   onOpenEvaluation?: (tab?: 'CHECKLIST' | 'DASHBOARD' | 'ACTIONS' | 'VALIDATION' | 'REPORT') => void;
   onOpenDocumentation?: (tab?: 'REPOSITORY' | 'PROCEDURE' | 'CODING' | 'RETENTION') => void;
   onOpenAccountability?: () => void;
+  onOpenLegalMatrix?: (tab?: string) => void;
 }
 
 export const SstStandardDetailModal: React.FC<SstStandardDetailModalProps> = ({
@@ -56,7 +58,8 @@ export const SstStandardDetailModal: React.FC<SstStandardDetailModalProps> = ({
   onOpenPolicy,
   onOpenEvaluation,
   onOpenDocumentation,
-  onOpenAccountability
+  onOpenAccountability,
+  onOpenLegalMatrix
 }) => {
   const {
     evidences,
@@ -84,6 +87,7 @@ export const SstStandardDetailModal: React.FC<SstStandardDetailModalProps> = ({
   const isEvaluationStandard = standard.code === '2.1.3' || standard.actionType === 'INITIAL_EVALUATION';
   const isDocumentationStandard = standard.code === '2.2.1' || standard.actionType === 'DOCUMENTATION';
   const isAccountabilityStandard = standard.code === '2.3.1' || standard.actionType === 'ACCOUNTABILITY';
+  const isLegalMatrixStandard = standard.code === '2.4.1' || standard.actionType === 'LEGAL_MATRIX';
 
   const handleSave = () => {
     updateStandardStatus(standard.id, status, notes);
@@ -205,7 +209,7 @@ export const SstStandardDetailModal: React.FC<SstStandardDetailModalProps> = ({
           </div>
 
           {/* Quick Action Trigger if standard has specialized tool */}
-          {(standard.actionType || isPilaStandard || isCopasstStandard || isCclStandard || isTrainingStandard || isCourse50Standard || isPolicyStandard || isObjectivesStandard || isEvaluationStandard || isDocumentationStandard || isAccountabilityStandard) && (
+          {(standard.actionType || isPilaStandard || isCopasstStandard || isCclStandard || isTrainingStandard || isCourse50Standard || isPolicyStandard || isObjectivesStandard || isEvaluationStandard || isDocumentationStandard || isAccountabilityStandard || isLegalMatrixStandard) && (
             <div className="p-3.5 rounded-xl bg-gradient-to-r from-orange-50 via-white to-slate-50 border border-orange-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <span className="font-bold text-slate-900 block">Herramienta Integrada Disponible</span>
@@ -220,6 +224,7 @@ export const SstStandardDetailModal: React.FC<SstStandardDetailModalProps> = ({
                    isEvaluationStandard ? 'Diagnóstico integral según los 10 componentes del Art. 2.2.4.6.16 del Decreto 1072 de 2015, trazabilidad con módulos, brechas e informe PDF.' :
                    isDocumentationStandard ? 'Gestione el Procedimiento de Control Documental editable (PR-SGSST-GEN-001), la codificación por serie, el repositorio centralizado transversal y la matriz de retención legal de 20 años (Art. 2.2.4.6.13).' :
                    isAccountabilityStandard ? 'Gestione la Rendición de Cuentas anual sobre el desempeño en SST (Dec. 1072 Art. 2.2.4.6.8 Num. 3) articulada con el Plan Anual de Trabajo, comités, firma electrónica y archivo central.' :
+                   isLegalMatrixStandard ? 'Gestione la Matriz de Requisitos Legales dinámica e inteligente (Dec. 1072 Art. 2.2.4.6.8 y 2.2.4.6.12 Num. 15), con distinción de estado jurídico vs cumplimiento, procedimiento de 18 secciones (PR-SGSST-LEG-001), evaluación periódica y diagnóstico PDF.' :
                    standard.actionType === 'RESPONSIBLE' ? 'Gestione la hoja de vida, licencia y la Carta de Asignación formal generada en vivo.' :
                    standard.actionType === 'BUDGET' ? 'Configure el presupuesto integrado SST + Vial PESV con aprobación de gerencia.' :
                    standard.actionType === 'HAZARDS' ? 'Identifique peligros y valore riesgos según la matriz GTC 45.' :
@@ -441,6 +446,22 @@ export const SstStandardDetailModal: React.FC<SstStandardDetailModalProps> = ({
                 >
                   <FileCheck className="w-3.5 h-3.5" />
                   <span>Ir a Rendición de Cuentas (2.3.1)</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              )}
+
+              {isLegalMatrixStandard && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    if (onOpenLegalMatrix) onOpenLegalMatrix('MATRIX');
+                    else if (onNavigateToTab) onNavigateToTab('sst');
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-700 hover:bg-indigo-600 text-white text-xs font-bold transition-all shrink-0 shadow-sm"
+                >
+                  <Scale className="w-3.5 h-3.5" />
+                  <span>Ir a Matriz Legal & Procedimiento (2.4.1)</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               )}
