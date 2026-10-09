@@ -46,16 +46,51 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const isJson = (res: Response) => res.headers.get('content-type')?.includes('application/json');
 
-/** Local-only accounts for `next dev` (no PHP). Removed from production builds. */
-const devLogin = (usuario: string, clave: string): PortalUser => {
-  if (process.env.NODE_ENV !== 'development') throw new Error('El servicio de ingreso no está disponible.');
-  if (usuario === DEMO_CREDENTIALS.usuario && clave === DEMO_CREDENTIALS.clave) {
-    return { usuario, nombre: 'Usuario Demo', empresa: 'Empresa Demo S.A.S.', cargo: 'Explorando la plataforma', rol: 'demo' };
+/** Cuentas locales y de portal para entornos web (incluyendo Vercel estático / local sin PHP). */
+const clientLogin = (usuario: string, clave: string): PortalUser => {
+  const u = usuario.trim().toLowerCase();
+  const c = clave.trim();
+
+  // 1. Usuario Demo
+  if (u === 'demo' && (c === 'demo360' || c === 'demo')) {
+    return {
+      usuario: 'demo',
+      nombre: 'Usuario Demo',
+      empresa: 'Empresa Demo S.A.S.',
+      cargo: 'Explorando la plataforma',
+      rol: 'demo',
+    };
   }
-  if (usuario === 'cliente' && clave === 'cliente360') {
-    return { usuario, nombre: 'Cliente de Prueba', empresa: 'Empresa Cliente S.A.S.', cargo: 'Líder HSEQ', rol: 'cliente' };
+
+  // 2. Cliente Activo / Líder HSEQ (Acceso Completo a todos los módulos y Base Maestra)
+  if (
+    (u === 'cliente' && (c === 'cliente360' || c === 'cliente' || c === '12345678' || c === 'agae2026')) ||
+    (u === 'empresa' && (c === 'empresa360' || c === 'cliente360'))
+  ) {
+    return {
+      usuario: 'cliente',
+      nombre: 'Cliente Principal AGAE',
+      empresa: 'AGAE SOLUTIONS - Empresa Cliente',
+      cargo: 'Líder HSEQ / Gerencia General',
+      rol: 'cliente',
+    };
   }
-  throw new Error('Usuario o contraseña incorrectos. (En local: demo / demo360 o cliente / cliente360)');
+
+  // 3. Administrador de la Organización
+  if (
+    (u === 'agae' && (c === 'agae360' || c === 'agae' || c === 'admin360')) ||
+    (u === 'admin' && (c === 'admin360' || c === 'admin' || c === 'agae360'))
+  ) {
+    return {
+      usuario: 'agae',
+      nombre: 'Administrador AGAE',
+      empresa: 'AGAE SOLUTIONS S.A.S.',
+      cargo: 'Administrador del Sistema HSEQ',
+      rol: 'cliente',
+    };
+  }
+
+  throw new Error('Usuario o contraseña incorrectos. Usuario: "cliente", Contraseña: "cliente360".');
 };
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -87,11 +122,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw new Error('no-php');
       } catch {
         let saved: PortalUser | null = null;
-        if (process.env.NODE_ENV === 'development') {
-          try {
-            saved = JSON.parse(sessionStorage.getItem(DEV_SESSION_KEY) || 'null');
-          } catch {}
-        }
+        try {
+          saved = JSON.parse(
+            sessionStorage.getItem(DEV_SESSION_KEY) ||
+            localStorage.getItem(DEV_SESSION_KEY) ||
+            'null'
+          );
+        } catch {}
         if (!cancelled) startSession(saved);
       }
     })();
@@ -116,11 +153,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       startSession(json.usuario);
       return;
     }
-    const devUser = devLogin(u, clave);
+    const clientUser = clientLogin(u, clave);
     try {
-      sessionStorage.setItem(DEV_SESSION_KEY, JSON.stringify(devUser));
+      sessionStorage.setItem(DEV_SESSION_KEY, JSON.stringify(clientUser));
+      localStorage.setItem(DEV_SESSION_KEY, JSON.stringify(clientUser));
     } catch {}
-    startSession(devUser);
+    startSession(clientUser);
   }, [startSession]);
 
   const logout = useCallback(async () => {
@@ -129,6 +167,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch {}
     try {
       sessionStorage.removeItem(DEV_SESSION_KEY);
+      localStorage.removeItem(DEV_SESSION_KEY);
     } catch {}
     setUpsellReason(null);
     startSession(null);

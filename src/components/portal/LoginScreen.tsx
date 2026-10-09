@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ArrowLeft, Eye, EyeOff, Loader2, Lock, LogIn, PlayCircle, ShieldCheck, User } from 'lucide-react';
+import { ArrowLeft, Eye, EyeOff, Loader2, Lock, LogIn, PlayCircle, ShieldCheck, User, KeyRound } from 'lucide-react';
 import { useAuth, DEMO_CREDENTIALS, DEMO_ACTION_LIMIT } from '@/lib/auth';
 import { ProfessionalDisclaimer } from '@/components/public/ProfessionalDisclaimer';
 
@@ -67,8 +67,52 @@ export const LoginScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             <h1 className="mt-2 font-display text-3xl sm:text-4xl font-semibold text-[#16245c]">Bienvenido de nuevo</h1>
             <p className="mt-2 text-[#33435c]">Ingresa con el usuario y la contraseña que te entregó AGAE SOLUTIONS.</p>
 
+            {/* Credenciales de Acceso Rápidas */}
+            <div className="mt-5 p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700 space-y-2 shadow-sm">
+              <div className="flex items-center justify-between">
+                <span className="font-semibold text-slate-900 flex items-center gap-1.5">
+                  <KeyRound className="w-3.5 h-3.5 text-blue-600" />
+                  <span>Credenciales del Portal Clientes:</span>
+                </span>
+                <span className="text-[10px] text-emerald-700 font-bold bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                  Acceso Total
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-2 text-[11px]">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setUsuario('cliente');
+                    setClave('cliente360');
+                  }}
+                  className="p-2 rounded-lg bg-white border border-slate-200 hover:border-blue-400 text-left transition-colors cursor-pointer group shadow-2xs"
+                >
+                  <div className="text-[10px] text-slate-500 font-medium group-hover:text-blue-600">👤 Perfil Cliente:</div>
+                  <div className="font-mono text-slate-800 text-[11px] mt-0.5">
+                    <span className="font-bold">cliente</span> / <span className="text-blue-600 font-semibold">cliente360</span>
+                  </div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setUsuario('agae');
+                    setClave('agae360');
+                  }}
+                  className="p-2 rounded-lg bg-white border border-slate-200 hover:border-blue-400 text-left transition-colors cursor-pointer group shadow-2xs"
+                >
+                  <div className="text-[10px] text-slate-500 font-medium group-hover:text-blue-600">🛡️ Perfil Admin:</div>
+                  <div className="font-mono text-slate-800 text-[11px] mt-0.5">
+                    <span className="font-bold">agae</span> / <span className="text-blue-600 font-semibold">agae360</span>
+                  </div>
+                </button>
+              </div>
+              <p className="text-[10px] text-slate-400 italic">
+                * Haz clic en cualquiera de las cajas para autorrellenar los datos de acceso.
+              </p>
+            </div>
+
             <form
-              className="mt-8 space-y-4"
+              className="mt-6 space-y-4"
               onSubmit={e => {
                 e.preventDefault();
                 submit(usuario, clave, 'cliente');
